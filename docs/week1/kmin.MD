@@ -16,3 +16,8 @@
 
 - **기술스택 조사-fe**
 - **URL** : https://ssafy.atlassian.net/browse/S12P11A107-19
+
+
+# 2025.01.15
+- **UX좀더 자세히**
+- **URL** : https://www.notion.so/UX-17c9626840f180fbbde8e72363d7f0e1
