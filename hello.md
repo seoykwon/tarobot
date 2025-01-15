@@ -178,4 +178,3 @@ Use Spring (Java), Flask (Python)
 5. **Chroma:**
     - Chroma는 개발자와 데이터 과학자들이 사용하기에 적합한 오픈 소스 벡터 데이터베이스로, NLP, 검색, 추천 시스템에 사용됩니다.
 
-![alt text](image.png)
