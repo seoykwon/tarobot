@@ -141,3 +141,27 @@ PC, 모바일 등 다양한 기기에서 사용 가능
     - 기초 설명은 물론 실습까지 제공해 따라하기 쉽다.
     - 공식 포럼또한 제공하므로 이슈 발생 시 쉽게 해결할 수 있다.
     - 바로 실행 가능한 데모 프로젝트 제공
+
+
+## 1월 16일 민경훈 진행 사항
+
+1. 서비스 아키텍처 그리기
+[타로 서비스 아키텍처](https://www.figma.com/design/quvFBfJzZT6jGId4TYx522/Architecture-Diagram-Components-(Community)?node-id=202-191&t=r9NYi2dXXINqkdW7-1)
+서비스에 사용될 기술 스택과 CD/CI, PM을 위한 툴들을 포함해 서비스 아키텍처를 그림
+
+2. Stable Diffusion 학습
+Stable diffusion 사용법과 활용 방안 공부
+- WebUI를 로컬에 설치해 돌릴 경우, 공부하면 좀 더 활용할 수 있을 듯 하나 기본적으로 성능이 낮음
+- huggingface에서 최신 모델을 받아 돌릴 수 있으나, GPU가 필요함
+- huggingface space로 간단히 활용해볼 수 있음
+- API 비용을 지불하고 최신 버전을 사용할 수도 있으나 비용이 많이 듦
+
+3. Spring boot 학습
+Spring boot 공식 문서를 읽어보며 프로젝트 빌드 시도.
+
+intellij를 이용해 Hello, World! 를 띄우는 것 까지 성공함.
+기본 흐름 정리
+build.gradle 파일을 작성하여 사용할 플러그인과 의존성 설정 후 로드 (gradle build를 intellij가 자동으로 추천)
+src/main/java/com/example/ 디렉토리 생성 후 MyApp.java 파일 작성
+    - @SpringBootApplication 어노테이션으로 엔트리포인트 지정.
+gradle bootRun으로 서버 구동
