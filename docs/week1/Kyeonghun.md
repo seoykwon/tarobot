@@ -162,6 +162,6 @@ Spring boot 공식 문서를 읽어보며 프로젝트 빌드 시도.
 intellij를 이용해 Hello, World! 를 띄우는 것 까지 성공함.
 기본 흐름 정리
 build.gradle 파일을 작성하여 사용할 플러그인과 의존성 설정 후 로드 (gradle build를 intellij가 자동으로 추천)
-src/main/java/com/example/ 디렉토리 생성 후 MygApp.java 파일 작성
+src/main/java/com/example/ 디렉토리 생성 후 MyApp.java 파일 작성
     - @SpringBootApplication 어노테이션으로 엔트리포인트 지정.
 gradle bootRun으로 서버 구동
