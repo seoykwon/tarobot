@@ -176,3 +176,43 @@
 2. 프로젝트 개발을 본격적으로 시작하기에 앞서 Spring Boot를 처음 써보므로, 해당 기술에 대한 강의를 들으며 학습했습니다.
 
 ---
+
+# 1월 17일 황예원 진행 사항
+
+본격적인 개발에 들어가기 전 Spring Boot 강의를 들으며 학습했습니다.
+
+### 오늘 듣은 강의 내용
+
+✅ 프로젝트 환경설정
+
+Spring Boot 프로젝트 생성 및 기본 라이브러리 살펴보기
+
+View 환경설정 및 프로젝트 빌드 & 실행
+
+✅ 스프링 웹 개발 기초
+
+정적 컨텐츠 제공 방식
+
+MVC(Model-View-Controller)와 템플릿 엔진
+
+API 개발 방식
+
+✅ 회원 관리 예제 - 백엔드 개발
+
+회원 도메인 및 리포지토리 설계
+
+회원 리포지토리 테스트 케이스 작성
+
+회원 서비스 개발 및 테스트
+
+### 오늘 알게 된 내용 정리
+
+1️⃣ ArrayList<Integer> numbers = new ArrayList<>(); 문법→ <Integer>는 제네릭(Generic) 타입으로, 리스트가 Integer 타입만 저장하도록 지정하는 역할.→ new ArrayList<>();에서 <Integer>를 삭제해도 앞에서 선언했기 때문에 자동으로 적용됨.
+
+2️⃣ Queue<Integer> queue = new LinkedList<>();의 의미→ Queue는 인터페이스, LinkedList는 구현체(클래스).→ Queue<Integer>로 선언하면 LinkedList를 Queue처럼 사용할 수 있음.
+
+3️⃣ Spring Boot 프로젝트의 실행 방식→ python manage.py runserver 대신 ./mvnw spring-boot:run 또는 java -jar build/libs/app.jar 사용.→ 기본적으로 내장 Tomcat 서버(8080 포트)에서 실행됨.
+
+4️⃣ Django와 Spring Boot의 프로젝트 구조 차이→ Django: views.py, urls.py, models.py 중심으로 구성.→ Spring Boot: Controller, Service, Repository, Entity로 더 구조적으로 나뉨.
+
+---
