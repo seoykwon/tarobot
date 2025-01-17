@@ -25,3 +25,7 @@
 # 2025.01.16
 - **경쟁 어플 디자인조사**
 - **URL** : https://ssafy.atlassian.net/browse/S12P11A107-34
+
+# 2025.01.17
+- **피그마 초안제작**
+- **URL** : https://ssafy.atlassian.net/jira/software/c/projects/S12P11A107/boards/7683?selectedIssue=S12P11A107-41
