@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Api(value = "타로 봇 API", tags = {"TarotBot"})
@@ -47,11 +48,13 @@ public class TarotBotController {
 		List<TarotBot> tarotBots = tarotBotService.getAllTarotBots();
 
 		// Entity → DTO 변환
-		List<TarotBotRes> response = tarotBots.stream()
-				.map(TarotBotRes::of)
-				.toList();
+        List<TarotBotRes> response = new ArrayList<>();
+        for (TarotBot tarotBot : tarotBots) {
+            TarotBotRes tarotBotRes = TarotBotRes.of(tarotBot);
+            response.add(tarotBotRes);
+        }
 
-		return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/{botName}")

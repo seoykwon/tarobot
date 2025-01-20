@@ -27,7 +27,14 @@ plugins {
     id 'java'
     id 'idea'
     id 'org.springframework.boot' version "${springBootVer}"
+    id "org.sonarqube" version "3.5.0.2730"
+}
 
+sonar {
+    properties {
+        property "sonar.projectKey", "S12P11A107"
+        property "sonar.qualitygate.wait", true
+    }
 }
 
 apply plugin: 'io.spring.dependency-management'
