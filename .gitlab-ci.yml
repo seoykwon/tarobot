@@ -10,4 +10,4 @@ sonarqube-check:
   script: gradle sonar
   allow_failure: true
   only:
-    - main
+    - master
