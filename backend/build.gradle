@@ -27,17 +27,8 @@ plugins {
     id 'java'
     id 'idea'
     id 'org.springframework.boot' version "${springBootVer}"
-    id "org.sonarqube" version "6.0.1.5171"
-}
 
-sonarqube {
-    properties {
-        property "sonar.projectKey", "Skeleton"
-        property "sonar.host.url", "http://localhost:9000"
-        property "sonar.token", "sqp_6fb19f39ff29bd989308c174e839fae1a3c95008"
-    }
 }
-
 
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'eclipse'
