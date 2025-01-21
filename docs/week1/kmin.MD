@@ -33,3 +33,7 @@
 # 2025.01.20
 - **모바일 앱 페이지 디자인**
 - **URL** : https://ssafy.atlassian.net/browse/S12P11A107-46
+
+# 2025.01.21
+- **모바일 앱 페이지 폰트 및 interact**
+- **URL** : https://app.uizard.io/prototypes/5bWqqW4ywlFp6aozGww7
