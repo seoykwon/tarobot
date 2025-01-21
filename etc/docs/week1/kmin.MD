@@ -29,3 +29,7 @@
 # 2025.01.17
 - **피그마 초안제작**
 - **URL** : https://ssafy.atlassian.net/jira/software/c/projects/S12P11A107/boards/7683?selectedIssue=S12P11A107-41
+
+# 2025.01.20
+- **모바일 앱 페이지 디자인**
+- **URL** : https://ssafy.atlassian.net/browse/S12P11A107-46
