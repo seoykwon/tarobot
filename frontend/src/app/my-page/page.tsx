@@ -21,14 +21,14 @@ export default function MyPage() {
         await new Promise((resolve) => setTimeout(resolve, 500))
 
         if (!isLoggedIn) {
-          router.push("/login")
+          router.push("/auth/login")
           return
         }
 
         setIsLoading(false)
       } catch (error) {
         console.error("Auth check failed:", error)
-        router.push("/login")
+        router.push("/auth/login")
       }
     }
 
@@ -37,7 +37,7 @@ export default function MyPage() {
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn")
-    router.push("/login")
+    router.push("/auth/login")
   }
 
   if (isLoading) {

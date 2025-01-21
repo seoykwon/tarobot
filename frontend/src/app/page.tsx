@@ -1,40 +1,43 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/Button"
-import { LoadingSpinner } from "@/components/Loading"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { LoadingSpinner } from "@/components/Loading";
 
 export default function Home() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const hasVisited = localStorage.getItem("hasVisited")
+        if (typeof window === "undefined") return; // 서버 환경 방지
+
+        const hasVisited = localStorage.getItem("hasVisited");
 
         // Add intentional delay for smooth transition
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         if (hasVisited) {
-          router.push("/home")
-          return
+          router.push("/home");
+          return;
         }
 
-        setIsLoading(false)
+        setIsLoading(false); // 방문 기록 없으면 로딩 해제
       } catch (error) {
-        console.error("Auth check failed:", error)
-        setIsLoading(false)
+        console.error("Auth check failed:", error);
+        setIsLoading(false); // 에러 발생 시에도 로딩 해제
       }
-    }
+    };
 
-    checkAuth()
-  }, [router])
+    checkAuth();
+  }, [router]);
 
   // 로딩 중일 때
   if (isLoading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   // 첫 방문자를 위한 시작 화면
@@ -53,13 +56,13 @@ export default function Home() {
         <Button
           className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white py-6"
           onClick={() => {
-            localStorage.setItem("hasVisited", "true")
-            router.push("/home")
+            localStorage.setItem("hasVisited", "true");
+            router.push("/home");
           }}
         >
           시작하기
         </Button>
       </div>
     </div>
-  )
+  );
 }
