@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Setter
 @ApiModel("UserProfileRegisterPostRequest")
 public class UserProfileRegisterPostReq {
-	@ApiModelProperty(name = "유저 ID", example = "user123")
+	@ApiModelProperty(name = "유저 ID", example = "ssafy_web")
 	private String userId;
 
 	@ApiModelProperty(name = "닉네임", example = "MysticUser")

@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # 모델과 토크나이저를 로컬 디렉터리에 저장
-model_name = "TinyLlama/TinyLlama-1.1B-intermediate-step-715k-1.5T"
+model_name = "maywell/Synatra-42dot-1.3B"
 local_dir = f"./models/{model_name.replace('/', '_')}"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
