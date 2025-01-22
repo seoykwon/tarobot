@@ -2,6 +2,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/Card"
 import { ChevronRight, GamepadIcon } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle';
+
 
 export default function HomePage() {
   return (
@@ -10,6 +12,7 @@ export default function HomePage() {
       <header className="p-4 text-center border-b">
         <h1 className="text-2xl font-mono">MysticPixel</h1>
       </header>
+      <ThemeToggle />
 
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}

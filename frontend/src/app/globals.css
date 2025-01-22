@@ -3,11 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #ffffff;              /* 기본 모드 */
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
+.dark {
+  --background: #0a0a0a;              /* 다크 모드 */
+  --foreground: #ededed;
+}
+
+@media (prefers-color-scheme: dark) {   /* 사용자 브라우저 테마 맞춤춤 */
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
@@ -17,7 +22,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:  Helvetica, sans-serif;    /* 폰트 수정 시 */
 }
 
 @layer utilities {
