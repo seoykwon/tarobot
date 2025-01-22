@@ -1,8 +1,27 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card"
-import { BottomNav } from "@/components/BottomNav"
-import { Star, TrendingUp, Calendar, Users } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
+import { BottomNav } from "@/components/BottomNav";
+import { Star, TrendingUp, Calendar, Users } from "lucide-react";
 
-const Home = () => {
+async function fetchTarotBots() {
+  try {
+    const response = await fetch("http://localhost:8080/api/v1/tarot-bots", {
+      next: { revalidate: 60 }, // 데이터 재검증 (옵션)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch tarot bots");
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching tarot bots:", error);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const tarotBots = await fetchTarotBots();
+
   return (
     <main className="min-h-screen pb-16">
       {/* Logo */}
@@ -61,11 +80,17 @@ const Home = () => {
       <div className="p-4">
         <div className="rounded-lg border">
           <div className="divide-y">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-4">
-                리스트 아이템 {i + 1}
-              </div>
-            ))}
+            {tarotBots.length > 0 ? (
+              tarotBots.map((bot: { name: string }, index: number) => (
+                <div key={index} className="p-4">
+                  {bot.botName}
+                  <br/>
+                  {bot.description}
+                </div>
+              ))
+            ) : (
+              <div className="p-4">데이터가 없습니다.</div>
+            )}
           </div>
         </div>
       </div>
@@ -73,7 +98,5 @@ const Home = () => {
       {/* Bottom Navigation */}
       <BottomNav />
     </main>
-  )
+  );
 }
-
-export default Home
