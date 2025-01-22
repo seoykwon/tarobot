@@ -21,7 +21,7 @@ public class User extends BaseEntity{
     @Column(nullable = false, length = 100)
     private String name; // 이름
 
-    @Column(name = "user_id", nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String userId; // 사용자 ID
 
     @JsonIgnore

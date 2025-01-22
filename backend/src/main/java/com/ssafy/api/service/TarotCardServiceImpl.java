@@ -70,7 +70,7 @@ public class TarotCardServiceImpl implements TarotCardService {
 
     // **5. 삭제 - 하나씩 삭제**
     @Override
-    public void deleteTarotCard(Integer setNumber, Integer cardNumber) {
+    public void deleteCard(Integer setNumber, Integer cardNumber) {
         Optional<TarotCard> optionalTarotCard = tarotCardRepository.findBySetNumberAndCardNumber(setNumber, cardNumber);
         if (optionalTarotCard.isPresent()) {
             tarotCardRepository.delete(optionalTarotCard.get());

@@ -20,8 +20,8 @@ public class TarotCardRequest {
     private Integer setNumber; // 세트 번호
 
     @ApiModelProperty(name = "카드 번호", example = "1", required = true)
-    @Min(value = 0, message = "Card number must be at least 0")
-    @Max(value = 78, message = "Card number cannot exceed 78")
+    @Min(value = 0, message = "카드 번호는 0 이상이어야 합니다.")
+    @Max(value = 78, message = "카드 번호는 78을 초과할 수 없습니다.")
     private Integer cardNumber; // 카드 번호
 
     @ApiModelProperty(name = "카드 이미지 URL", example = "https://example.com/card1.jpg", required = true)

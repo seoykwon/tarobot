@@ -13,6 +13,6 @@ public interface TarotCardService {
     List<TarotCard> getCardsBySetNumber(Integer setNumber);
     Optional<TarotCard> getTarotCardBySetAndNumber(Integer setNumber, Integer cardNumber);
     TarotCard updateTarotCardImage(Integer setNumber, Integer cardNumber, String newImage);
-    void deleteTarotCard(Integer setNumber, Integer cardNumber);
+    void deleteCard(Integer setNumber, Integer cardNumber);
     void deleteCardsBySet(Integer setNumber);
 }

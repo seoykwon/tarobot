@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 
 @Entity
-@Table(name = "tarot_cards")
+@Table(name = "tarot_card")
 @Getter
 @Setter
 @NoArgsConstructor

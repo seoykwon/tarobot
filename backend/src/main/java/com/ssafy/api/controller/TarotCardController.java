@@ -5,6 +5,7 @@ import com.ssafy.api.request.UpdateImageRequest;
 import com.ssafy.db.entity.TarotCard;
 import com.ssafy.api.service.TarotCardService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ import java.util.Optional;
 
 @Api(value = "타로카드 API", tags = {"TarotCard"})
 @RestController
-@RequestMapping("/api/v1/tarot-cards")
+@RequestMapping("/api/v1/tarot-card")
 public class TarotCardController {
 
     @Autowired
@@ -27,7 +28,7 @@ public class TarotCardController {
         return ResponseEntity.ok(createdCard);
     }
 
-    // **2. 조회 - 세트 번호 기반 7개 조회**
+    // **2. 조회 - 세트 번호 기반 조회**
     @GetMapping("/set/{setNumber}")
     public ResponseEntity<List<TarotCard>> getCardsBySetNumber(@PathVariable Integer setNumber) {
         List<TarotCard> cards = tarotCardService.getCardsBySetNumber(setNumber);
@@ -57,7 +58,7 @@ public class TarotCardController {
     // **5. 삭제 - 하나씩 삭제**
     @DeleteMapping("/set/{setNumber}/card/{cardNumber}")
     public ResponseEntity<Void> deleteTarotCard(@PathVariable Integer setNumber, @PathVariable Integer cardNumber) {
-        tarotCardService.deleteTarotCard(setNumber, cardNumber);
+        tarotCardService.deleteCard(setNumber, cardNumber);
         return ResponseEntity.noContent().build();
     }
 

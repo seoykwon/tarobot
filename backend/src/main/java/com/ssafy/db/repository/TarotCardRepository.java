@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 타로 카드 모델 관련 DB 쿼리 생성을 위한 인터페이스 정의.
+ */
 @Repository
 public interface TarotCardRepository extends JpaRepository<TarotCard, Long> {
 
