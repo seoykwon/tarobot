@@ -37,3 +37,6 @@
 # 2025.01.21
 - **모바일 앱 페이지 폰트 및 interact**
 - **URL** : https://app.uizard.io/prototypes/5bWqqW4ywlFp6aozGww7
+
+- **URL** : https://ssafy.atlassian.net/jira/software/c/projects/S12P11A107/boards/7683?selectedIssue=S12P11A107-41
+
