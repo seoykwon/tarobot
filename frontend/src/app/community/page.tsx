@@ -29,7 +29,7 @@ const generateMockPosts = (start: number, end: number): Post[] => {
     likes: Math.floor(Math.random() * 100),
     timeAgo: `${Math.floor(Math.random() * 5)} days ago`,
     author: `MysticalUser${start + i}`,
-    thumbnail: "assets/images/target.svg",
+    thumbnail: "/target.svg",
   }));
 };
 
@@ -169,7 +169,7 @@ export default function CommunityPage() {
             <div className="p-4">
               <div className="flex gap-4">
                 <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                  <Image src={post.thumbnail || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                  <Image src={post.thumbnail || "/example.jpg"} alt={post.title} fill className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold mb-1">{post.title}</h2>

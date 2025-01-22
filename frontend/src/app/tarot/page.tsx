@@ -36,7 +36,6 @@ const tarotBotsDummyData = [
     name: "Ariadne Moon",
     description:
       "Ariadne has over 15 years of experience in tarot reading and specializes in uncovering hidden truths and guiding spiritual journeys.",
-    imageUrl: "/tarotmaster/alligator.jpg",
     rating: 4.8,
   },
   {
@@ -44,7 +43,6 @@ const tarotBotsDummyData = [
     name: "Orion Star",
     description:
       "Orion is known for his deep connection with the cosmos and offers insights that align with celestial movements.",
-    imageUrl:"/tarotmaster/alligator.jpg",
     rating: 4.6,
   },
   {
@@ -52,7 +50,6 @@ const tarotBotsDummyData = [
     name: "Luna Solis",
     description:
       "Luna brings a unique blend of intuition and knowledge, offering readings that are both enlightening and transformative.",
-    imageUrl: "/tarotmaster/alligator.jpg",
     rating: 5.0,
   },
 ];
@@ -69,12 +66,7 @@ export default function TarotBotsPage() {
                 <div className="flex gap-4 p-4">
                   {/* 이미지 */}
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image
-                      src={bot.imageUrl || "/placeholder.svg"}
-                      alt={bot.name}
-                      fill
-                      className="object-cover"
-                    />
+                  <Image src="/target.svg" alt="Target" width={96} height={96} />
                   </div>
 
                   {/* 카드 내용 */}
