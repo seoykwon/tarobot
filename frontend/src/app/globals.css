@@ -35,7 +35,7 @@
 body {
   color: var(--foreground);            /* 기본 글자 색상: 전역 foreground */
   background: var(--background);
-  font-family: var(--font-nanum-pen);  /* 기본 폰트: Nanum Pen Script */
+  font-family: var(--font-nanum-brush);  /* 기본 폰트: Nanum Pen Script */
   font-size: 18px;                     /* 기본 글자 크기 */
 }
 
