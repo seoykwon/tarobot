@@ -1,0 +1,28 @@
+package com.ssafy.db.entity;
+
+import javax.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+
+@Entity
+@Table(name = "tarot_cards")
+@Getter
+@Setter
+@NoArgsConstructor
+public class TarotCard {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Primary Key
+
+    @Column(name = "set_number", nullable = false)
+    private Integer setNumber; // 세트 번호 (숫자 형식)
+
+    @Column(name = "card_number", nullable = false)
+    private Integer cardNumber; // 카드 번호 (0번은 뒷면, 1~78번은 앞면)
+
+    @Column(name = "card_image", nullable = false)
+    private String cardImage; // 카드 이미지 URL
+}
