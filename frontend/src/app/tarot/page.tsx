@@ -1,20 +1,21 @@
 // src/app/tarot/page.tsx
 import Link from "next/link";
 import Image from "next/image";
-import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
+// import { Star } from "lucide-react";
 
 interface TarotBot {
   id: string;
   name: string;
   description: string;
-  rating: number;
+  mbti: string;
+  // rating: number;
 }
 
 // Spring Boot API에서 타로봇 리스트 가져오기
 async function fetchTarotBots(): Promise<TarotBot[]> {
   try {
-    const response = await fetch("http://localhost:8080/api/tarot-bots", {
+    const response = await fetch("http://localhost:8080/api/v1/tarot-bots", {
       cache: "no-store", // 항상 최신 데이터를 가져오기
     });
 
@@ -54,7 +55,7 @@ export default async function TarotBotsPage() {
                     <h2 className="text-lg font-semibold">{bot.name}</h2>
                     {/* 설명 */}
                     <p className="text-sm text-muted-foreground mb-2">{bot.description}</p>
-                    {/* 평점 */}
+                    {/* 평점
                     <div className="flex items-center gap-1 text-sm">
                       {[...Array(5)].map((_, index) => (
                         <Star
@@ -66,7 +67,9 @@ export default async function TarotBotsPage() {
                           }`}
                         />
                       ))}
-                    </div>
+                    </div> */}
+                    {/* mbit */}
+                    <p className="tesx-sm text-muted-foreground mb-2">{bot.mbti}</p>
                   </CardContent>
                 </div>
               </Card>
