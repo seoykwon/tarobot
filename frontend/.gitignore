@@ -37,3 +37,4 @@ next-env.d.ts
 
 # 깃 컨벤션
 .gitmessage.txt
+.env.local
