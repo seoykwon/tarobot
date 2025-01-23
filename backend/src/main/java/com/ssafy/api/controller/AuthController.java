@@ -1,5 +1,6 @@
 package com.ssafy.api.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,12 +29,11 @@ import io.swagger.annotations.ApiResponse;
 @Api(value = "인증 API", tags = {"Auth."})
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
-	@Autowired
-	UserService userService;
-	
-	@Autowired
-	PasswordEncoder passwordEncoder;
+	private final UserService userService;
+
+	private final PasswordEncoder passwordEncoder;
 	
 	@PostMapping("/login")
 	@ApiOperation(value = "로그인", notes = "<strong>아이디와 패스워드</strong>를 통해 로그인 한다.") 

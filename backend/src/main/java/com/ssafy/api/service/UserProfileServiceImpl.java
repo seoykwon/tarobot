@@ -5,6 +5,7 @@ import com.ssafy.db.entity.User;
 import com.ssafy.db.entity.UserProfile;
 import com.ssafy.db.repository.UserProfileRepository;
 import com.ssafy.db.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +14,13 @@ import com.ssafy.db.repository.UserProfileRepositorySupport;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserProfileServiceImpl implements UserProfileService {
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    UserProfileRepository userProfileRepository;
+    private final UserProfileRepository userProfileRepository;
 
-    @Autowired
-    UserProfileRepositorySupport userProfileRepositorySupport;
+    private final UserProfileRepositorySupport userProfileRepositorySupport;
 
     @Override
     public UserProfile createUserProfile(UserProfileRegisterPostReq registerInfo) {
@@ -41,8 +40,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public UserProfile getUserProfileByUserId(String userId) {
-        UserProfile userProfile = userProfileRepositorySupport.findUserProfileByUserId(userId).get();
-        return userProfile;
+        return userProfileRepository.findByUser_UserId(userId);
     }
 
     @Override

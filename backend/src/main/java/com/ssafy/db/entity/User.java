@@ -14,14 +14,13 @@ import javax.persistence.Table;
  * 유저 모델 정의.
  */
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
 public class User extends BaseEntity{
     @Column(nullable = false, length = 100)
     private String name; // 이름
 
-    @Column(name = "user_id", nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String userId; // 사용자 ID
 
     @JsonIgnore

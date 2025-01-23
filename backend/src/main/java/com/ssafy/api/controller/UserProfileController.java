@@ -7,6 +7,7 @@ import com.ssafy.api.service.UserProfileService;
 import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.db.entity.UserProfile;
 import io.swagger.annotations.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +18,10 @@ import java.util.List;
 @Api(value = "유저 프로필 API", tags = {"UserProfile"})
 @RestController
 @RequestMapping("/api/v1/user-profiles")
+@RequiredArgsConstructor
 public class UserProfileController {
 	
-	@Autowired
-	UserProfileService userProfileService;
+	private final UserProfileService userProfileService;
 
 	@PostMapping()
 	@ApiOperation(value = "유저 프로필 등록", notes = "<strong>userId과 기타 정보</strong>를 통해 유저 프로필을 등록합니다.")

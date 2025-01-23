@@ -7,6 +7,7 @@ import com.ssafy.api.service.TarotBotService;
 import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.db.entity.TarotBot;
 import io.swagger.annotations.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +18,10 @@ import java.util.List;
 @Api(value = "타로 봇 API", tags = {"TarotBot"})
 @RestController
 @RequestMapping("/api/v1/tarot-bots")
+@RequiredArgsConstructor
 public class TarotBotController {
 	
-	@Autowired
-	TarotBotService tarotBotService;
+	private final TarotBotService tarotBotService;
 
 	@PostMapping()
 	@ApiOperation(value = "타로 봇 등록", notes = "<strong>botName과 기타 정보</strong>를 통해 타로 마스터를 등록합니다.")

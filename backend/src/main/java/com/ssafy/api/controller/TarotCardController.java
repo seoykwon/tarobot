@@ -5,6 +5,7 @@ import com.ssafy.api.request.UpdateImageRequest;
 import com.ssafy.db.entity.TarotCard;
 import com.ssafy.api.service.TarotCardService;
 import io.swagger.annotations.Api;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +16,10 @@ import java.util.Optional;
 @Api(value = "타로카드 API", tags = {"TarotCard"})
 @RestController
 @RequestMapping("/api/v1/tarot-cards")
+@RequiredArgsConstructor
 public class TarotCardController {
 
-    @Autowired
-    private TarotCardService tarotCardService;
+    private final TarotCardService tarotCardService;
 
     // **1. 생성 - 세트 번호, 이름 번호, 이미지**
     @PostMapping
