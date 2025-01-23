@@ -199,6 +199,7 @@ export default function CommunityPage() {
           {loading && <div className="text-muted-foreground">Loading...</div>}
         </div>
       </div>
+      
 
       {/* Write 버튼 */}
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2">

@@ -1,46 +1,19 @@
-"use client";
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { LoadingSpinner } from "@/components/Loading";
+export default async function Home() {
+  const cookieStore = cookies();
+  const hasVisited = cookieStore.get('hasVisited')?.value;
 
-export default function Home() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (typeof window === "undefined") return; // 서버 환경 방지
-
-        const hasVisited = localStorage.getItem("hasVisited");
-
-        // Add intentional delay for smooth transition
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        if (hasVisited) {
-          router.push("/home");
-          return;
-        }
-
-        setIsLoading(false); // 방문 기록 없으면 로딩 해제
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        setIsLoading(false); // 에러 발생 시에도 로딩 해제
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  // 로딩 중일 때
-  if (isLoading) {
-    return <LoadingSpinner />;
+  if (hasVisited) {
+    // 이미 방문한 경우 /home으로 리다이렉트
+    redirect('/home');
   }
 
-  // 첫 방문자를 위한 시작 화면
+  // 첫 방문인 경우 쿠키 설정을 위해 Route Handler 호출
+  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/set-cookie`, { method: 'GET' });
+
+  // 첫 방문 화면 렌더링
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-[320px] flex flex-col items-center gap-6">
@@ -53,15 +26,12 @@ export default function Home() {
           <p className="text-gray-400">Explore the mystical</p>
         </div>
 
-        <Button
-          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white py-6"
-          onClick={() => {
-            localStorage.setItem("hasVisited", "true");
-            router.push("/home");
-          }}
+        <a
+          href="/home"
+          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white py-6 text-center block"
         >
           시작하기
-        </Button>
+        </a>
       </div>
     </div>
   );

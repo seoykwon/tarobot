@@ -65,6 +65,10 @@ export default function MyPage() {
               <h2 className="font-semibold">나의 활동</h2>
             </CardHeader>
             <CardContent className="space-y-4">
+              <Button variant="ghost" className="w-full justify-start text-destructive" onClick={() => router.push("/my-page/editprofile")}>
+                <LogOut className="mr-2 h-4 w-4" />
+                개인정보 수정
+              </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => router.push("/my-page/history")}>
                 <History className="mr-2 h-4 w-4" />
                 타로 히스토리
