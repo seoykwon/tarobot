@@ -16,7 +16,7 @@ import lombok.Setter;
 public class TarotBotRes {
 
     @ApiModelProperty(name = "Bot Name")
-    private String botName;
+    private String name;
 
     @ApiModelProperty(name = "Description")
     private String description;
@@ -32,7 +32,7 @@ public class TarotBotRes {
 
     public static TarotBotRes of(TarotBot tarotBot) {
         TarotBotRes res = new TarotBotRes();
-        res.setBotName(tarotBot.getBotName());
+        res.setName(tarotBot.getName());
         res.setDescription(tarotBot.getDescription());
         res.setConcept(tarotBot.getConcept());
         res.setProfileImage(tarotBot.getProfileImage());

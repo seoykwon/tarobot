@@ -13,7 +13,7 @@ import lombok.Setter;
 @ApiModel("TarotBotRegisterPostRequest")
 public class TarotBotRegisterPostReq {
 	@ApiModelProperty(name="타로 봇 이름", example="MysticTarot")
-	private String botName;
+	private String name;
 
 	@ApiModelProperty(name = "타로 봇 설명", example = "A tarot card reading bot")
 	private String description;

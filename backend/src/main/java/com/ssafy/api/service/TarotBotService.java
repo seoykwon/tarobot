@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface TarotBotService {
 	TarotBot createTarotBot(TarotBotRegisterPostReq tarotBotRegisterInfo);
-	TarotBot getTarotBotByBotName(String botName);
+	TarotBot getTarotBotByName(String Name);
 	List<TarotBot> getAllTarotBots();
 }

@@ -24,7 +24,7 @@ public class TarotBotController {
 	private final TarotBotService tarotBotService;
 
 	@PostMapping()
-	@ApiOperation(value = "타로 봇 등록", notes = "<strong>botName과 기타 정보</strong>를 통해 타로 마스터를 등록합니다.")
+	@ApiOperation(value = "타로 봇 등록", notes = "<strong>name과 기타 정보</strong>를 통해 타로 마스터를 등록합니다.")
 	@ApiResponses({
 			@ApiResponse(code = 200, message = "성공"),
 			@ApiResponse(code = 400, message = "잘못된 요청"),
@@ -58,18 +58,18 @@ public class TarotBotController {
         return ResponseEntity.ok(response);
 	}
 
-	@GetMapping("/{botName}")
-	@ApiOperation(value = "이름 기반 타로 봇 조회", notes = "botName을 통해 타로 마스터 정보를 조회합니다.")
+	@GetMapping("/{name}")
+	@ApiOperation(value = "이름 기반 타로 봇 조회", notes = "name을 통해 타로 마스터 정보를 조회합니다.")
 	@ApiResponses({
 			@ApiResponse(code = 200, message = "성공"),
 			@ApiResponse(code = 404, message = "타로 마스터 없음"),
 			@ApiResponse(code = 500, message = "서버 오류")
 	})
 	public ResponseEntity<TarotBotRes> getTarotBotInfo(
-			@PathVariable @ApiParam(value = "조회할 botName", required = true) String botName) {
+			@PathVariable @ApiParam(value = "조회할 name", required = true) String name) {
 
 		// 타로 마스터 조회 서비스 호출
-		TarotBot tarotBot = tarotBotService.getTarotBotByBotName(botName);
+		TarotBot tarotBot = tarotBotService.getTarotBotByName(name);
 
 		// 조회 결과 응답
 		return ResponseEntity.status(200).body(TarotBotRes.of(tarotBot));

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class TarotBot extends BaseEntity {
 
     @Column(length = 100, nullable = false)
-    private String botName;
+    private String name;
 
     @Column(length = 255)
     private String description;

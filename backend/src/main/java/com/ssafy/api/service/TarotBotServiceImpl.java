@@ -16,7 +16,7 @@ public class TarotBotServiceImpl implements TarotBotService {
     @Override
     public TarotBot createTarotBot(TarotBotRegisterPostReq registerInfo) {
         TarotBot tarotBot = new TarotBot();
-        tarotBot.setBotName(registerInfo.getBotName());
+        tarotBot.setName(registerInfo.getName());
         tarotBot.setDescription(registerInfo.getDescription());
         tarotBot.setConcept(registerInfo.getConcept());
         tarotBot.setProfileImage(registerInfo.getProfileImage());
@@ -26,8 +26,8 @@ public class TarotBotServiceImpl implements TarotBotService {
     }
 
     @Override
-    public TarotBot getTarotBotByBotName(String botName) {
-        return tarotBotRepository.findByBotName(botName).get();
+    public TarotBot getTarotBotByName(String name) {
+        return tarotBotRepository.findByName(name).get();
     }
 
     @Override
