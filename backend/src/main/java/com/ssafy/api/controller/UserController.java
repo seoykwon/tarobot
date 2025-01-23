@@ -1,5 +1,7 @@
 package com.ssafy.api.controller;
 
+import com.ssafy.api.response.UserProfileRes;
+import com.ssafy.db.entity.UserProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,9 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import springfox.documentation.annotations.ApiIgnore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 유저 관련 API 요청 처리를 위한 컨트롤러 정의.
@@ -75,5 +80,25 @@ public class UserController {
 		User user = userService.getUserByUserId(userId);
 		
 		return ResponseEntity.status(200).body(UserRes.of(user));
+	}
+
+	@GetMapping()
+	@ApiOperation(value = "모든 유저 조회", notes = "등록된 모든 유저를 조회합니다.")
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "성공"),
+			@ApiResponse(code = 500, message = "서버 오류")
+	})
+	public ResponseEntity<List<UserRes>> getAllUsers() {
+		// 모든 유저를 가져옴
+		List<User> users = userService.getAllUsers();
+
+		// Entity → DTO 변환
+		List<UserRes> response = new ArrayList<>();
+		for (User user : users) {
+			UserRes userRes = UserRes.of(user);
+			response.add(userRes);
+		}
+
+		return ResponseEntity.ok(response);
 	}
 }

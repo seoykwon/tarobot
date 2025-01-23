@@ -7,10 +7,7 @@ import com.ssafy.db.entity.UserProfile;
 import com.ssafy.db.repository.UserProfileRepository;
 import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.ssafy.db.repository.UserProfileRepositorySupport;
 
 import java.util.List;
 
@@ -20,8 +17,6 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final UserRepository userRepository;
 
     private final UserProfileRepository userProfileRepository;
-
-    private final UserProfileRepositorySupport userProfileRepositorySupport;
 
     @Override
     public UserProfile createUserProfile(UserProfileRegisterPostReq registerInfo) {
