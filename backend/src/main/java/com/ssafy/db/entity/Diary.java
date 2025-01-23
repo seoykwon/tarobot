@@ -34,5 +34,5 @@ public class Diary extends BaseEntity {
     private String summary; // 상담 요약
 
     @URL
-    private String tarotCardImageUrl; // 타로 카드 이미지 URL
+    private String cardImageUrl; // 타로 카드 이미지 URL
 }

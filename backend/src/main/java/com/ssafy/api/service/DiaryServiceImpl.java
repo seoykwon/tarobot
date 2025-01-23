@@ -38,7 +38,7 @@ public class DiaryServiceImpl implements DiaryService {
 		diary.setTag(diaryCreateReq.getTag());
 		diary.setTitle(diaryCreateReq.getTitle());
 		diary.setSummary(diaryCreateReq.getSummary());
-		diary.setTarotCardImageUrl(diaryCreateReq.getTarotCardImageUrl());
+		diary.setCardImageUrl(diaryCreateReq.getCardImageUrl());
 
 		return diaryRepository.save(diary);
 	}
@@ -66,7 +66,7 @@ public class DiaryServiceImpl implements DiaryService {
 		diary.setTag(diaryUpdateReq.getTag());
 		diary.setTitle(diaryUpdateReq.getTitle());
 		diary.setSummary(diaryUpdateReq.getSummary());
-		diary.setTarotCardImageUrl(diaryUpdateReq.getTarotCardImageUrl());
+		diary.setCardImageUrl(diaryUpdateReq.getCardImageUrl());
 
 		return diaryRepository.save(diary);
 	}

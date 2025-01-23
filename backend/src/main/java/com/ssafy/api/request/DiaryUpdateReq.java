@@ -28,5 +28,5 @@ public class DiaryUpdateReq {
     private String summary;
 
     @ApiModelProperty(name = "타로 카드 이미지 URL", example = "http://example.com/tarot.jpg")
-    private String tarotCardImageUrl;
+    private String cardImageUrl;
 }
