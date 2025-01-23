@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdateImageRequest {
+public class UpdateImageReq {
     private String newImage; // 새로운 이미지 URL
 }

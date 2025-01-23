@@ -39,7 +39,7 @@ public class TarotCardServiceImpl implements TarotCardService {
         TarotCard tarotCard = new TarotCard();
         tarotCard.setSetNumber(setNumber);
         tarotCard.setCardNumber(cardNumber);
-        tarotCard.setCardImage(cardImage);
+        tarotCard.setCardImageUrl(cardImage);
         return tarotCardRepository.save(tarotCard);
     }
 
@@ -61,7 +61,7 @@ public class TarotCardServiceImpl implements TarotCardService {
         Optional<TarotCard> optionalTarotCard = tarotCardRepository.findBySetNumberAndCardNumber(setNumber, cardNumber);
         if (optionalTarotCard.isPresent()) {
             TarotCard tarotCard = optionalTarotCard.get();
-            tarotCard.setCardImage(newImage);
+            tarotCard.setCardImageUrl(newImage);
             return tarotCardRepository.save(tarotCard); // 변경 사항 저장
         } else {
             throw new IllegalArgumentException("세트 " + setNumber + "에 카드 번호 " + cardNumber + "을(를) 찾을 수 없습니다.");

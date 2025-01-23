@@ -22,13 +22,13 @@ public class TarotCardRes {
     private Integer cardNumber;
 
     @ApiModelProperty(name = "카드 이미지 URL")
-    private String cardImage;
+    private String cardImageUrl;
 
     public static TarotCardRes of(TarotCard tarotCard) {
         TarotCardRes res = new TarotCardRes();
         res.setSetNumber(tarotCard.getSetNumber());
         res.setCardNumber(tarotCard.getCardNumber());
-        res.setCardImage(tarotCard.getCardImage());
+        res.setCardImageUrl(tarotCard.getCardImageUrl());
         return res;
     }
 }

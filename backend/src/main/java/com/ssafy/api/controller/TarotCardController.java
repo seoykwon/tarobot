@@ -1,7 +1,7 @@
 package com.ssafy.api.controller;
 
-import com.ssafy.api.request.TarotCardRequest;
-import com.ssafy.api.request.UpdateImageRequest;
+import com.ssafy.api.request.TarotCardReq;
+import com.ssafy.api.request.UpdateImageReq;
 import com.ssafy.db.entity.TarotCard;
 import com.ssafy.api.service.TarotCardService;
 import io.swagger.annotations.*;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Api(value = "타로카드 API", tags = {"TarotCard"})
 @RestController
-@RequestMapping("/api/v1/tarot-card")
+@RequestMapping("/api/v1/tarot-cards")
 public class TarotCardController {
 
     @Autowired
@@ -28,7 +28,7 @@ public class TarotCardController {
             @ApiResponse(code = 400, message = "잘못된 요청"),
             @ApiResponse(code = 500, message = "서버 오류")
     })
-    public ResponseEntity<TarotCard> createTarotCard(@RequestBody @ApiParam(value = "타로 카드 생성 정보", required = true) TarotCardRequest request) {
+    public ResponseEntity<TarotCard> createTarotCard(@RequestBody @ApiParam(value = "타로 카드 생성 정보", required = true) TarotCardReq request) {
         TarotCard createdCard = tarotCardService.createTarotCard(request.getSetNumber(), request.getCardNumber(), request.getCardImage());
         return ResponseEntity.ok(createdCard);
     }
@@ -76,7 +76,7 @@ public class TarotCardController {
     public ResponseEntity<TarotCard> updateTarotCardImage(
             @PathVariable @ApiParam(value = "세트 번호", required = true) Integer setNumber,
             @PathVariable @ApiParam(value = "카드 번호", required = true) Integer cardNumber,
-            @RequestBody @ApiParam(value="새 이미지 정보", required=true) UpdateImageRequest request) {
+            @RequestBody @ApiParam(value="새 이미지 정보", required=true) UpdateImageReq request) {
         TarotCard updatedCard = tarotCardService.updateTarotCardImage(setNumber, cardNumber, request.getNewImage());
         return ResponseEntity.ok(updatedCard);
     }
