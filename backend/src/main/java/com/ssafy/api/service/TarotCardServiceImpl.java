@@ -2,6 +2,7 @@ package com.ssafy.api.service;
 
 import com.ssafy.db.entity.TarotCard;
 import com.ssafy.db.repository.TarotCardRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +13,10 @@ import java.util.Optional;
  * 타로 카드 관련 비즈니스 로직 처리를 위한 서비스 구현 정의.
  */
 @Service("tarotCardService")
+@RequiredArgsConstructor
 public class TarotCardServiceImpl implements TarotCardService {
 
-    @Autowired
-    private TarotCardRepository tarotCardRepository;
+    private final TarotCardRepository tarotCardRepository;
 
     // **1. 생성 - 세트 번호, 이름 번호, 이미지**
     @Override

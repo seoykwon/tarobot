@@ -3,6 +3,7 @@ package com.ssafy.api.service;
 import com.ssafy.api.request.TarotBotRegisterPostReq;
 import com.ssafy.db.entity.TarotBot;
 import com.ssafy.db.repository.TarotBotRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +12,11 @@ import com.ssafy.db.repository.TarotBotRepositorySupport;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TarotBotServiceImpl implements TarotBotService {
-    @Autowired
-    TarotBotRepository tarotBotRepository;
+    private final TarotBotRepository tarotBotRepository;
 
-    @Autowired
-    TarotBotRepositorySupport tarotBotRepositorySupport;
+    private final TarotBotRepositorySupport tarotBotRepositorySupport;
 
     @Override
     public TarotBot createTarotBot(TarotBotRegisterPostReq registerInfo) {
@@ -32,8 +32,7 @@ public class TarotBotServiceImpl implements TarotBotService {
 
     @Override
     public TarotBot getTarotBotByBotName(String botName) {
-        TarotBot tarotBot = tarotBotRepositorySupport.findTarotBotByBotName(botName).get();
-        return tarotBot;
+        return tarotBotRepository.findByBotName(botName);
     }
 
     @Override

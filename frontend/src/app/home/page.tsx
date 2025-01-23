@@ -1,79 +1,100 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card"
-import { BottomNav } from "@/components/BottomNav"
-import { Star, TrendingUp, Calendar, Users } from 'lucide-react'
+import Link from "next/link"
+import Image from "next/image"
+import { Card, CardContent } from "@/components/ui/Card"
+import { ChevronRight, GamepadIcon } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle';
 
-const Home = () => {
+
+export default function HomePage() {
   return (
-    <main className="min-h-screen pb-16">
-      {/* Logo */}
-      <div className="flex justify-center py-6">
-        <div className="flex flex-col items-center">
-          <Star className="w-12 h-12 text-primary" strokeWidth={1.5} />
-          <h1 className="mt-2 text-xl font-semibold">별자리</h1>
-        </div>
-      </div>
+    <main className="min-h-screen bg-background text-foreground pb-16">
+      {/* Header */}
+      <header className="p-4 text-center border-b">
+        <h1 className="text-2xl font-mono">MysticPixel</h1>
+      </header>
+      <ThemeToggle />
 
-      {/* Top Cards */}
-      <div className="grid grid-cols-2 gap-4 p-4">
-        <Card className="relative overflow-hidden">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">오늘의 운세</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TrendingUp className="w-6 h-6 text-primary mb-2" />
-            <p className="text-sm text-muted-foreground">행운이 가득한 하루가 될 것 같아요</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">이번 달 운세</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Calendar className="w-6 h-6 text-primary mb-2" />
-            <p className="text-sm text-muted-foreground">새로운 시작의 달입니다</p>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="p-4 space-y-6">
+        {/* Today's Fortune */}
+        <section>
+          <h2 className="text-lg font-mono mb-3">Today's Fortune</h2>
+          <Link href="/tarot/daily">
+            <Card className="hover:bg-accent/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <div className="relative w-16 h-24 flex-shrink-0">
+                    <GamepadIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-1">Daily Mysteries Ep.</h3>
+                    <p className="text-sm text-muted-foreground">
+                      "Today is a great day to start something new. Trust your intuition."
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </section>
 
-      {/* Middle Card */}
-      <div className="p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>주간 운세 하이라이트</CardTitle>
-            <CardDescription>이번 주 당신을 위한 특별한 메시지</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                이번 주는 특히 대인관계에서 좋은 기운이 감지됩니다. 새로운 만남이나 협력 관계가 형성될 수 있는
-                시기입니다.
-              </p>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium">인간관계 운이 상승중</span>
-              </div>
+        {/* Tarot Masters */}
+        <section>
+          <Link href="/tarot">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-mono">Tarot masters</h2>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bottom List */}
-      <div className="p-4">
-        <div className="rounded-lg border">
-          <div className="divide-y">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-4">
-                리스트 아이템 {i + 1}
-              </div>
+          </Link>
+          <div className="space-y-2">
+            {[
+              { name: "Luna", title: "Magical Melodies" },
+              { name: "Aurora", title: "Harmony's Call" },
+              { name: "Whispers of Fate", title: "Eternal Bonds" }
+            ].map((master, index) => (
+              <Link key={index} href={`/tarot/bots/${index + 1}`}>
+                <Card className="hover:bg-accent/50 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                        <GamepadIcon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{master.name}</h3>
+                        <p className="text-sm text-muted-foreground">{master.title}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        </div>
+        </section>
+
+        {/* Mini-Games */}
+        <section>
+          <Link href="/game">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-mono">Mini-Games</h2>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </Link>
+          <Link href="/games/puzzle">
+            <Card className="hover:bg-accent/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
+                    <GamepadIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Enchanted Puzzle</h3>
+                    <p className="text-sm text-muted-foreground">Solve the mystery</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </section>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </main>
-  )
+  );
 }
-
-export default Home

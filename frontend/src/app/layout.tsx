@@ -1,9 +1,7 @@
 import type { Metadata } from "next"
-import { Inter } from 'next/font/google'
 import "./globals.css"
 import { BottomNav } from "@/components/BottomNav"
-
-const inter = Inter({ subsets: ["latin"] })
+import ClientProviders from "./ClientProvider";
 
 export const metadata: Metadata = {
   title: '타로봇',
@@ -17,8 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={inter.className}>
-        {children}
+      <body>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
         <BottomNav />
       </body>
     </html>
