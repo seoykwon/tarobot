@@ -8,10 +8,10 @@ import { LoadingSpinner } from "@/components/Loading"
 import { User, Settings, LogOut } from "lucide-react"
 
 interface TarotRecord {
-  id: number;
-  date: string;
-  question: string;
-  result: string;
+  id: number
+  date: string
+  question: string
+  result: string
 }
 
 export default function MyPage() {
@@ -35,19 +35,19 @@ export default function MyPage() {
 
         // 타로 기록 가져오기
         try {
-          const response = await fetch('/api/tarot-records', {
-            method: 'GET',
+          const response = await fetch("/api/tarot-records", {
+            method: "GET",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
-          });
+          })
 
           if (response.ok) {
-            const data = await response.json();
-            setTarotRecords(data);
+            const data = await response.json()
+            setTarotRecords(data)
           }
         } catch (error) {
-          console.error("Failed to fetch tarot records:", error);
+          console.error("Failed to fetch tarot records:", error)
         }
 
         setIsLoading(false)
@@ -90,7 +90,11 @@ export default function MyPage() {
               <h2 className="font-semibold">나의 활동</h2>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="ghost" className="w-full justify-start text-destructive" onClick={() => router.push("/my-page/editprofile")}>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-destructive"
+                onClick={() => router.push("/my-page/editprofile")}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 개인정보 수정
               </Button>
@@ -107,7 +111,16 @@ export default function MyPage() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-semibold">최근 타로 기록</h2>
+              <div className="flex justify-between items-center">
+                <h2 className="font-semibold">최근 타로 기록</h2>
+                <Button
+                  variant="link"
+                  className="p-0 h-auto font-normal text-primary"
+                  onClick={() => router.push("/diary")}
+                >
+                  [더보기]
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {tarotRecords.length > 0 ? (
@@ -134,3 +147,4 @@ export default function MyPage() {
     </main>
   )
 }
+
