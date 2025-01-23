@@ -16,10 +16,4 @@ public class TarotBotRepositorySupport {
     private final JPAQueryFactory jpaQueryFactory;
     QTarotBot qTarotBot = QTarotBot.tarotBot;
 
-    public Optional<TarotBot> findTarotBotByBotName(String botName) {
-        TarotBot tarotBot = jpaQueryFactory.select(qTarotBot).from(qTarotBot)
-                .where(qTarotBot.botName.eq(botName)).fetchOne();
-        if(tarotBot == null) return Optional.empty();
-        return Optional.ofNullable(tarotBot);
-    }
 }

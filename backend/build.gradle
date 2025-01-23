@@ -30,12 +30,21 @@ plugins {
     id "org.sonarqube" version "3.5.0.2730"
 }
 
-sonar {
+sonarqube {
     properties {
         property "sonar.projectKey", "S12P11A107"
-        property "sonar.qualitygate.wait", true
+        property "sonar.host.url", "https://sonarqube.ssafy.com"
+        property "sonar.login", "sqp_0d6a0c9de84c811fb4f7e1d70f8a3899a4a7672c"
+        property "sonar.sources", "src"
     }
 }
+
+//sonar {
+//    properties {
+//        property "sonar.projectKey", "S12P11A107"
+//        property "sonar.qualitygate.wait", true
+//    }
+//}
 
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'eclipse'

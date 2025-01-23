@@ -1,6 +1,7 @@
 package com.ssafy.api.service;
 
 import com.ssafy.api.request.UserProfileRegisterPostReq;
+import com.ssafy.api.request.UserProfileUpdateReq;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.entity.UserProfile;
 import com.ssafy.db.repository.UserProfileRepository;
@@ -40,11 +41,28 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public UserProfile getUserProfileByUserId(String userId) {
-        return userProfileRepository.findByUser_UserId(userId);
+        return userProfileRepository.findByUser_UserId(userId).get();
     }
 
     @Override
     public List<UserProfile> getAllUserProfiles() {
         return userProfileRepository.findAll();
+    }
+
+    @Override
+    public UserProfile updateUserProfile(String userId, UserProfileUpdateReq updateReq) {
+        // UserProfile 조회
+        UserProfile userProfile = userProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("UserProfile not found with userId: " + userId));
+
+        // 수정할 필드만 업데이트
+        updateReq.getNickname().ifPresent(userProfile::setNickname);
+        updateReq.getGender().ifPresent(userProfile::setGender);
+        updateReq.getEmail().ifPresent(userProfile::setEmail);
+        updateReq.getProfileImage().ifPresent(userProfile::setProfileImage);
+        updateReq.getBirthDate().ifPresent(userProfile::setBirthDate);
+
+        // 저장 후 반환
+        return userProfileRepository.save(userProfile);
     }
 }

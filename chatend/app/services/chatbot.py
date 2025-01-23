@@ -42,8 +42,8 @@ def get_response(message: str, history: list = None) -> str:
     inputs = tokenizer.encode(context, return_tensors="pt").to(device)
 
     generation_config = GenerationConfig(
-        max_length=200,
-        temperature=0.7,
+        max_length=100,
+        temperature=0.8,
         top_p=0.9,
         repetition_penalty=1.2,
         num_return_sequences=1,

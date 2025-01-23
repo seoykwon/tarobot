@@ -32,7 +32,7 @@ public class TarotBotServiceImpl implements TarotBotService {
 
     @Override
     public TarotBot getTarotBotByBotName(String botName) {
-        return tarotBotRepository.findByBotName(botName);
+        return tarotBotRepository.findByBotName(botName).get();
     }
 
     @Override
