@@ -44,7 +44,7 @@ const ChatPage = () => {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!inputMessage.trim()) return
 
@@ -58,16 +58,41 @@ const ChatPage = () => {
     setMessages((prev) => [...prev, newMessage])
     setInputMessage("")
 
-    // 봇 응답 시뮬레이션
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "I understand. Let me check the cards...",
+    // API 호출
+    try {
+      const response = await fetch("http://127.0.0.1:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: inputMessage, // 백엔드에서 요구하는 "message" 필드만 포함
+        }),
+      });
+    
+      if (!response.ok) {
+        throw new Error("Failed to fetch chatbot response");
+      }
+    
+      const data = await response.json();
+    
+      // 응답 데이터 처리
+      const botMessage: Message = {
+        id: Date.now().toString(),
+        content: data.chatbot_response,
         sender: "bot",
         timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, botResponse])
-    }, 1000)
+      };
+    
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error fetching chatbot response:", error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        content: "Error: Unable to fetch response from the chatbot.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    }
   }
 
   const handleInvite = () => {
