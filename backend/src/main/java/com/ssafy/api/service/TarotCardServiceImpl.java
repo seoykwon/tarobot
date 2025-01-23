@@ -3,7 +3,6 @@ package com.ssafy.api.service;
 import com.ssafy.db.entity.TarotCard;
 import com.ssafy.db.repository.TarotCardRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,16 +24,16 @@ public class TarotCardServiceImpl implements TarotCardService {
         if (cardNumber == 0) {
             Optional<TarotCard> existingBackCard = tarotCardRepository.findBySetNumberAndCardNumber(setNumber, 0);
             if (existingBackCard.isPresent()) {
-                throw new IllegalArgumentException("Back card for set " + setNumber + " already exists.");
+                throw new IllegalArgumentException("세트 " + setNumber + "에 이미 뒷면 카드가 존재합니다.");
             }
         } else if (cardNumber < 1 || cardNumber > 78) {
-            throw new IllegalArgumentException("Card number must be between 1 and 78 (or 0 for back card).");
+            throw new IllegalArgumentException("카드 번호는 1부터 78 사이여야 합니다. (뒷면 카드는 0)");
         }
 
         // 동일한 세트와 카드 번호가 이미 존재하는지 확인
         Optional<TarotCard> existingCard = tarotCardRepository.findBySetNumberAndCardNumber(setNumber, cardNumber);
         if (existingCard.isPresent()) {
-            throw new IllegalArgumentException("A card with number " + cardNumber + " already exists in set " + setNumber);
+            throw new IllegalArgumentException("세트 " + setNumber + "에 카드 번호 " + cardNumber + "이(가) 이미 존재합니다.");
         }
 
         TarotCard tarotCard = new TarotCard();
@@ -65,7 +64,7 @@ public class TarotCardServiceImpl implements TarotCardService {
             tarotCard.setCardImage(newImage);
             return tarotCardRepository.save(tarotCard); // 변경 사항 저장
         } else {
-            throw new IllegalArgumentException("Tarot card with set number " + setNumber + " and card number " + cardNumber + " not found.");
+            throw new IllegalArgumentException("세트 " + setNumber + "에 카드 번호 " + cardNumber + "을(를) 찾을 수 없습니다.");
         }
     }
 
@@ -76,7 +75,7 @@ public class TarotCardServiceImpl implements TarotCardService {
         if (optionalTarotCard.isPresent()) {
             tarotCardRepository.delete(optionalTarotCard.get());
         } else {
-            throw new IllegalArgumentException("Tarot card with set number " + setNumber + " and card number " + cardNumber + " not found.");
+            throw new IllegalArgumentException("세트 " + setNumber + "에 카드 번호 " + cardNumber + "을(를) 찾을 수 없습니다.");
         }
     }
 
@@ -87,7 +86,7 @@ public class TarotCardServiceImpl implements TarotCardService {
         if (!cards.isEmpty()) {
             tarotCardRepository.deleteAll(cards);
         } else {
-            throw new IllegalArgumentException("No cards found for set number " + setNumber);
+            throw new IllegalArgumentException("세트 " + setNumber + "에 해당하는 카드를 찾을 수 없습니다.");
         }
     }
 }
