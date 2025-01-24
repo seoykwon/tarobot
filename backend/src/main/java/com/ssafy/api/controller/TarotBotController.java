@@ -8,7 +8,6 @@ import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.db.entity.TarotBot;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,6 +72,20 @@ public class TarotBotController {
 
 		// 조회 결과 응답
 		return ResponseEntity.status(200).body(TarotBotRes.of(tarotBot));
+	}
+
+	@PutMapping("/{tarotBotId}")
+	@ApiOperation(value = "타로 봇 수정", notes = "특정 타로 봇 ID의 내용을 수정합니다.")
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "성공"),
+			@ApiResponse(code = 404, message = "타로 봇을 찾을 수 없음"),
+			@ApiResponse(code = 500, message = "서버 오류")
+	})
+	public ResponseEntity<TarotBot> updateTarotBot(
+			@PathVariable @ApiParam(value = "타로 봇 ID", required = true) Long tarotBotId,
+			@RequestBody @ApiParam(value = "타로 봇 수정 정보", required = true) TarotBotRegisterPostReq tarotBotUpdateReq) {
+		TarotBot updatedTarotBot = tarotBotService.updateTarotBot(tarotBotId, tarotBotUpdateReq);
+		return ResponseEntity.ok(updatedTarotBot);
 	}
 
 

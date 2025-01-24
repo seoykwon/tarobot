@@ -9,4 +9,5 @@ public interface TarotBotService {
 	TarotBot createTarotBot(TarotBotRegisterPostReq tarotBotRegisterInfo);
 	TarotBot getTarotBotByName(String Name);
 	List<TarotBot> getAllTarotBots();
+	TarotBot updateTarotBot(Long tarotBotId, TarotBotRegisterPostReq tarotBotUpdateInfo);
 }
