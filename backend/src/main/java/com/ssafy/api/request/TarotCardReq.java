@@ -9,12 +9,12 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
 /**
- * 타로 카드 생성/수정 API 요청에 필요한 리퀘스트 바디 정의.
+ * 타로 카드 생성/수정 API (/api/v1/tarot-cards) 요청에 필요한 리퀘스트 바디 정의.
  */
 @Getter
 @Setter
 @ApiModel("TarotCardRequest")
-public class TarotCardRequest {
+public class TarotCardReq {
 
     @ApiModelProperty(name = "세트 번호", example = "1", required = true)
     private Integer setNumber; // 세트 번호
