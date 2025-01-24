@@ -10,14 +10,14 @@ export default function HomePage() {
     <main className="min-h-screen bg-background text-foreground pb-16">
       {/* Header */}
       <header className="p-4 text-center border-b">
-        <h1 className="text-2xl font-mono">MysticPixel</h1>
+        <h1 className="font-login-title">MysticPixel</h1>
       </header>
       <ThemeToggle />
 
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}
         <section>
-          <h2 className="text-lg font-mono mb-3">Today's Fortune</h2>
+          <h2 className="font-tarobot-title font-size-18">Today's Fortune</h2>
           <Link href="/tarot/daily">
             <Card className="hover:bg-accent/50 transition-colors">
               <CardContent className="p-4">
@@ -59,8 +59,8 @@ export default function HomePage() {
                         <GamepadIcon className="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="font-medium">{master.name}</h3>
-                        <p className="text-sm text-muted-foreground">{master.title}</p>
+                        <h3 className="font-tarobot-title">{master.name}</h3>
+                        <p className="font-tarobot-subtitle">{master.title}</p>
                       </div>
                     </div>
                   </CardContent>
