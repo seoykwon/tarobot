@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-  const redirectUri = "http://localhost:3000/api/auth/google/callback";
+  const backendAuthUrl = "http://localhost:8080/api/auth/google"; // 백엔드의 Google OAuth 엔드포인트
 
-  return NextResponse.redirect(
-    `${googleAuthUrl}?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=email profile`
-  );
+  // 백엔드로 리다이렉트
+  return NextResponse.redirect(backendAuthUrl);
 }

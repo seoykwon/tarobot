@@ -6,6 +6,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { LoadingSpinner } from "@/components/Loading"
 import { User, Settings, LogOut } from "lucide-react"
+import { cookies } from "next/headers";
 
 interface TarotRecord {
   id: number
@@ -24,6 +25,7 @@ export default function MyPage() {
       try {
         // 실제 API 호출 대신 localStorage 체크
         const isLoggedIn = localStorage.getItem("isLoggedIn")
+        
 
         // 의도적 지연
         await new Promise((resolve) => setTimeout(resolve, 500))
@@ -32,7 +34,6 @@ export default function MyPage() {
           router.push("/auth/login")
           return
         }
-
         // 타로 기록 가져오기
         try {
           const response = await fetch("/api/tarot-records", {
@@ -60,9 +61,22 @@ export default function MyPage() {
     checkAuthAndFetchData()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn")
-    router.push("/auth/login")
+  const handleLogout = async () => {
+    try {
+      // 백엔드로 로그아웃 요청청
+    const response = await fetch('http://localhost:8080/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include', // 쿠키 포함
+    });
+    if (response.ok) {
+      // 로그아웃 성공 시 로그인인으로 리다이렉트
+      router.push('/auth/login');
+    } else {
+      console.error('Failed to log out');
+    }
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   }
 
   if (isLoading) {
