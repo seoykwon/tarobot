@@ -1,19 +1,34 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers import GenerationConfig
+from unsloth import FastLanguageModel
+from transformers import TextStreamer
+from unsloth.chat_templates import get_chat_template
 import torch, os
 
-# 모델 이름 및 로컬 디렉터리 설정
-model_name = "maywell_Synatra-42dot-1.3B"
+
+# model_name = "maywell/Synatra-42dot-1.3B"
+# local_dir = os.path.join(
+#     r"C:\Users\SSAFY\Desktop\git\S12P11A107\chatend\app\models", model_name
+# )
+model_name = "trained_model"
 local_dir = os.path.join(
-    r"C:\Users\SSAFY\Desktop\git\S12P11A107\chatend\app\models", model_name
+    r"C:\Users\mgh12\Desktop\PJ\git\S12P11A107\chatend\app\models", model_name
 )
 
-tokenizer = AutoTokenizer.from_pretrained(local_dir)
-model = AutoModelForCausalLM.from_pretrained(local_dir)
+model, tokenizer = FastLanguageModel.from_pretrained(
+    # model_name = "unsloth/Llama-3.2-3B-Instruct",
+    model_name = local_dir,
+    max_seq_length = 8192,
+    load_in_4bit = True,
+    # token = "hf_...", # use one if using gated models like meta-llama/Llama-2-7b-hf
+)
 
-# GPU 또는 CPU 설정
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model = model.to(device)  # 모델을 GPU/CPU로 이동
+tokenizer = get_chat_template(
+    tokenizer,
+    chat_template = "llama-3.1",
+    # mapping = {"role" : "from", "content" : "value", "user" : "human", "assistant" : "gpt"}, # ShareGPT style
+)
+
+FastLanguageModel.for_inference(model) # Enable native 2x faster inference
+
 
 def get_response(message: str, history: list = None) -> str:
     """
@@ -34,37 +49,33 @@ def get_response(message: str, history: list = None) -> str:
     #     f"history:\n{history_context}\n"
     #     f"User: {message}\nBot:"
     # )
-    #### 히스토리를 반영할 경우 인풋이 너무 길어져서 이를 반복하는 챗봇의 특성 때문에 답변이 제대로 안나옴옴
+    #### 히스토리를 반영할 경우 인풋이 너무 길어져서 이를 반복하는 챗봇의 특성 때문에 답변이 제대로 안나옴
 
-    context = (
-        f"User: {message}\nBot:"
-    )
-    inputs = tokenizer.encode(context, return_tensors="pt").to(device)
+    template = [
+                                # EDIT HERE!
+        # {"from": "human", "value": message},
+        {"role": "human", "content": message},
+    ]
+    inputs = tokenizer.apply_chat_template(template, tokenize = True, add_generation_prompt = True, return_tensors = "pt").to("cuda")
 
-    generation_config = GenerationConfig(
-        max_length=100,
-        temperature=0.8,
-        top_p=0.9,
-        repetition_penalty=1.2,
-        num_return_sequences=1,
-        do_sample=True,
-        # pad_token_id=tokenizer.eos_token_id,
-        # eos_token_id=tokenizer.eos_token_id,
-    )
-
-    # 모델 추론
+    text_streamer = TextStreamer(tokenizer)
     response_ids = model.generate(
-        inputs,
-        generation_config=generation_config
+        input_ids=inputs,
+        streamer=text_streamer,
+        max_new_tokens=100,
+        use_cache=True,
+        temperature=1.1,
+        top_p=0.85,
+        min_p=0.05,
+        repetition_penalty=1.2,
     )
 
     response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
 
     print(response)
 
-    # "Bot:" 이후 텍스트만 추출
-    if "Bot:" in response:
-        response = response.split("Bot:")[-1].strip()
+    # 응답 텍스트 추출
+    response_text = response.split("assistant", 1)[-1].strip()
 
-    return response.strip()
+    return response_text
 
