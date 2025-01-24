@@ -1,17 +1,15 @@
+// app/page.tsx
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-export default async function Home() {
+export default async function Page() {
   const cookieStore = cookies();
-  const hasVisited = cookieStore.get('hasVisited')?.value;
+  const isVisited = cookieStore.get('isVisited')?.value;
 
-  if (hasVisited) {
-    // 이미 방문한 경우 /home으로 리다이렉트
-    redirect('/home');
+  // 이미 방문한 경우 /home으로 리다이렉트
+  if (isVisited) {
+    redirect('/home'); // redirect는 예외를 던지므로 이후 코드가 실행되지 않음
   }
-
-  // 첫 방문인 경우 쿠키 설정을 위해 Route Handler 호출
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/set-cookie`, { method: 'GET' });
 
   // 첫 방문 화면 렌더링
   return (
@@ -26,12 +24,12 @@ export default async function Home() {
           <p className="text-gray-400">Explore the mystical</p>
         </div>
 
-        <a
-          href="/home"
-          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white py-6 text-center block"
-        >
-          시작하기
-        </a>
+        {/* 쿠키 설정을 위한 POST 요청 */}
+        <form action="/api/set-cookie" method="POST">
+          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+            Start
+          </button>
+        </form>
       </div>
     </div>
   );
