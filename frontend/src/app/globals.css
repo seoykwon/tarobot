@@ -52,23 +52,27 @@ body {
     font-family: var(--font-nanum-brush);
     font-size: 24px;
   }
-
-  .font-tarobot-title {
+  .font-page-title {  /* 오늘의 운세/타로마스터 등 */
     font-family: var(--font-black-white);
     font-size: 24px;
   }
 
-  .font-tarobot-subtitle {
-    font-family: var(--font-nanum-brush);
+  .font-tarobot-title { /* 박스안 이름 */
+    font-family: var(--font-black-white);
     font-size: 22px;
   }
 
-  .font-tags {
+  .font-tarobot-subtitle { /* 박스안 별명 설명/예 : 마지막 예언가 */
+    font-family: var(--font-nanum-brush);
+    font-size: 20px;
+  }
+
+  .font-tags { /* 어떤 장르인지 태그 */
     font-family: var(--font-nanum-pen);
     font-size: 18px;
   }
 
-  .font-tarobot-description {
+  .font-tarobot-description { /* 내용 설명 */
     font-family: var(--font-nanum-pen);
     font-size: 18px;
   }
@@ -87,9 +91,20 @@ body {
     font-family: var(--font-nanum-pen);
     font-size: 18px;
   }
+  .font-article-author {  /* 게시글 저자, 좋아요 등등, 다이어리 날짜  */
+    font-family: var(--font-nanum-brush);
+    font-size: 14px;
+  }
+
 
   .font-size-18 {
     font-size: 18px;
+  }
+  .font-size-24 {
+    font-size: 24px;
+  }
+  .font-size-20 {
+    font-size: 20px;
   }
 }
 

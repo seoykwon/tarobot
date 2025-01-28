@@ -20,13 +20,13 @@ export default async function Page() {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-white">Tarot Journey</h1>
-          <p className="text-gray-400">Explore the mystical</p>
+          <h1 className="font-login-title">Tarot Journey</h1>
+          <p className="font-tarobot-title">Explore the mystical</p>
         </div>
 
         {/* 쿠키 설정을 위한 POST 요청 */}
         <form action="/api/set-cookie" method="POST">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+          <button type="submit" className="bfont-chat-button px-4 py-2 rounded-lg">
             Start
           </button>
         </form>

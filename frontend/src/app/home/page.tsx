@@ -17,7 +17,7 @@ export default function HomePage() {
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}
         <section>
-          <h2 className="font-tarobot-title font-size-18">Today's Fortune</h2>
+          <h2 className="font-page-title">Today's Fortune</h2>
           <Link href="/tarot/daily">
             <Card className="hover:bg-accent/50 transition-colors">
               <CardContent className="p-4">
@@ -26,8 +26,8 @@ export default function HomePage() {
                     <GamepadIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium mb-1">Daily Mysteries Ep.</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-tarobot-title mb-1">Daily Mysteries Ep.</h3>
+                    <p className="font-tarobot-description text-muted-foreground">
                       "Today is a great day to start something new. Trust your intuition."
                     </p>
                   </div>
@@ -41,7 +41,7 @@ export default function HomePage() {
         <section>
           <Link href="/tarot">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-mono">Tarot masters</h2>
+              <h2 className="font-page-title">Tarot masters</h2>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </Link>
@@ -74,7 +74,7 @@ export default function HomePage() {
         <section>
           <Link href="/game">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-mono">Mini-Games</h2>
+              <h2 className="font-page-title">Mini-Games</h2>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </Link>
@@ -86,8 +86,8 @@ export default function HomePage() {
                     <GamepadIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Enchanted Puzzle</h3>
-                    <p className="text-sm text-muted-foreground">Solve the mystery</p>
+                    <h3 className="font-tarobot-title">Enchanted Puzzle</h3>
+                    <p className="font-tarobot-subtitle text-muted-foreground">Solve the mystery</p>
                   </div>
                 </div>
               </CardContent>

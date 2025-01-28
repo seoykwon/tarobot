@@ -92,8 +92,8 @@ export default function MyPage() {
             <User className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">사용자님</h1>
-            <p className="text-sm text-muted-foreground">example@email.com</p>
+            <h1 className="font-tarobot-title">사용자님</h1>
+            <p className="font-article-author text-muted-foreground">example@email.com</p>
           </div>
         </div>
 
@@ -101,22 +101,22 @@ export default function MyPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <h2 className="font-semibold">나의 활동</h2>
+              <h2 className="font-tarobot-title">나의 활동</h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button
                 variant="ghost"
-                className="w-full justify-start text-destructive"
+                className="w-full justify-start font-tarobot-description"
                 onClick={() => router.push("/my-page/editprofile")}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 개인정보 수정
               </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => router.push("/my-page/settings")}>
+              <Button variant="ghost" className="w-full justify-start font-tarobot-description" onClick={() => router.push("/my-page/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 설정
               </Button>
-              <Button variant="ghost" className="w-full justify-start text-destructive" onClick={handleLogout}>
+              <Button variant="ghost" className="w-full justify-start font-tarobot-description" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 로그아웃
               </Button>
@@ -126,10 +126,10 @@ export default function MyPage() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <h2 className="font-semibold">최근 타로 기록</h2>
+                <h2 className="font-tarobot-title">최근 타로 기록</h2>
                 <Button
                   variant="link"
-                  className="p-0 h-auto font-normal text-primary"
+                  className="p-0 h-auto font-normal font-article-author"
                   onClick={() => router.push("/diary")}
                 >
                   [더보기]
@@ -152,7 +152,7 @@ export default function MyPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">아직 타로 기록이 없습니다.</p>
+                <p className="font-tarobot-description text-muted-foreground">아직 타로 기록이 없습니다.</p>
               )}
             </CardContent>
           </Card>

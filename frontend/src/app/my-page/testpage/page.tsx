@@ -37,8 +37,8 @@ export default async function MyPage() {
             <h1>사용자님</h1>
           </div>
           <div>
-            <h1 className="text-xl font-bold">사용자님</h1>
-            <p className="text-sm text-muted-foreground">example@email.com</p>
+            <h1 className="font-tarobot-title">사용자님</h1>
+            <p className="font-tarobot-description text-muted-foreground">example@email.com</p>
           </div>
         </div>
 
@@ -49,12 +49,12 @@ export default async function MyPage() {
               {tarotRecords.slice(0, 5).map((record) => (
                 <div key={record.id} className="border-b pb-2 last:border-0">
                   <div className="flex justify-between items-center">
-                    <p className="font-medium">{record.question}</p>
-                    <span className="text-sm text-muted-foreground">
+                    <p className="font-tarobot-subtitle">{record.question}</p>
+                    <span className="font-article-author text-muted-foreground">
                       {new Date(record.date).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{record.result}</p>
+                  <p className="font-tarobot-description text-muted-foreground mt-1">{record.result}</p>
                 </div>
               ))}
               {/* 더보기 버튼 */}
@@ -66,7 +66,7 @@ export default async function MyPage() {
               </button>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">아직 타로 기록이 없습니다.</p>
+            <p className="font-tarobot-description text-muted-foreground">아직 타로 기록이 없습니다.</p>
           )}
         </div>
       </div>

@@ -146,9 +146,9 @@ export function CommunityClient({ initialPosts }: { initialPosts: Post[] }) {
                 <div className="flex gap-4 justify-between">
                   {/* 텍스트 콘텐츠를 왼쪽으로 */}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-semibold mb-1">{post.title}</h2>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{post.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <h2 className="font-tarobot-title">{post.title}</h2>
+                    <p className="font-tarobot-description mb-2 line-clamp-2">{post.description}</p>
+                    <div className="flex items-center gap-4 font-article-author text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <MessageSquare className="w-4 h-4" />
                         <span>{post.comments}</span>
