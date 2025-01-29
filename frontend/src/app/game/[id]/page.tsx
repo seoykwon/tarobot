@@ -81,8 +81,8 @@ export default async function GameDetailsPage({ params }: { params: { id: string
             className="rounded-full"
           />
           <div>
-            <h1 className="text-2xl font-bold">{gameDetails.name}</h1>
-            <p className="text-sm text-gray-400">{gameDetails.description}</p>
+            <h1 className="font-tarobot-title">{gameDetails.name}</h1>
+            <p className="font-tarobot-description">{gameDetails.description}</p>
             <div className="flex items-center gap-2 mt-2">
               <Star className="w-5 h-5 text-yellow-400" />
               <span>{gameDetails.rating.toFixed(1)}</span>
@@ -92,7 +92,7 @@ export default async function GameDetailsPage({ params }: { params: { id: string
       </section>
 
       <section className="bg-gray-700 text-white p-6 rounded-lg mb-6">
-        <h2 className="text-xl font-bold mb-4">게임 방법</h2>
+        <h2 className="font-tarobot-subtitle mb-4">게임 방법</h2>
         <p>{gameDetails.howToPlay}</p>
       </section>
 

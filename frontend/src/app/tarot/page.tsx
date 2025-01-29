@@ -31,7 +31,7 @@ export default async function TarotBotsPage() {
   return (
     <main className="min-h-screen pb-16">
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Master list</h1>
+        <h1 className="font-page-title">Master list</h1>
         <div className="grid gap-4">
           {bots.map((bot) => (
             <TarotGame

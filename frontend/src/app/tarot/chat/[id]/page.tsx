@@ -55,7 +55,7 @@ export default function ChatPage() {
 
   return (
     /* 채팅 필드 */
-    <div className="min-h-screen bg-gray-900 text-white p-4 pb-24 flex flex-col justify-between">
+    <div className="min-h-screen bg-gray-900 font-tarobot-description p-4 pb-24 flex flex-col justify-between">
       {/* 채팅 메시지 컨테이너 */}
       <div
         ref={chatContainerRef}

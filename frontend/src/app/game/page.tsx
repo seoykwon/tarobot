@@ -22,7 +22,7 @@ export default async function GamePage() {
   return (
     <main className="min-h-screen pb-16">
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">미니게임 목록</h1>
+        <h1 className="font-page-title mb-4">미니게임 목록</h1>
         <div className="grid gap-4">
           {games.map((game) => (
             <TarotGame

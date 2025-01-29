@@ -27,14 +27,14 @@ export default async function PostDetailsPage({ params }: { params: { id: string
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white p-4">
+    <main className="min-h-screen bg-gray-900 p-4">
       {/* 게시글 정보 */}
       <section className="bg-gray-800 p-6 rounded-lg mb-6">
-        <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
-        <p className="text-sm text-gray-400 mb-4">
+        <h1 className="font-tarobot-title">{post.title}</h1>
+        <p className="font-article-author">
           By {post.author} • {post.date}
         </p>
-        <p className="text-base">{post.content}</p>
+        <p className="font-tarobot-description ">{post.content}</p>
       </section>
     </main>
   );
