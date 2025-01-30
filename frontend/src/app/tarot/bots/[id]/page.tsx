@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { fetchTarobotDetails } from "@/app/api/taroBotsDetail";
 
 interface TarobotDetailsPageProps {

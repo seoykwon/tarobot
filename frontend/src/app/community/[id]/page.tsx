@@ -1,4 +1,12 @@
 import { notFound } from "next/navigation";
+import PostDetailsClient from "./PostDetailsClient";
+
+interface Comment {
+  commentId: number;
+  author: string;
+  content: string;
+  createdAt: string;
+}
 
 interface PostDetails {
   id: string;
@@ -6,36 +14,32 @@ interface PostDetails {
   content: string;
   author: string;
   date: string;
+  comments: Comment[];
 }
 
+// 게시글 상세 정보 API 호출 함수
 async function fetchPostDetails(id: string): Promise<PostDetails | null> {
-  // 백엔드 API 호출
-  const res = await fetch(`https://api.example.com/posts/${id}`, {
-    cache: "no-store", // 최신 데이터 가져오기
-  });
+  try {
+    const res = await fetch(`http://localhost:8080/community/articles/${id}`, {
+      cache: "no-store",
+    });
 
-  if (!res.ok) return null;
+    if (!res.ok) return null;
 
-  return res.json();
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching post details:", error);
+    return null; // 에러 발생 시 null 반환
+  }
 }
 
 export default async function PostDetailsPage({ params }: { params: { id: string } }) {
   const post = await fetchPostDetails(params.id);
 
   if (!post) {
-    notFound(); // 데이터가 없으면 404 페이지로 이동
+    notFound(); // 데이터가 없으면 Next.js의 기본 404 페이지로 이동
   }
 
-  return (
-    <main className="min-h-screen bg-gray-900 p-4">
-      {/* 게시글 정보 */}
-      <section className="bg-gray-800 p-6 rounded-lg mb-6">
-        <h1 className="font-tarobot-title">{post.title}</h1>
-        <p className="font-article-author">
-          By {post.author} • {post.date}
-        </p>
-        <p className="font-tarobot-description ">{post.content}</p>
-      </section>
-    </main>
-  );
+  // 데이터를 클라이언트 컴포넌트에 전달
+  return <PostDetailsClient post={post} />;
 }

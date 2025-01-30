@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Calendar } from "lucide-react";
+
+interface DayInfo {
+  day: number;
+  fortune: string | null;
+  tarotResult: string | null;
+  luckyScore: number | null;
+}
 
 interface TarotSummary {
   title: string;
@@ -12,40 +20,75 @@ interface TarotSummary {
 }
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const router = useRouter();
+  const [currentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [daysInfo, setDaysInfo] = useState<DayInfo[]>([]);
   const [tarotData, setTarotData] = useState<TarotSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get current month's days
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  // 로그인 상태 확인 및 리다이렉트
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/auth/check", {
+          method: "GET",
+          credentials: "include", // HttpOnly 쿠키 포함
+        });
 
-  // Get first day of month (0 = Sunday, 1 = Monday, etc.)
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+        if (!response.ok) {
+          throw new Error("Not authenticated");
+        }
+      } catch (error) {
+        console.error("Authentication failed:", error);
+        router.push("/auth/login"); // 인증되지 않은 경우 로그인 페이지로 이동
+      }
+    };
 
-  // Adjust for Monday start (0 = Monday, 6 = Sunday)
-  const firstDayAdjusted = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+    checkAuth();
+  }, [router]);
 
-  // Create array of days
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  // Fetch calendar data for the current month
+  const fetchCalendarData = async (year: number, month: number) => {
+    try {
+      setIsLoading(true);
 
-  // Create array for empty cells before first day
-  const emptyCells = Array.from({ length: firstDayAdjusted }, () => null);
+      const response = await fetch(
+        `http://localhost:8080/api/diary/calendar?year=${year}&month=${month + 1}`,
+        {
+          method: "GET",
+          credentials: "include", // HttpOnly 쿠키 포함
+        }
+      );
 
-  // Combine empty cells and days
-  const allCells = [...emptyCells, ...days];
+      if (!response.ok) {
+        throw new Error("Failed to fetch calendar data");
+      }
 
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const data = await response.json();
+      setDaysInfo(data.days); // Update days info
+    } catch (error) {
+      console.error("Error fetching calendar data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Fetch tarot data for the selected date
   const fetchTarotData = async (date: Date) => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const formattedDate = date.toISOString().split("T")[0]; // Format date as YYYY-MM-DD
-      const response = await fetch(`/api/tarot?date=${formattedDate}`);
+
+      const response = await fetch(`http://localhost:8080/api/diary/${formattedDate}`, {
+        method: "GET",
+        credentials: "include", // HttpOnly 쿠키 포함
+      });
+
       if (!response.ok) {
         throw new Error("Failed to fetch tarot data");
       }
+
       const data: TarotSummary | null = await response.json();
       setTarotData(data); // Update tarot data
     } catch (error) {
@@ -56,10 +99,23 @@ export default function CalendarPage() {
     }
   };
 
-  // Fetch today's tarot data on initial render
+  // Fetch calendar and tarot data on initial render or when currentDate changes
   useEffect(() => {
+    fetchCalendarData(currentDate.getFullYear(), currentDate.getMonth());
     fetchTarotData(selectedDate);
-  }, [selectedDate]);
+  }, [currentDate, selectedDate]);
+
+  // Get current month's days and adjust for Monday start
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  const firstDayAdjusted = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1; // Adjust for Monday start
+
+  // Create array of days and empty cells for alignment
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const emptyCells = Array.from({ length: firstDayAdjusted }, () => null);
+  const allCells = [...emptyCells, ...days];
+
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <main className="min-h-screen bg-background pb-16">
@@ -89,7 +145,7 @@ export default function CalendarPage() {
                   variant={day === selectedDate.getDate() ? "default" : "ghost"}
                   className={`h-10 p-0 ${
                     day === selectedDate.getDate()
-                      ? "bg-blue-500 text-white" // 선택된 날짜 스타일
+                      ? "bg-blue-500 text-white"
                       : "hover:bg-accent"
                   }`}
                   onClick={() => {
@@ -100,10 +156,21 @@ export default function CalendarPage() {
                         day
                       );
                       setSelectedDate(newSelectedDate);
+                      fetchTarotData(newSelectedDate); // Fetch tarot data for the selected date
                     }
                   }}
                 >
-                  {day}
+                  {day && (
+                    <>
+                      <span>{day}</span>
+                      {/* Show lucky score */}
+                      {daysInfo.find((d) => d.day === day)?.luckyScore && (
+                        <span className="block text-xs text-muted-foreground">
+                          {daysInfo.find((d) => d.day === day)?.luckyScore}%
+                        </span>
+                      )}
+                    </>
+                  )}
                 </Button>
               ))}
             </div>
