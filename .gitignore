@@ -1,2 +1,6 @@
 # 깃 컨벤션
 .gitmessage.txt
+
+# rag_pipeline
+venv/
+rag_pipeline/venv/
