@@ -15,8 +15,11 @@ interface TarotRecord {
 }
 
 interface UserInfo {
-  name: string;
+  birthDate: string;
   email: string;
+  gender: string;
+  nickname: string;
+  profileImage: string;
 }
 
 export default function MyPage() {
@@ -49,8 +52,8 @@ export default function MyPage() {
           const data = await response.json();
 
           // 데이터 설정
-          setUserInfo(data.userInfo); // 사용자 정보
-          setTarotRecords(data.tarotRecords); // 최근 타로 기록
+          setUserInfo(data); // 사용자 정보
+          setTarotRecords(data.tarotRecords || []); // 최근 타로 기록
         } else {
           console.error("Failed to fetch user data");
         }
@@ -92,12 +95,20 @@ export default function MyPage() {
       <div className="p-4">
         {/* Profile Section */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+            {userInfo?.profileImage ? (
+              <img src={userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-8 h-8 text-primary" />
+            )}
           </div>
           <div>
-            <h1 className="font-tarobot-title">{userInfo?.name || "사용자님"}</h1>
+            <h1 className="font-tarobot-title text-lg">{userInfo?.nickname || "사용자님"}</h1>
             <p className="font-article-author text-muted-foreground">{userInfo?.email || "example@email.com"}</p>
+            <p className="text-sm text-muted-foreground">
+              생년월일: {userInfo?.birthDate ? new Date(userInfo.birthDate).toLocaleDateString() : "알 수 없음"}
+            </p>
+            <p className="text-sm text-muted-foreground">성별: {userInfo?.gender || "알 수 없음"}</p>
           </div>
         </div>
 
