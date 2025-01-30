@@ -46,6 +46,7 @@ public class OAuth2UserCustomService extends DefaultOAuth2UserService {
             User user = new User();
             user.setUserId(email);
             user.setName(name);
+            user.setSocial(true); // 소셜 로그인이면 true로 구분해 일반 로그인 방지
             return userRepository.save(user);
         }
     }
