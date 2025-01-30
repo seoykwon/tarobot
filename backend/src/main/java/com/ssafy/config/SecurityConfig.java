@@ -3,8 +3,10 @@ package com.ssafy.config;
 import com.ssafy.api.service.UserService;
 import com.ssafy.common.auth.JwtAuthenticationFilter;
 import com.ssafy.common.auth.SsafyUserDetailService;
+import com.ssafy.config.oauth.OAuth2FailureHandler;
+import com.ssafy.config.oauth.OAuth2SuccessHandler;
+import com.ssafy.config.oauth.OAuth2UserCustomService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -27,6 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final SsafyUserDetailService ssafyUserDetailService;
     private final UserService userService;
+    private final OAuth2UserCustomService oAuth2UserCustomService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
     
     // Password 인코딩 방식에 BCrypt 암호화 방식 사용
     @Bean
@@ -61,6 +66,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/v1/users/me").authenticated()       //인증이 필요한 URL과 필요하지 않은 URL에 대하여 설정
     	        	    .anyRequest().permitAll()
-                .and().cors();
+                .and().cors()
+                // OAuth2 설정 추가
+                .and()
+                .oauth2Login()
+                .userInfoEndpoint()
+                .userService(oAuth2UserCustomService) // OAuth2 사용자 정보 서비스 추가
+                .and()
+                .successHandler(oAuth2SuccessHandler) // OAuth2 로그인 성공 핸들러
+                .failureHandler(oAuth2FailureHandler); // OAuth2 로그인 실패 핸들러;
     }
 }

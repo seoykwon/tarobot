@@ -203,6 +203,9 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.20")
 
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+
+    // oauth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 test {

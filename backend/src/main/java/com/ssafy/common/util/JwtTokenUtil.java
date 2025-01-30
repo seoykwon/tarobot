@@ -71,6 +71,18 @@ public class JwtTokenUtil {
     		return new Date(now.getTime() + expirationTime);
     }
 
+    public static boolean isValidToken(String token) {
+        try {
+            JWTVerifier verifier = getVerifier();
+            verifier.verify(token);
+            return true;
+        } catch (TokenExpiredException ex) {
+            return false; // 만료된 경우 false 반환
+        } catch (Exception ex) {
+            return false; // 기타 오류 발생 시 false 반환
+        }
+    }
+
     public static void handleError(String token) {
         JWTVerifier verifier = JWT
                 .require(Algorithm.HMAC512(secretKey.getBytes()))

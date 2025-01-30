@@ -13,4 +13,5 @@ public interface UserService {
 	User createUser(UserRegisterPostReq userRegisterInfo);
 	User getUserByUserId(String userId);
 	List<User> getAllUsers();
+	User findById(Long userId);
 }

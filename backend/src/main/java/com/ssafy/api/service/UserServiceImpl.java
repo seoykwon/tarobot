@@ -48,4 +48,9 @@ public class UserServiceImpl implements UserService {
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
 	}
+
+	public User findById(Long userId) {
+		return userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("Unexpected user"));
+	}
 }
