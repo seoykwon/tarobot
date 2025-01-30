@@ -1,4 +1,5 @@
-from pinecone_integration import upsert_documents, retrieve_documents
+# usage_example.py
+from app.services.pinecone_integration import upsert_documents, retrieve_documents
 
 # 문서 업서트 테스트
 print(upsert_documents(

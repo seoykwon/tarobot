@@ -1,16 +1,17 @@
+# pinecone_integration.py
 import time
 import uuid
 from typing import List, Dict
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as LangChainPinecone
 from langchain_upstage.embeddings import UpstageEmbeddings
-from settings import settings
+from app.core.settings import settings  # ✅ 올바른 경로
 
 # Pinecone 인덱스 이름
 INDEX_NAME = "my-rag-index"
 
 # Pinecone 클라이언트 초기화
-pc = Pinecone(api_key=settings.pinecone_api_key)
+pc = Pinecone(api_key=settings.pinecone_api_key, environment=settings.pinecone_env)
 
 # 기존 인덱스 확인 후 없으면 생성
 existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
@@ -38,7 +39,7 @@ upstage_embeddings = UpstageEmbeddings(
 vectorstore = LangChainPinecone.from_existing_index(
     index_name=INDEX_NAME,
     embedding=upstage_embeddings,
-    text_key="topic"  # ✅ 검색 키를 "topic"으로 변경
+    text_key="session_id"  # ✅ 검색 키를 "session_id"으로 변경
 )
 
 # Retriever 생성
@@ -57,7 +58,8 @@ def upsert_documents(docs: List[str], metadatas: List[Dict] = None):
         str: 성공 메시지
     """
     if metadatas is None:
-        metadatas = [{} for _ in docs]
+        # 문서에 맞는 메타데이터 설정, 예: "content" 또는 "session_id"
+        metadatas = [{"content": doc} for doc in docs]  # content를 메타데이터로 설정
 
     # 문서를 벡터로 변환
     embeddings = upstage_embeddings.embed_documents(docs)
@@ -73,6 +75,7 @@ def upsert_documents(docs: List[str], metadatas: List[Dict] = None):
 
     return f"Upserted {len(docs)} documents into Pinecone"
 
+
 def retrieve_documents(query: str, top_k=3):
     """
     Pinecone Retriever를 사용하여 유사한 문서 검색
@@ -86,7 +89,7 @@ def retrieve_documents(query: str, top_k=3):
 
     # 검색 결과 변환
     results = [
-        {"content": doc.metadata, "metadata": doc.metadata}
+        {"content": doc.metadata.get("content", "No content"), "metadata": doc.metadata}  # content를 메타데이터로 반환
         for doc in retrieved_docs
     ]
 

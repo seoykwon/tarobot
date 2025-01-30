@@ -14,6 +14,9 @@ class AppSettings(BaseSettings):
 
     redis_host: str = Field("localhost", env="REDIS_HOST")
     redis_port: int = Field(6379, env="REDIS_PORT")
+    
+    # ✅ 4o-mini API 추가
+    openai_api_key: str = Field(..., env="OPENAI_API_KEY")
 
     class Config:
         env_file = ".env"
