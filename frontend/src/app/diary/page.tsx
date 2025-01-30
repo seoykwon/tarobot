@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Calendar } from "lucide-react";
@@ -20,33 +19,11 @@ interface TarotSummary {
 }
 
 export default function CalendarPage() {
-  const router = useRouter();
   const [currentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [daysInfo, setDaysInfo] = useState<DayInfo[]>([]);
   const [tarotData, setTarotData] = useState<TarotSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // 로그인 상태 확인 및 리다이렉트
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/auth/check", {
-          method: "GET",
-          credentials: "include", // HttpOnly 쿠키 포함
-        });
-
-        if (!response.ok) {
-          throw new Error("Not authenticated");
-        }
-      } catch (error) {
-        console.error("Authentication failed:", error);
-        router.push("/auth/login"); // 인증되지 않은 경우 로그인 페이지로 이동
-      }
-    };
-
-    checkAuth();
-  }, [router]);
 
   // Fetch calendar data for the current month
   const fetchCalendarData = async (year: number, month: number) => {
@@ -54,7 +31,7 @@ export default function CalendarPage() {
       setIsLoading(true);
 
       const response = await fetch(
-        `http://localhost:8080/api/diary/calendar?year=${year}&month=${month + 1}`,
+        `http://localhost:8080/api/v1/diary/calendar?year=${year}&month=${month + 1}`,
         {
           method: "GET",
           credentials: "include", // HttpOnly 쿠키 포함
@@ -80,7 +57,7 @@ export default function CalendarPage() {
       setIsLoading(true);
       const formattedDate = date.toISOString().split("T")[0]; // Format date as YYYY-MM-DD
 
-      const response = await fetch(`http://localhost:8080/api/diary/${formattedDate}`, {
+      const response = await fetch(`http://localhost:8080/api/v1/diary/${formattedDate}`, {
         method: "GET",
         credentials: "include", // HttpOnly 쿠키 포함
       });

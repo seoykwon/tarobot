@@ -26,10 +26,21 @@ export default function MyPage() {
   const [tarotRecords, setTarotRecords] = useState<TarotRecord[]>([]);
 
   useEffect(() => {
-    const checkAuthAndFetchData = async () => {
+    const fetchUserData = async () => {
       try {
-        // 로그인 상태 확인 및 데이터 요청
-        const response = await fetch("http://localhost:8080/api/user-info", {
+        // 쿠키 또는 로컬 스토리지에서 userId 가져오기
+        const userId = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("userId="))
+          ?.split("=")[1];
+
+        if (!userId) {
+          console.error("User ID not found");
+          return;
+        }
+
+        // 유저 정보 및 타로 기록 데이터 요청
+        const response = await fetch(`http://localhost:8080/api/v1/user-profiles/${userId}`, {
           method: "GET",
           credentials: "include", // 쿠키 포함
         });
@@ -40,22 +51,18 @@ export default function MyPage() {
           // 데이터 설정
           setUserInfo(data.userInfo); // 사용자 정보
           setTarotRecords(data.tarotRecords); // 최근 타로 기록
-        } else if (response.status === 401) {
-          // 인증 실패 시 로그인 페이지로 리다이렉트
-          router.push("/auth/login");
         } else {
           console.error("Failed to fetch user data");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        router.push("/auth/login"); // 에러 발생 시 로그인 페이지로 이동
       } finally {
         setIsLoading(false); // 로딩 상태 해제
       }
     };
 
-    checkAuthAndFetchData();
-  }, [router]);
+    fetchUserData();
+  }, []);
 
   const handleLogout = async () => {
     try {
