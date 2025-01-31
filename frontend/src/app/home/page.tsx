@@ -51,11 +51,12 @@ export default async function HomePage() {
 
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}
+        <Card className="bg-card hover:bg-accent/50 transition-colors">
         <section>
-          <h2 className="font-page-title">Today&atos;s Fortune</h2>
+          <h2 className="font-page-title">Today's Fortune</h2>
           {fortune ? (
             <Link href="/tarot/daily">
-              <Card className="hover:bg-accent/50 transition-colors">
+              {/* <Card className="bg-card hover:bg-accent/50 transition-colors"> */}
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="relative w-16 h-24 flex-shrink-0">
@@ -69,14 +70,16 @@ export default async function HomePage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              {/* </Card> */}
             </Link>
           ) : (
             <p>No fortune available for today.</p> // 데이터 없을 때 메시지 표시
           )}
         </section>
+         </Card>
 
         {/* Tarot Masters */}
+        <Card className="hover:bg-accent/50 transition-colors">
         <section>
           <Link href="/tarot">
             <div className="flex items-center justify-between mb-3">
@@ -88,7 +91,7 @@ export default async function HomePage() {
             <div className="space-y-2">
               {tarobots.map((master) => (
                 <Link key={master.tarobotId} href={`/tarot/bots/${master.tarobotId}`}>
-                  <Card className="hover:bg-accent/50 transition-colors">
+                  {/* <Card className="hover:bg-accent/50 transition-colors"> */}
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
@@ -101,7 +104,7 @@ export default async function HomePage() {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
+                  {/* </Card> */}
                 </Link>
               ))}
             </div>
@@ -109,8 +112,10 @@ export default async function HomePage() {
             <p>No tarot masters available.</p> // 데이터 없을 때 메시지 표시
           )}
         </section>
+        </Card>
 
         {/* Mini-Games */}
+        <Card className="hover:bg-accent/50 transition-colors">
         <section>
           <Link href="/game">
             <div className="flex items-center justify-between mb-3">
@@ -121,7 +126,7 @@ export default async function HomePage() {
           {miniGames && miniGames.length > 0 ? (
             miniGames.map((game) => (
               <Link key={game.gameId} href={`/games/${game.gameId}`}>
-                <Card className="hover:bg-accent/50 transition-colors">
+                {/* <Card className="hover:bg-accent/50 transition-colors"> */}
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
@@ -133,13 +138,14 @@ export default async function HomePage() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                {/* </Card> */}
               </Link>
             ))
           ) : (
             <p>No mini-games available.</p> // 데이터 없을 때 메시지 표시
           )}
         </section>
+        </Card>
       </div>
     </main>
   );

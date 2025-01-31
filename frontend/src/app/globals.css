@@ -18,6 +18,8 @@
   --accent-color: #4A0E4E; /* 딥 퍼플 (헤더, 강조 텍스트) */
   --highlight-color: #8C2796; /* 라이트 퍼플 (링크, 버튼) */
   /* 🎨 추가: 박스와 버튼 배경색 */
+  --card: #EAD9F2; /* 카드 배경색을 연보라색으로 변경 */
+  --card-foreground: #6B1A72; /* 카드 내부 글자색 */
   --box-background: #EAD9F2; /* 부드러운 연보라 박스 배경 */
   --button-background: #8C2796; /* 미디엄 퍼플 버튼 배경 */
   --button-hover: #6B1A72; /* 버튼 호버 색 */
@@ -38,6 +40,7 @@
   --button-background: #6B1A72; /* 미디엄 퍼플 */
   --button-hover: #4A0E4E; /* 버튼 호버 색 */
   --button-text: #F3E5F5; /* 버튼 텍스트 */
+  --card: #4A0E4E; /* 다크 모드에서는 딥 퍼플 */
 }
 
 @media (prefers-color-scheme: dark) {   /* 사용자 브라우저 다크모드 감지 */
@@ -60,7 +63,20 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-
+@layer components {
+  /* 박스 컨테이너 스타일 */
+  .box-container {
+    background-color: var(--box-background);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+    
+  /* 다크 모드 스타일 */
+  .dark .box-container {
+    background-color: #2c0e3a;
+  }
+}
   /* 각 영역의 폰트 및 텍스트 색상 설정 */
   .font-card-select {
     font-family: var(--font-nanum-brush);
@@ -68,6 +84,7 @@ body {
   }
   .font-page-title {  /* 오늘의 운세/타로마스터 등 */
     font-family: var(--font-black-white);
+    color: var(--accent-color);
     font-size: 24px;
   }
 
