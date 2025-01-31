@@ -44,6 +44,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         addRefreshTokenToCookie(request, response, refreshToken);
 
         String accessToken = jwtTokenUtil.getToken(getExpirationDate(ACCESS_TOKEN_DURATION), user.getUserId());
+
+        int cookieMinAge = (int) ACCESS_TOKEN_DURATION.getSeconds();
+        CookieUtil.deleteCookie(request, response, "access_token");
+        CookieUtil.addCookie(response, "access_token", accessToken, cookieMinAge);
+
         String targetUrl = getTargetUrl(accessToken);
 
         clearAuthenticationAttributes(request, response);

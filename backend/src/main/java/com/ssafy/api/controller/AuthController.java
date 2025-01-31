@@ -43,6 +43,7 @@ public class AuthController {
 
 	public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 	public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
+	public static final Duration ACCESS_TOKEN_DURATION = Duration.ofDays(1);
 	private final RefreshTokenRepository refreshTokenRepository;
 
 
@@ -116,9 +117,12 @@ public class AuthController {
 
 	private void addRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
 		int cookieMaxAge = (int) REFRESH_TOKEN_DURATION.getSeconds();
+		int cookieMinAge = (int) ACCESS_TOKEN_DURATION.getSeconds();
 
 		CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
 		CookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookieMaxAge);
+		CookieUtil.deleteCookie(request, response, "access_token");
+		CookieUtil.addCookie(response, "access_token", refreshToken, cookieMinAge);
 	}
 
 	private Instant getExpirationDate(Duration duration) {
