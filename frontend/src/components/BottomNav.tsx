@@ -39,7 +39,7 @@ const navItems = [
 
 export default function BottomNav({ currentPath }: { currentPath: string }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 border-t bg-background">
+    <div className="fixed bottom-0 left-0 right-0 border-t bg-[var(--box-background)] dark:bg-[var(--box-background)]">
       <nav className="flex h-16 items-center justify-around px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
