@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
+import CardSelector from "./CardShuffle";
 
 interface Fortune {
   date: string;
@@ -139,6 +140,10 @@ export default async function HomePage() {
           ) : (
             <p>No mini-games available.</p> // 데이터 없을 때 메시지 표시
           )}
+        </section>
+
+        <section>
+            <CardSelector/>
         </section>
       </div>
     </main>
