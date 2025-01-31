@@ -44,7 +44,8 @@ public class AuthController {
 	public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 	public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
 	private final RefreshTokenRepository refreshTokenRepository;
-	
+
+
 	@PostMapping("/login")
 	@ApiOperation(value = "로그인", notes = "<strong>아이디와 패스워드</strong>를 통해 로그인 한다.") 
     @ApiResponses({
