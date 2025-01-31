@@ -8,6 +8,8 @@ build/
 ssafy-web.log
 ssafy-web.log.*
 
+.env
+
 ### STS ###
 .apt_generated
 .classpath

@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize";
-  const redirectUri = "http://localhost:3000/api/auth/kakao/callback";
-  
-  return NextResponse.redirect(
-    `${kakaoAuthUrl}?client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code`
-  );
+  const backendAuthUrl = "http://localhost:8080/api/auth/kakao"; // 백엔드의 kakao OAuth 엔드포인트
+
+  // 백엔드로 리다이렉트
+  return NextResponse.redirect(backendAuthUrl);
 }

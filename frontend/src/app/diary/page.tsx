@@ -66,7 +66,7 @@ export default function CalendarPage() {
       <div className="p-4">
         <div className="flex items-center gap-2 mb-6">
           <Calendar className="w-6 h-6" />
-          <h1 className="text-2xl font-bold">Mystic Calendar</h1>
+          <h1 className="font-page-title">Mystic Calendar</h1>
         </div>
 
         {/* Calendar Grid */}
@@ -75,7 +75,7 @@ export default function CalendarPage() {
             {/* Week days */}
             <div className="grid grid-cols-7 mb-2">
               {weekDays.map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-muted-foreground">
+                <div key={day} className="text-center font-article-author text-muted-foreground">
                   {day}
                 </div>
               ))}
@@ -112,17 +112,17 @@ export default function CalendarPage() {
 
         {/* Fortune Summary */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Your Fortune Summary</h2>
+          <h2 className="font-page-title">Your Fortune Summary</h2>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">
+              <CardTitle className="font-tarobot-title">
                 {isLoading ? "Loading..." : tarotData?.title || "오늘의 타로 결과를 확인하세요"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {tarotData ? (
                 <>
-                  <p className="text-muted-foreground mb-4">{tarotData.summary}</p>
+                  <p className="font-tarobot-description text-muted-foreground mb-4">{tarotData.summary}</p>
                   <img
                     src={tarotData.tarot_card_image}
                     alt={tarotData.title}
@@ -131,7 +131,7 @@ export default function CalendarPage() {
                 </>
               ) : (
                 !isLoading && (
-                  <p className="text-muted-foreground">
+                  <p className="font-tarobot-description text-muted-foreground">
                     선택한 날짜에 대한 데이터가 없습니다. 오늘의 타로 결과를 확인하세요.
                   </p>
                 )

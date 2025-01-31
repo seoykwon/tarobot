@@ -1,17 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 /* Google Fonts Import */
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Black+And+White+Picture&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Grandiflora+One&display=swap');
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 :root {
   --background: #ffffff;              /* 기본 모드 */
   --foreground: #171717;              /* 기본 텍스트 색상 */
-  --text-color: #F3E5F5;              /* 새로운 텍스트 색상 */
+  --text-color: #171717;              /* 새로운 텍스트 색상 */
   
   /* Font Styles */
   --font-nanum-pen: 'Nanum Pen Script', cursive;
@@ -23,17 +23,19 @@
 .dark {
   --background: #0a0a0a;              /* 다크 모드 */
   --foreground: #ededed;
+  --text-color: #F3E5F5;
 }
 
-@media (prefers-color-scheme: dark) {   /* 사용자 브라우저 테마 맞춤 */
+@media (prefers-color-scheme: dark) {   /* 사용자 브라우저 다크모드 감지 */
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --text-color: #F3E5F5;
   }
 }
 
 body {
-  color: var(--foreground);            /* 기본 글자 색상: 전역 foreground */
+  color: var(--text-color);            /* 기본 글자 색상: 전역 foreground */
   background: var(--background);
   font-family: var(--font-nanum-brush);  /* 기본 폰트: Nanum Pen Script */
   font-size: 18px;                     /* 기본 글자 크기 */
@@ -49,49 +51,60 @@ body {
   .font-card-select {
     font-family: var(--font-nanum-brush);
     font-size: 24px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
   }
-
-  .font-tarobot-title {
+  .font-page-title {  /* 오늘의 운세/타로마스터 등 */
     font-family: var(--font-black-white);
     font-size: 24px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
   }
 
-  .font-tarobot-subtitle {
-    font-family: var(--font-nanum-brush);
+  .font-tarobot-title { /* 박스안 이름 */
+    font-family: var(--font-black-white);
     font-size: 22px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
   }
 
-  .font-tags {
-    font-family: var(--font-nanum-pen);
-    font-size: 18px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
+  .font-tarobot-subtitle { /* 박스안 별명 설명/예 : 마지막 예언가 */
+    font-family: var(--font-nanum-brush);
+    font-size: 20px;
   }
 
-  .font-tarobot-description {
+  .font-tags { /* 어떤 장르인지 태그 */
     font-family: var(--font-nanum-pen);
     font-size: 18px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
+  }
+
+  .font-tarobot-description { /* 내용 설명 */
+    font-family: var(--font-nanum-pen);
+    font-size: 18px;
   }
 
   .font-chat {
     font-family: var(--font-nanum-brush);
     font-size: 16px;
-    /* 채팅의 텍스트 색상은 변경하지 않음 */
   }
 
   .font-login-title {
     font-family: var(--font-grandiflora);
     font-size: 36px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
   }
 
   .font-chat-button {
     font-family: var(--font-nanum-pen);
     font-size: 18px;
-    color: var(--text-color);         /* 텍스트 색상 추가 */
+  }
+  .font-article-author {  /* 게시글 저자, 좋아요 등등, 다이어리 날짜  */
+    font-family: var(--font-nanum-brush);
+    font-size: 14px;
+  }
+
+
+  .font-size-18 {
+    font-size: 18px;
+  }
+  .font-size-24 {
+    font-size: 24px;
+  }
+  .font-size-20 {
+    font-size: 20px;
   }
 }
 
