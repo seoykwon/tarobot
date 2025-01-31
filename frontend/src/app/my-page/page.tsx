@@ -1,86 +1,93 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardHeader, CardContent } from "@/components/ui/Card"
-import { Button } from "@/components/ui/Button"
-import { LoadingSpinner } from "@/components/Loading"
-import { User, Settings, LogOut } from "lucide-react"
-import { cookies } from "next/headers";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardHeader, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { LoadingSpinner } from "@/components/Loading";
+import { User, Settings, LogOut, Star } from "lucide-react";
 
 interface TarotRecord {
-  id: number
-  date: string
-  question: string
-  result: string
+  id: number;
+  date: string;
+  question: string;
+  result: string;
+}
+
+interface UserInfo {
+  birthDate: string;
+  email: string;
+  gender: string;
+  nickname: string;
+  profileImage: string;
 }
 
 export default function MyPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [tarotRecords, setTarotRecords] = useState<TarotRecord[]>([])
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [tarotRecords, setTarotRecords] = useState<TarotRecord[]>([]);
 
   useEffect(() => {
-    const checkAuthAndFetchData = async () => {
+    const fetchUserData = async () => {
       try {
-        // 실제 API 호출 대신 localStorage 체크
-        const isLoggedIn = localStorage.getItem("isLoggedIn")
-        
+        // 쿠키 또는 로컬 스토리지에서 userId 가져오기
+        const userId = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("userId="))
+          ?.split("=")[1];
 
-        // 의도적 지연
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        if (!isLoggedIn) {
-          router.push("/auth/login")
-          return
-        }
-        // 타로 기록 가져오기
-        try {
-          const response = await fetch("/api/tarot-records", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            setTarotRecords(data)
-          }
-        } catch (error) {
-          console.error("Failed to fetch tarot records:", error)
+        if (!userId) {
+          console.error("User ID not found");
+          return;
         }
 
-        setIsLoading(false)
+        // 유저 정보 및 타로 기록 데이터 요청
+        const response = await fetch(`http://localhost:8080/api/v1/user-profiles/${userId}`, {
+          method: "GET",
+          credentials: "include", // 쿠키 포함
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // 데이터 설정
+          setUserInfo(data); // 사용자 정보
+          setTarotRecords(data.tarotRecords || []); // 최근 타로 기록
+        } else {
+          console.error("Failed to fetch user data");
+        }
       } catch (error) {
-        console.error("Auth check failed:", error)
-        router.push("/auth/login")
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false); // 로딩 상태 해제
       }
-    }
+    };
 
-    checkAuthAndFetchData()
-  }, [router])
+    fetchUserData();
+  }, []);
 
   const handleLogout = async () => {
     try {
-      // 백엔드로 로그아웃 요청청
-    const response = await fetch('http://localhost:8080/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include', // 쿠키 포함
-    });
-    if (response.ok) {
-      // 로그아웃 성공 시 로그인인으로 리다이렉트
-      router.push('/auth/login');
-    } else {
-      console.error('Failed to log out');
-    }
+      // 백엔드로 로그아웃 요청
+      const response = await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        credentials: "include", // 쿠키 포함
+      });
+
+      if (response.ok) {
+        // 로그아웃 성공 시 로그인 페이지로 이동
+        router.push("/auth/login");
+      } else {
+        console.error("Failed to log out");
+      }
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     }
-  }
+  };
 
   if (isLoading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   return (
@@ -88,12 +95,20 @@ export default function MyPage() {
       <div className="p-4">
         {/* Profile Section */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+            {userInfo?.profileImage ? (
+              <img src={userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-8 h-8 text-primary" />
+            )}
           </div>
           <div>
-            <h1 className="font-tarobot-title">사용자님</h1>
-            <p className="font-article-author text-muted-foreground">example@email.com</p>
+            <h1 className="font-tarobot-title text-lg">{userInfo?.nickname || "사용자님"}</h1>
+            <p className="font-article-author text-muted-foreground">{userInfo?.email || "example@email.com"}</p>
+            <p className="text-sm text-muted-foreground">
+              생년월일: {userInfo?.birthDate ? new Date(userInfo.birthDate).toLocaleDateString() : "알 수 없음"}
+            </p>
+            <p className="text-sm text-muted-foreground">성별: {userInfo?.gender || "알 수 없음"}</p>
           </div>
         </div>
 
@@ -116,6 +131,10 @@ export default function MyPage() {
                 <Settings className="mr-2 h-4 w-4" />
                 설정
               </Button>
+              <Button variant="ghost" className="w-full justify-start font-tarobot-description" onClick={() => router.push("/my-page/review")}>
+                <Star className="mr-2 h-4 w-4" />
+                내가 작성한 리뷰
+              </Button>
               <Button variant="ghost" className="w-full justify-start font-tarobot-description" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 로그아웃
@@ -123,6 +142,7 @@ export default function MyPage() {
             </CardContent>
           </Card>
 
+          {/* 최근 타로 기록 */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -159,6 +179,5 @@ export default function MyPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }
-

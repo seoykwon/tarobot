@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Bot, Gamepad2, Book, User, MessageCircle, Users } from "lucide-react";
+import { Home, Bot, Gamepad2, Book, User, Users } from "lucide-react";
 
 import { cn } from "@/libs/utils";
 import { Button } from "@/components/ui/Button";
@@ -29,11 +29,6 @@ const navItems = [
     name: "마이페이지",
     href: "/my-page",
     icon: User,
-  },
-  {
-    name: "채팅",
-    href: "/chat",
-    icon: MessageCircle,
   },
   {
     name: "커뮤니티",

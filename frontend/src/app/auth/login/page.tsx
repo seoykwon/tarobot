@@ -3,6 +3,9 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { loginRequest } from "../api/login/route";
+import { googleLoginRequest } from "../api/google/route";
+import { kakaoLoginRequest } from "../api/kakao/route";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import InputField from "@/components/InputField";
@@ -21,35 +24,36 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>();
 
+  // 일반 로그인 핸들러
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      localStorage.setItem("isLoggedIn", "true");
-      router.push("/home");
-    } catch (error) {
-      console.error("Login failed:", error);
+      await loginRequest(data.email, data.password); // 로그인 API 호출
+      router.push("/home"); // 로그인 성공 시 홈으로 이동
+    } catch (error: any) {
+      console.error("Login failed:", error.message);
+      alert("로그인 중 오류가 발생했습니다.");
     }
   };
 
-  // 구글 로그인 핸들러
+  // Google 로그인 핸들러
   const handleGoogleLogin = async () => {
     try {
-      console.log("구글 로그인 버튼 클릭");
-      // 여기에 백엔드 API 호출 로직 추가 예정
-      router.push("/auth/api/google");
-    } catch (error) {
-      console.error("구글 로그인 실패:", error);
+      await googleLoginRequest(); // Google API 호출
+      router.push("/home"); // 성공 시 홈으로 이동
+    } catch (error: any) {
+      console.error("Google login failed:", error.message);
+      alert("Google 로그인 중 오류가 발생했습니다.");
     }
   };
 
-  // 카카오 로그인 핸들러
+  // Kakao 로그인 핸들러
   const handleKakaoLogin = async () => {
     try {
-      console.log("카카오 로그인 버튼 클릭");
-      router.push("/auth/api/kakao");
-      // 여기에 백엔드 API 호출 로직 추가 예정
-    } catch (error) {
-      console.error("카카오 로그인 실패:", error);
+      await kakaoLoginRequest(); // Kakao API 호출
+      router.push("/home"); // 성공 시 홈으로 이동
+    } catch (error: any) {
+      console.error("Kakao login failed:", error.message);
+      alert("Kakao 로그인 중 오류가 발생했습니다.");
     }
   };
 
@@ -95,28 +99,18 @@ export default function LoginPage() {
             />
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            {/* 로그인 버튼 */}
+            {/* 일반 로그인 버튼 */}
             <Button type="submit" className="w-full">
               로그인
             </Button>
 
-            {/* 구글 소셜 로그인 버튼 */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleLogin}
-            >
+            {/* Google 소셜 로그인 버튼 */}
+            <Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin}>
               구글로 로그인
             </Button>
 
-            {/* 카카오 소셜 로그인 버튼 */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
-              onClick={handleKakaoLogin}
-            >
+            {/* Kakao 소셜 로그인 버튼 */}
+            <Button type="button" variant="outline" className="w-full bg-yellow-400 text-black hover:bg-yellow-500" onClick={handleKakaoLogin}>
               카카오로 로그인
             </Button>
           </CardFooter>
@@ -125,11 +119,7 @@ export default function LoginPage() {
         {/* 회원가입 버튼 */}
         <div className="text-sm text-center text-muted-foreground mt-4">
           계정이 없으신가요?{" "}
-          <Button
-            variant="link"
-            className="p-0 h-auto font-normal"
-            onClick={() => router.push("/auth/signup")}
-          >
+          <Button variant="link" className="p-0 h-auto font-normal" onClick={() => router.push("/auth/signup")}>
             회원가입
           </Button>
         </div>
