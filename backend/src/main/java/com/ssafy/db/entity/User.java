@@ -24,7 +24,7 @@ public class User extends BaseEntity{
 
     @JsonIgnore
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(length = 255) // OAuth 로그인 시 password가 비어있을 수 있어 nullable true로 바꿈
+    @Column(nullable = true, length = 255) // OAuth 로그인 시 password가 비어있을 수 있어 nullable true로 바꿈
     private String password; // 비밀번호
 
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")

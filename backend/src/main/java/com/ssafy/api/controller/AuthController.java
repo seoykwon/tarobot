@@ -1,13 +1,15 @@
 package com.ssafy.api.controller;
 
+import com.ssafy.common.util.CookieUtil;
+import com.ssafy.db.entity.RefreshToken;
+import com.ssafy.db.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.bind.annotation.*;
 
 import com.ssafy.api.request.UserLoginPostReq;
 import com.ssafy.api.response.UserLoginPostRes;
@@ -15,13 +17,17 @@ import com.ssafy.api.service.UserService;
 import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.common.util.JwtTokenUtil;
 import com.ssafy.db.entity.User;
-import com.ssafy.db.repository.UserRepositorySupport;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ApiResponse;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.time.Instant;
 
 /**
  * 인증 관련 API 요청 처리를 위한 컨트롤러 정의.
@@ -34,6 +40,10 @@ public class AuthController {
 	private final UserService userService;
 
 	private final PasswordEncoder passwordEncoder;
+
+	public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+	public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
+	private final RefreshTokenRepository refreshTokenRepository;
 	
 	@PostMapping("/login")
 	@ApiOperation(value = "로그인", notes = "<strong>아이디와 패스워드</strong>를 통해 로그인 한다.") 
@@ -43,7 +53,8 @@ public class AuthController {
         @ApiResponse(code = 404, message = "사용자 없음", response = BaseResponseBody.class),
         @ApiResponse(code = 500, message = "서버 오류", response = BaseResponseBody.class)
     })
-	public ResponseEntity<UserLoginPostRes> login(@RequestBody @ApiParam(value="로그인 정보", required = true) UserLoginPostReq loginInfo) {
+	public ResponseEntity<UserLoginPostRes> login(@RequestBody @ApiParam(value="로그인 정보", required = true) UserLoginPostReq loginInfo,
+												  HttpServletRequest request, HttpServletResponse response) {
 		String userId = loginInfo.getId();
 		String password = loginInfo.getPassword();
 		
@@ -55,11 +66,61 @@ public class AuthController {
 		}
 
 		// 로그인 요청한 유저로부터 입력된 패스워드 와 디비에 저장된 유저의 암호화된 패스워드가 같은지 확인.(유효한 패스워드인지 여부 확인)
-		if(passwordEncoder.matches(password, user.getPassword())) {
+		if (passwordEncoder.matches(password, user.getPassword())) {
+			// ✅ Access Token & Refresh Token 생성
+			String accessToken = JwtTokenUtil.getToken(userId);
+			String refreshToken = JwtTokenUtil.getToken(getExpirationDate(REFRESH_TOKEN_DURATION), userId);
+
+			// ✅ Refresh Token 저장 (DB & 쿠키)
+			saveRefreshToken(user.getId(), refreshToken);
+			addRefreshTokenToCookie(request, response, refreshToken);
+
 			// 유효한 패스워드가 맞는 경우, 로그인 성공으로 응답.(액세스 토큰을 포함하여 응답값 전달)
-			return ResponseEntity.ok(UserLoginPostRes.of(200, "Success", JwtTokenUtil.getToken(userId)));
+			return ResponseEntity.ok(UserLoginPostRes.of(200, "Success", accessToken));
 		}
 		// 유효하지 않는 패스워드인 경우, 로그인 실패로 응답.
 		return ResponseEntity.status(401).body(UserLoginPostRes.of(401, "Invalid Password", null));
+	}
+
+	@PostMapping("/logout")
+	@ApiOperation(value = "로그아웃", notes = "<strong>로그아웃</strong> 한다.")
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "성공", response = BaseResponseBody.class),
+			@ApiResponse(code = 401, message = "인증 실패", response = BaseResponseBody.class),
+			@ApiResponse(code = 404, message = "사용자 없음", response = BaseResponseBody.class),
+			@ApiResponse(code = 500, message = "서버 오류", response = BaseResponseBody.class)
+	})
+	public ResponseEntity<BaseResponseBody> logout(HttpServletRequest request, HttpServletResponse response) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth != null) {
+			new SecurityContextLogoutHandler().logout(request, response, auth);
+		}
+
+		// ✅ Access Token & Refresh Token 삭제
+		CookieUtil.deleteCookie(request, response, "access_token");
+		CookieUtil.deleteCookie(request, response, "refresh_token");
+
+		return ResponseEntity.ok(BaseResponseBody.of(200, "Logout Successful"));
+	}
+
+	// 리프레시 토큰 관련 메서드 구현
+
+	private void saveRefreshToken(Long userId, String newRefreshToken) {
+		RefreshToken refreshToken = refreshTokenRepository.findByUserId(userId)
+				.map(entity -> entity.update(newRefreshToken))
+				.orElse(new RefreshToken(userId, newRefreshToken));
+
+		refreshTokenRepository.save(refreshToken);
+	}
+
+	private void addRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
+		int cookieMaxAge = (int) REFRESH_TOKEN_DURATION.getSeconds();
+
+		CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
+		CookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookieMaxAge);
+	}
+
+	private Instant getExpirationDate(Duration duration) {
+		return Instant.now().plusSeconds(duration.getSeconds());
 	}
 }
