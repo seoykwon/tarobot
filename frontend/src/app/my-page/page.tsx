@@ -70,7 +70,7 @@ export default function MyPage() {
   const handleLogout = async () => {
     try {
       // 백엔드로 로그아웃 요청
-      const response = await fetch("http://localhost:8080/api/auth/logout", {
+      const response = await fetch("http://localhost:8080/api/v1/auth/logout", {
         method: "POST",
         credentials: "include", // 쿠키 포함
       });

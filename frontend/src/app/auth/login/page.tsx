@@ -28,6 +28,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await loginRequest(data.email, data.password); // 로그인 API 호출
+      await window.location.reload();
       router.push("/home"); // 로그인 성공 시 홈으로 이동
     } catch (error: any) {
       console.error("Login failed:", error.message);
@@ -38,8 +39,12 @@ export default function LoginPage() {
   // Google 로그인 핸들러
   const handleGoogleLogin = async () => {
     try {
-      await googleLoginRequest(); // Google API 호출
-      router.push("/home"); // 성공 시 홈으로 이동
+      // await googleLoginRequest(); // Google API 호출
+      // router.push("/home"); // 성공 시 홈으로 이동
+      const loginUrl = "http://localhost:8080/oauth2/authorization/google";
+      window.open(loginUrl, "_blank", "width=500,height=600");
+      await window.location.reload();
+      router.push("/home"); 
     } catch (error: any) {
       console.error("Google login failed:", error.message);
       alert("Google 로그인 중 오류가 발생했습니다.");

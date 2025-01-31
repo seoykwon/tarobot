@@ -24,7 +24,9 @@ export function middleware(req: NextRequest) {
   ];
 
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    const token = req.cookies.get("jwtToken");
+    const token = req.cookies.get("access_token");
+    //const token = req.cookies.get("refresh_token");
+    // access_token은 없는데 refresh_token은 있으면 /api/token으로 재발급 요청 보내는 로직 추가
 
     if (!token) {
       const loginUrl = new URL("/auth/login", req.url);
