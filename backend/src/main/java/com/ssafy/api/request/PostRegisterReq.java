@@ -2,6 +2,8 @@ package com.ssafy.api.request;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import javax.validation.constraints.NotBlank;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,9 +15,11 @@ import lombok.Setter;
 @ApiModel("PostRegisterRequest")
 public class PostRegisterReq {
 
+    @NotBlank(message = "게시글 제목은 필수 입력 항목입니다.")
     @ApiModelProperty(name = "게시글 제목", example = "오늘의 일상")
     private String title;
 
+    @NotBlank(message = "게시글 내용은 필수 입력 항목입니다.")
     @ApiModelProperty(name = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!")
     private String content;
 

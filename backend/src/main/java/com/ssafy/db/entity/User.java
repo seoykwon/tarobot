@@ -27,4 +27,15 @@ public class User extends BaseEntity{
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false, length = 255)
     private String password; // 비밀번호
+
+    @Column(nullable = false)
+    private boolean isAdmin; // 관리자 여부
+
+
+    /**
+     * 관리자 여부를 반환하는 메서드
+     */
+    public boolean isAdmin() {
+        return isAdmin;
+    }
 }
