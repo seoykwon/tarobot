@@ -44,7 +44,7 @@ export default async function HomePage() {
   const miniGames = await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames");
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-16">
+    <main className="min-h-screen bg-background pb-16">
       {/* Header */}
       <header className="p-4 text-center border-b">
         <h1 className="font-login-title">MysticPixel</h1>
