@@ -1,4 +1,6 @@
+# main.py
 from fastapi import FastAPI
+
 import redis
 from app.services.rag_pipeline import rag_pipeline  # ✅ 올바른 경로
 
