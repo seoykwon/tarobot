@@ -12,9 +12,8 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.web.bind.annotation.*;
 
 import com.ssafy.api.request.UserLoginPostReq;
-import com.ssafy.api.response.UserLoginPostRes;
-import com.ssafy.api.service.UserService;
 import com.ssafy.common.model.response.BaseResponseBody;
+import com.ssafy.api.service.UserService;
 import com.ssafy.common.util.JwtTokenUtil;
 import com.ssafy.db.entity.User;
 
@@ -43,6 +42,7 @@ public class AuthController {
 
 	public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 	public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
+	public static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
 	public static final Duration ACCESS_TOKEN_DURATION = Duration.ofDays(1);
 	private final RefreshTokenRepository refreshTokenRepository;
 
@@ -50,12 +50,12 @@ public class AuthController {
 	@PostMapping("/login")
 	@ApiOperation(value = "로그인", notes = "<strong>아이디와 패스워드</strong>를 통해 로그인 한다.") 
     @ApiResponses({
-        @ApiResponse(code = 200, message = "성공", response = UserLoginPostRes.class),
+        @ApiResponse(code = 200, message = "성공", response = BaseResponseBody.class),
         @ApiResponse(code = 401, message = "인증 실패", response = BaseResponseBody.class),
         @ApiResponse(code = 404, message = "사용자 없음", response = BaseResponseBody.class),
         @ApiResponse(code = 500, message = "서버 오류", response = BaseResponseBody.class)
     })
-	public ResponseEntity<UserLoginPostRes> login(@RequestBody @ApiParam(value="로그인 정보", required = true) UserLoginPostReq loginInfo,
+	public ResponseEntity<BaseResponseBody> login(@RequestBody @ApiParam(value="로그인 정보", required = true) UserLoginPostReq loginInfo,
 												  HttpServletRequest request, HttpServletResponse response) {
 		String userId = loginInfo.getId();
 		String password = loginInfo.getPassword();
@@ -73,15 +73,18 @@ public class AuthController {
 			String accessToken = JwtTokenUtil.getToken(userId);
 			String refreshToken = JwtTokenUtil.getToken(getExpirationDate(REFRESH_TOKEN_DURATION), userId);
 
+			// ✅ Access Token 저장 (쿠키)
+			addAccessTokenToCookie(request, response, accessToken);
+
 			// ✅ Refresh Token 저장 (DB & 쿠키)
 			saveRefreshToken(user.getId(), refreshToken);
 			addRefreshTokenToCookie(request, response, refreshToken);
 
 			// 유효한 패스워드가 맞는 경우, 로그인 성공으로 응답.(액세스 토큰을 포함하여 응답값 전달)
-			return ResponseEntity.ok(UserLoginPostRes.of(200, "Success", accessToken));
+			return ResponseEntity.ok(BaseResponseBody.of(200, "Success"));
 		}
 		// 유효하지 않는 패스워드인 경우, 로그인 실패로 응답.
-		return ResponseEntity.status(401).body(UserLoginPostRes.of(401, "Invalid Password", null));
+		return ResponseEntity.status(401).body(BaseResponseBody.of(401, "Invalid Password"));
 	}
 
 	@PostMapping("/logout")
@@ -115,14 +118,18 @@ public class AuthController {
 		refreshTokenRepository.save(refreshToken);
 	}
 
+	private void addAccessTokenToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken) {
+		int cookieMinAge = (int) ACCESS_TOKEN_DURATION.getSeconds();
+
+		CookieUtil.deleteCookie(request, response, ACCESS_TOKEN_COOKIE_NAME);
+		CookieUtil.addCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken, cookieMinAge);
+	}
+
 	private void addRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
 		int cookieMaxAge = (int) REFRESH_TOKEN_DURATION.getSeconds();
-		int cookieMinAge = (int) ACCESS_TOKEN_DURATION.getSeconds();
 
 		CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
 		CookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookieMaxAge);
-		CookieUtil.deleteCookie(request, response, "access_token");
-		CookieUtil.addCookie(response, "access_token", refreshToken, cookieMinAge);
 	}
 
 	private Instant getExpirationDate(Duration duration) {

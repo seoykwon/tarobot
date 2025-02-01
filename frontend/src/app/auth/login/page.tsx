@@ -28,8 +28,11 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await loginRequest(data.email, data.password); // 로그인 API 호출
-      await window.location.reload();
-      await router.push("/home"); // 로그인 성공 시 홈으로 이동
+      // 1초 후 홈으로 이동한 뒤 새로고침
+      await router.push("/home"); // 먼저 페이지 이동
+      setTimeout(async () => {
+        window.location.reload(); // 이동 후 새로고침
+      }, 500);
     } catch (error: any) {
       console.error("Login failed:", error.message);
       alert("로그인 중 오류가 발생했습니다.");
@@ -43,8 +46,11 @@ export default function LoginPage() {
       // router.push("/home"); // 성공 시 홈으로 이동
       const loginUrl = "http://localhost:8080/oauth2/authorization/google";
       window.open(loginUrl, "_blank", "width=500,height=600");
-      await window.location.reload();
-      await router.push("/home"); 
+      // 1초 후 홈으로 이동한 뒤 새로고침
+      await router.push("/home"); // 먼저 페이지 이동
+      setTimeout(async () => {
+        window.location.reload(); // 이동 후 새로고침
+      }, 500);
     } catch (error: any) {
       console.error("Google login failed:", error.message);
       alert("Google 로그인 중 오류가 발생했습니다.");

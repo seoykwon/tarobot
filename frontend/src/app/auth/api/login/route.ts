@@ -14,6 +14,5 @@ export const loginRequest = async (id: string, password: string) => {
       throw new Error(errorData.message || "로그인 실패");
     }
   
-    const data = await response.json();
-    return data; // Access Token 등 응답 데이터 반환
+    return response.json(); // Access Token 등 응답 데이터 반환
   };

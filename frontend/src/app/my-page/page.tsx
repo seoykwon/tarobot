@@ -78,6 +78,7 @@ export default function MyPage() {
       if (response.ok) {
         // 로그아웃 성공 시 로그인 페이지로 이동
         router.push("/auth/login");
+        window.location.reload(); // 새로고침하여 상태 반영
       } else {
         console.error("Failed to log out");
       }

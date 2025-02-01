@@ -18,7 +18,8 @@ public class CookieUtil {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
-
+        cookie.setHttpOnly(true);  // XSS 방지
+        cookie.setSecure(true);    // HTTPS에서만 전송
         response.addCookie(cookie);
     }
 
@@ -38,6 +39,21 @@ public class CookieUtil {
             }
         }
     }
+
+    public static String getCookieValue(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(name)) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
 
     public static String serialize(Object obj) {
         return Base64.getUrlEncoder()
