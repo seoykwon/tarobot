@@ -1,18 +1,18 @@
 # fo_mini_api.py
 import openai
+from typing import AsyncGenerator
 from app.core.settings import settings
 
 # OpenAI API 설정
-openai.api_key = settings.openai_api_key
-FO_MINI_MODEL = "gpt-4o-mini"  # OpenAI 모델
+FO_MINI_MODEL = "gpt-4o-mini"
 
-def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, stream=False):
+async def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, stream=False):
     """
-    OpenAI API를 호출하는 함수
+    OpenAI API를 호출하는 비동기 함수 (Streaming 지원)
     """
     try:
-        client = openai.OpenAI()  # ✅ 최신 방식으로 클라이언트 생성
-        response = client.chat.completions.create(
+        client = openai.AsyncOpenAI(api_key=settings.openai_api_key)  # ✅ 비동기 클라이언트 사용
+        response = await client.chat.completions.create(
             model=FO_MINI_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
@@ -21,15 +21,36 @@ def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, stream=False):
         )
 
         if stream:
-            return (chunk["choices"][0]["delta"]["content"] for chunk in response)
+            return response  # ✅ `async for`을 위한 비동기 응답 반환
 
-        return response.choices[0].message.content  # ✅ 최신 응답 형식
+        return response.choices[0].message.content  # ✅ 일반 응답 반환
 
-    except openai.OpenAIError as e:  # ✅ 예외 처리 수정
+    except openai.OpenAIError as e:
         print(f"[Error] OpenAI API 호출 실패: {str(e)}")
         return "죄송합니다, API 호출 중 오류가 발생했습니다."
 
-# ✅ 프롬프트 생성 함수 추가
+async def stream_openai_response(prompt: str, max_tokens=256, temperature=0.7) -> AsyncGenerator[str, None]:
+    """
+    OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터
+    """
+    try:
+        client = openai.AsyncOpenAI(api_key=settings.openai_api_key)  # ✅ 비동기 클라이언트 사용
+        response = await client.chat.completions.create(
+            model=FO_MINI_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=True  # ✅ Streaming 활성화
+        )
+
+        async for chunk in response:  # ✅ `async for` 사용 가능
+            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content  # ✅ 부분 응답을 반환
+
+    except Exception as e:
+        yield f"[ERROR] OpenAI Streaming 오류: {str(e)}"  # ✅ 에러 발생 시 메시지 반환
+
+# ✅ 프롬프트 생성 함수
 def make_prompt_summarize(text: str) -> str:
     return f"다음 한국어 텍스트를 간단히 요약해 주세요:\n{text}"
 
