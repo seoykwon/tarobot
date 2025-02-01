@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
+import CardSelector from "./CardShuffle";
 
 interface Fortune {
   date: string;
@@ -43,7 +44,7 @@ export default async function HomePage() {
   const miniGames = await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames");
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-16">
+    <main className="min-h-screen bg-background pb-16">
       {/* Header */}
       <header className="p-4 text-center border-b">
         <h1 className="font-login-title">MysticPixel</h1>
@@ -139,6 +140,10 @@ export default async function HomePage() {
           ) : (
             <p>No mini-games available.</p> // 데이터 없을 때 메시지 표시
           )}
+        </section>
+
+        <section>
+            <CardSelector/>
         </section>
       </div>
     </main>

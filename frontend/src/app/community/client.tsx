@@ -27,64 +27,97 @@ interface Announcement {
   createdAt: string;
 }
 
-export function CommunityClient({
-  initialPosts,
+const FILTERS = [
+  { label: "인기", value: "popular" },
+  { label: "최신", value: "latest" },
+  { label: "댓글 많은 글", value: "mostCommented" },
+  { label: "내가 쓴 글", value: "myArticles" },
+];
+
+export default function CommunityClient({
   announcements,
 }: {
-  initialPosts: Post[];
   announcements: Announcement[];
 }) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [loading, setLoading] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false); // 최상단 버튼 표시 여부
-  const loader = useRef(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState<string>("latest");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false); // 최상단 버튼 표시 여부
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
-  // 스크롤 탑 버튼 표시 여부 체크
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 200); // 스크롤이 200px 이상 내려갔을 때 표시
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // 무한 스크롤 로직
-  const loadMore = async () => {
+  // 게시글 데이터 가져오기
+  const fetchPosts = async (filter: string, pageNum = 1) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch(`/community/articles?page=${Math.ceil(posts.length / 10) + 1}&pageSize=10`);
-      const newPosts = await response.json();
-
-      if (newPosts.articles.length > 0) {
-        setPosts((prev) => [...prev, ...newPosts.articles]);
+      const response = await fetch(
+        `http://localhost:8080/community/articles?filter=${filter}&page=${pageNum}&pageSize=10`,
+        { cache: "no-store" }
+      );
+      if (!response.ok) {
+        console.error("Failed to fetch posts");
+        return;
+      }
+      const data = await response.json();
+      if (data.articles.length === 0) {
+        setHasMore(false);
+      } else {
+        setPosts((prevPosts) =>
+          pageNum === 1 ? data.articles : [...prevPosts, ...data.articles]
+        );
       }
     } catch (error) {
-      console.error("Failed to load more posts:", error);
+      console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Intersection Observer 설정
+  // 초기 데이터 로드
   useEffect(() => {
+    fetchPosts(selectedFilter, page);
+  }, []);
+
+  // 필터 변경 시 초기화 및 데이터 호출
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchPosts(selectedFilter, 1);
+  }, [selectedFilter]);
+
+  // 무한 스크롤 로직
+  useEffect(() => {
+    if (!hasMore || loading) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting && !loading) {
-          loadMore();
+        if (entries[0].isIntersecting) {
+          setPage((prevPage) => prevPage + 1);
         }
       },
       { threshold: 1.0 }
     );
 
-    const currentLoader = loader.current;
-    if (currentLoader) observer.observe(currentLoader);
+    if (observerRef.current) observer.observe(observerRef.current);
 
-    return () => {
-      if (currentLoader) observer.unobserve(currentLoader);
+    return () => observer.disconnect();
+  }, [hasMore, loading]);
+
+  // 페이지 번호가 변경될 때 추가 데이터 가져오기
+  useEffect(() => {
+    if (page > 1) fetchPosts(selectedFilter, page);
+  }, [page]);
+
+  // 스크롤 탑 버튼 표시 여부 체크
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 200); // 스크롤이 일정 이상 내려갔을 때 표시
     };
-  }, [loading]);
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // 최상단으로 스크롤
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -108,6 +141,21 @@ export function CommunityClient({
           <p className="text-muted-foreground">등록된 공지사항이 없습니다.</p>
         )}
       </section>
+
+      {/* 필터 버튼 */}
+      <div className="flex justify-center mb-4">
+        {FILTERS.map((filter) => (
+          <button
+            key={filter.value}
+            onClick={() => setSelectedFilter(filter.value)}
+            className={`px-4 py-2 rounded-full mx-2 ${
+              selectedFilter === filter.value ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
 
       {/* 게시글 목록 */}
       <section className="p-4 space-y-4">
@@ -143,10 +191,10 @@ export function CommunityClient({
             </Link>
           ))
         ) : (
-          <p className="text-muted-foreground">게시글이 없습니다.</p> // 데이터가 없을 때 메시지 표시
+          !loading && <p className="text-muted-foreground">게시글이 없습니다.</p>
         )}
         {/* 로더 */}
-        <div ref={loader} className="h-10 flex items-center justify-center">
+        <div ref={observerRef} className="h-10 flex items-center justify-center">
           {loading && <p>Loading...</p>}
         </div>
       </section>
