@@ -1,30 +1,40 @@
-from fastapi import FastAPI
+# main.py
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 import redis
-from app.services.rag_pipeline import rag_pipeline  # ✅ 올바른 경로
+import asyncio
+from app.services.rag_pipeline import rag_pipeline
+from app.utils.response_utils import response_generator  # ✅ Streaming import
 
 app = FastAPI()
 
 # Redis 연결
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
-@app.get("/")
-def read_root():
+class ChatResponse(BaseModel):
+    answer: str
+
+@app.get("/", tags=["Health Check"])
+async def read_root():
+    """Check if the API is running."""
     return {"message": "Hello, RAG MVP with Redis!"}
 
 @app.post("/chat")
-def chat(session_id: str, user_input: str):
-    """
-    RAG 파이프라인 호출
-    """
-    answer = rag_pipeline(session_id, user_input)
-    return {"answer": answer}
+async def chat(session_id: str, user_input: str):
+    return {"answer": await rag_pipeline(session_id, user_input, stream=False)}
+
+@app.post("/chat/stream")
+async def chat_stream(session_id: str, user_input: str):
+    context = await rag_pipeline(session_id, user_input, stream=False)  # ✅ 컨텍스트 생성
+    return StreamingResponse(response_generator(session_id, user_input, context), media_type="text/plain")
 
 @app.post("/store")
-def store_data(key: str, value: str):
+async def store_data(key: str, value: str):
     redis_client.set(key, value)
     return {"status": "ok", "key": key, "value": value}
 
 @app.get("/retrieve")
-def retrieve_data(key: str):
+async def retrieve_data(key: str):
     val = redis_client.get(key)
     return {"key": key, "value": val}

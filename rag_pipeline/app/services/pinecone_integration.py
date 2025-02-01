@@ -5,7 +5,8 @@ from typing import List, Dict
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as LangChainPinecone
 from langchain_upstage.embeddings import UpstageEmbeddings
-from app.core.settings import settings  # ✅ 올바른 경로
+from app.core.settings import settings
+import asyncio  # ✅ 비동기 지원 추가
 
 # Pinecone 인덱스 이름
 INDEX_NAME = "my-rag-index"
@@ -18,7 +19,7 @@ existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
 if INDEX_NAME not in existing_indexes:
     pc.create_index(
         name=INDEX_NAME,
-        dimension=4096,  # Upstage 임베딩과 일치해야 함
+        dimension=4096,
         metric="cosine",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         deletion_protection="enabled"
@@ -39,30 +40,25 @@ upstage_embeddings = UpstageEmbeddings(
 vectorstore = LangChainPinecone.from_existing_index(
     index_name=INDEX_NAME,
     embedding=upstage_embeddings,
-    text_key="session_id"  # ✅ 검색 키를 "session_id"으로 변경
+    text_key="session_id"
 )
 
 # Retriever 생성
 retriever = vectorstore.as_retriever(
-    search_type="mmr",  # 또는 "similarity"
+    search_type="mmr",
     search_kwargs={"k": 3}
 )
 
-def upsert_documents(docs: List[str], metadatas: List[Dict] = None):
+# ✅ upsert_documents()를 비동기 함수로 변경
+async def upsert_documents(docs: List[str], metadatas: List[Dict] = None):
     """
-    Pinecone 인덱스에 문서를 업서트하는 함수
-    Args:
-        docs (List[str]): 문서 목록
-        metadatas (List[Dict], optional): 문서별 메타데이터. Defaults to None.
-    Returns:
-        str: 성공 메시지
+    Pinecone 인덱스에 문서를 비동기적으로 업서트하는 함수
     """
     if metadatas is None:
-        # 문서에 맞는 메타데이터 설정, 예: "content" 또는 "session_id"
-        metadatas = [{"content": doc} for doc in docs]  # content를 메타데이터로 설정
+        metadatas = [{"content": doc} for doc in docs]
 
-    # 문서를 벡터로 변환
-    embeddings = upstage_embeddings.embed_documents(docs)
+    # 문서를 벡터로 변환 (비동기 처리)
+    embeddings = await asyncio.to_thread(upstage_embeddings.embed_documents, docs)
 
     # Pinecone에 저장할 데이터 구성
     vectors = [
@@ -70,26 +66,20 @@ def upsert_documents(docs: List[str], metadatas: List[Dict] = None):
         for embedding, metadata in zip(embeddings, metadatas)
     ]
 
-    # 업서트 실행
-    index.upsert(vectors=vectors)
+    # Pinecone 업서트 실행 (비동기 처리)
+    await asyncio.to_thread(index.upsert, vectors)
 
     return f"Upserted {len(docs)} documents into Pinecone"
 
-
-def retrieve_documents(query: str, top_k=3):
+# ✅ retrieve_documents()도 비동기 함수로 변경
+async def retrieve_documents(query: str, top_k=3):
     """
     Pinecone Retriever를 사용하여 유사한 문서 검색
-    Args:
-        query (str): 질의 문장
-        top_k (int, optional): 검색할 상위 개수. Defaults to 3.
-    Returns:
-        List[Dict]: 검색 결과 목록
     """
-    retrieved_docs = retriever.invoke(query)
+    retrieved_docs = await asyncio.to_thread(retriever.invoke, query)
 
-    # 검색 결과 변환
     results = [
-        {"content": doc.metadata.get("content", "No content"), "metadata": doc.metadata}  # content를 메타데이터로 반환
+        {"content": doc.metadata.get("content", "No content"), "metadata": doc.metadata}
         for doc in retrieved_docs
     ]
 

@@ -1,43 +1,55 @@
 # rag_pipeline.py
+import asyncio
 from app.services.redis_utils import get_recent_history, save_message
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.services.multitask import parallel_tasks
-from app.utils.fo_mini_api import call_4o_mini, make_prompt_chat  # ✅ 모듈명 변경
+from app.utils.fo_mini_api import call_4o_mini, make_prompt_chat
+from app.utils.response_utils import response_generator  # ✅ Streaming 분리
 
-def rag_pipeline(session_id: str, user_input: str) -> str:
+async def process_user_input(session_id: str, user_input: str):
     """
-    RAG 기반 챗봇 파이프라인
+    사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
     """
-    # 1) Redis 저장 (사용자 메시지)
-    save_message(session_id, "user", user_input)
+    save_task = asyncio.create_task(save_message(session_id, "user", user_input))
+    analysis_result = await parallel_tasks(user_input)
 
-    # 2) Pinecone 업서트 (임베딩 저장)
-    upsert_documents([user_input], [{"session_id": session_id}])
+    ner_info = analysis_result.get("ner", "")
+    summary = analysis_result.get("summarize", "")
+    sentiment_info = analysis_result.get("sentiment", "")
 
-    # 3) Pinecone 검색 (연관 문서 검색)
-    pine_results = retrieve_documents(user_input, top_k=3)
+    metadata = {"session_id": session_id, "ner": ner_info, "sentiment": sentiment_info, "summary": summary}
+    upsert_task = asyncio.create_task(upsert_documents([user_input], [metadata]))
+    retrieve_task = asyncio.create_task(retrieve_documents(user_input, top_k=3))
 
-    # 4) 멀티스레드로 Summarization, NER, Sentiment 수행 ✅
-    multi_result = parallel_tasks(user_input)  # ✅ 프롬프트 생성은 `multitask.py` 내부에서 수행
-    summary = multi_result.get("summarize", "")
-    ner_info = multi_result.get("ner", "")
-    sentiment_info = multi_result.get("sentiment", "")
+    pine_results = await retrieve_task
+    recent_history = await get_recent_history(session_id)
 
-    # 5) 최종 컨텍스트 생성
-    recent_history = get_recent_history(session_id)
-    context = f"""
-        [최근 기록]: {recent_history}
-        [장기 검색]: {pine_results}
-        [문장 요약]: {summary}
-        [NER]: {ner_info}
-        [감정 분석]: {sentiment_info}
+    context = prepare_context(recent_history, pine_results, summary, ner_info, sentiment_info)
+    return context
+
+def prepare_context(recent_history, pine_results, summary, ner_info, sentiment_info):
+    """
+    최종 컨텍스트를 생성하는 함수
+    """
+    return f"""
+    [최근 대화 기록]: {recent_history}
+    [Pinecone 검색 결과]: {pine_results}
+    [문장 요약]: {summary}
+    [NER 정보]: {ner_info}
+    [감정 분석]: {sentiment_info}
     """
 
-    # 6) OpenAI API 호출 (4o-mini 모델 사용) ✅
+async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
+    """
+    비동기 최적화된 RAG 기반 챗봇 파이프라인 (Streaming 지원)
+    """
+    context = await process_user_input(session_id, user_input)
+
+    if stream:
+        return response_generator(session_id, user_input, context)  # ✅ Streaming을 분리하여 호출
+
     chat_prompt = make_prompt_chat(context, user_input)
-    llm_answer = call_4o_mini(chat_prompt, max_tokens=256)
+    llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, stream=False)
 
-    # 7) Redis에 봇 메시지 저장
-    save_message(session_id, "assistant", llm_answer)
-
+    save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
     return llm_answer
