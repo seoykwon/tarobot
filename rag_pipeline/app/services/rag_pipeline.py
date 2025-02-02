@@ -11,11 +11,11 @@ async def process_user_input(session_id: str, user_input: str):
     """
     사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
     """
-    recent_history = await get_recent_history(session_id)
+    # recent_history = await get_recent_history(session_id)
     recent_summary = await get_summary_history(session_id)
 
-     # 새로운 메시지 Redis에 저장 (요약 갱신)
-    await save_summary_history(session_id, user_input)
+    # 새로운 메시지 Redis에 저장 (요약 갱신)
+    asyncio.create_task(save_summary_history(session_id, user_input))
 
     save_task = asyncio.create_task(save_message(session_id, "user", user_input))
     analysis_result = await parallel_tasks(user_input)
