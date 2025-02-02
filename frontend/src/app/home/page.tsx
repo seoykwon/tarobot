@@ -45,10 +45,10 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-background pb-16">
-      {/* Header */}
+      {/* Header
       <header className="p-4 text-center border-b">
         <h1 className="font-login-title">MysticPixel</h1>
-      </header>
+      </header> */}
 
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}

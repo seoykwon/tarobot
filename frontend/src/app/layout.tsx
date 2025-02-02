@@ -33,9 +33,13 @@ export default async function RootLayout({
   return (
     <html lang="ko" className={theme === "dark" ? "dark" : ""}>
       <body>
-        <header className="p-4 flex justify-between bg-accent-color text-white dark:bg-gray-900">
-          <h1 className="text-lg">🌟 Tarot AI</h1>
-          <DarkModeToggle initialTheme={theme} />
+        <header className="p-4 relative flex items-center bg-accent-color dark:bg-gray-900">
+          <h1 className="absolute left-1/2 transform -translate-x-1/2 text-lg font-login-title">
+          🌟 Tarot AI
+          </h1>
+          <div className="ml-auto">
+            <DarkModeToggle initialTheme={theme} />
+          </div>
         </header>
         <main className="p-6">{children}</main>
         {/* BottomNav에 서버에서 가져온 currentPath 전달 */}

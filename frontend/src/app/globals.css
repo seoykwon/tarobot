@@ -17,6 +17,7 @@
   --text-color: #6B1A72;  /* 본문 텍스트 */
   --accent-color: #4A0E4E; /* 딥 퍼플 (헤더, 강조 텍스트) */
   --highlight-color: #8C2796; /* 라이트 퍼플 (링크, 버튼) */
+  --title-clolor: #4A0E4E;  /* 다크/라이트 모드 색 변경 */
   /* 🎨 추가: 박스와 버튼 배경색 */
   --card: #EAD9F2; /* 카드 배경색을 연보라색으로 변경 */
   --card-foreground: #6B1A72; /* 카드 내부 글자색 */
@@ -32,9 +33,10 @@
 }
 
 .dark {
-  --background: #0a0a0a;              /* 다크 모드 */
+  --background: #1a1a1a;              /* 다크 모드 */
   --foreground: #ededed;
   --text-color: #F3E5F5;
+  --title-clolor: #F3E5F5;
   /* 🎨 다크 모드 전용 박스/버튼 스타일 */
   --box-background: #4A0E4E; /* 딥 퍼플 */
   --button-background: #6B1A72; /* 미디엄 퍼플 */
@@ -45,7 +47,7 @@
 
 @media (prefers-color-scheme: dark) {   /* 사용자 브라우저 다크모드 감지 */
   :root {
-    --background: #0a0a0a;
+    --background: #1a1a1a;
     --foreground: #ededed;
     --text-color: #F3E5F5;
   }
@@ -116,6 +118,7 @@ body {
   .font-login-title {
     font-family: var(--font-grandiflora);
     font-size: 36px;
+    color: var(--title-clolor);
   }
 
   .font-chat-button {

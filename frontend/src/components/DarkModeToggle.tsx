@@ -21,7 +21,7 @@ export default function DarkModeToggle({ initialTheme }: { initialTheme: string 
       disabled={isPending}
       className="p-2 rounded-md bg-gray-800 text-white dark:bg-gray-200 dark:text-black"
     >
-      {isDark ? "☀️ 라이트 모드" : "🌙 다크 모드"}
+      {isDark ? "☀️" : "🌙"}
     </button>
   );
 }
