@@ -10,11 +10,11 @@ async def process_user_input(session_id: str, user_input: str):
     """
     사용자 입력을 처리하는 비동기 함수 (Redis 저장, NER 분석, Pinecone 업서트 & 검색)
     """
-    recent_history = await get_recent_history(session_id)
+    # recent_history = await get_recent_history(session_id)
     recent_summary = await get_summary_history(session_id)
 
     # 새로운 메시지 Redis에 저장 (요약 갱신)
-    await save_summary_history(session_id, user_input)
+    asyncio.create_task(save_summary_history(session_id, user_input))
 
     save_task = asyncio.create_task(save_message(session_id, "user", user_input))
 
@@ -47,7 +47,7 @@ async def process_user_input(session_id: str, user_input: str):
     pine_results = await retrieve_task
 
     # ✅ 컨텍스트 구성 (감정 분석 제거)
-    context = prepare_context(recent_history, pine_results, ner_info)
+    context = prepare_context(recent_summary, pine_results, ner_info)
 
     # 필수 비동기 작업 완료 보장
     await asyncio.gather(save_task, upsert_task)
@@ -77,14 +77,14 @@ def prepare_context(recent_history, pine_results, ner_info):
 
     # ✅ 감정 분석 및 요약 제거, 최신 NER 정보만 활용
     context = f"""
-        [최근 대화 기록]:
-        {recent_history}
+[최근 대화 기록]:
+{recent_history}
 
-        [Pinecone 검색 요약]: 
-        {pine_summary_text}
+[Pinecone 검색 요약]: 
+{pine_summary_text}
 
-        [NER 정보]:
-        {ner_text}
+[NER 정보]:
+{ner_text}
     """
 
     return context.strip()

@@ -62,7 +62,20 @@ async def save_summary_history(session_id: str, new_message: str):
 
     # ✅ 새로운 대화를 기존 요약과 합쳐서 다시 요약 요청
     new_summary = await call_4o_mini(
-        f"다음 대화 내용을 기존 요약에 추가하여 300자 이내로 갱신하세요:\n\n기존 요약: {existing_summary}\n\n새로운 대화: {new_message}",
+        f"""
+        기존 요약을 200자 이내로 다시 요약한 후, 새로운 대화 내용을 반영하여 업데이트하세요.
+        - 기존 요약의 핵심 내용을 유지하면서, 불필요한 부분을 압축하세요.
+        - 이후 새로운 대화를 반영하여 자연스럽게 업데이트하세요.
+        - 최종적으로 업데이트된 요약 길이는 300자 내외를 유지하세요.
+
+        기존 요약:
+        {existing_summary}
+
+        새로운 대화:
+        {new_message}
+
+        업데이트된 요약:
+        """,
         max_tokens=400
     )
 
