@@ -52,7 +52,7 @@ export default async function HomePage() {
 
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}
-        <Card className="bg-card hover:bg-accent/50 transition-colors">
+        <Card className="bg-card hover:bg-accent/50 transition-colors p-4">
         <section>
           <h2 className="font-page-title">Today's Fortune</h2>
           {fortune ? (
@@ -80,7 +80,7 @@ export default async function HomePage() {
          </Card>
 
         {/* Tarot Masters */}
-        <Card className="hover:bg-accent/50 transition-colors">
+        <Card className="hover:bg-accent/50 transition-colors p-4">
         <section>
           <Link href="/tarot">
             <div className="flex items-center justify-between mb-3">
@@ -116,7 +116,7 @@ export default async function HomePage() {
         </Card>
 
         {/* Mini-Games */}
-        <Card className="hover:bg-accent/50 transition-colors">
+        <Card className="hover:bg-accent/50 transition-colors p-4">
         <section>
           <Link href="/game">
             <div className="flex items-center justify-between mb-3">
@@ -146,14 +146,12 @@ export default async function HomePage() {
             <p>No mini-games available.</p> // 데이터 없을 때 메시지 표시
           )}
         </section>
-<<<<<<< HEAD
         </Card>
-=======
+
 
         <section>
             <CardSelector/>
         </section>
->>>>>>> 09985c82082e4e295c336f5cd27a485a87936f34
       </div>
     </main>
   );
