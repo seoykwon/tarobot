@@ -54,11 +54,43 @@ async def stream_openai_response(prompt: str, max_tokens=256, temperature=0.7) -
 def make_prompt_summarize(text: str) -> str:
     return f"다음 한국어 텍스트를 간단히 요약해 주세요:\n{text}"
 
+# def make_prompt_ner(text: str) -> str:
+#     return f"다음 문장에서 인물, 장소, 조직, 이벤트 등의 개체명을 찾아 JSON 형식으로 반환해 주세요:\n{text}"
+
 def make_prompt_ner(text: str) -> str:
-    return f"다음 문장에서 인물, 장소, 조직, 이벤트 등의 개체명을 찾아 JSON 형식으로 반환해 주세요:\n{text}"
+    return f"""
+    다음 문장에서 인물, 장소, 조직, 이벤트 등의 개체명을 JSON 형식으로 반환해 주세요. 
+    JSON 코드 블록 없이 순수한 JSON 객체만 출력하세요.
+    
+    문장: "{text}"
+    
+    반환 형식 예시:
+    {{
+        "인물": ["홍길동"],
+        "장소": ["서울"],
+        "조직": ["삼성"],
+        "이벤트": ["코드 챌린지"]
+    }}
+    """
+
+
+# def make_prompt_sentiment(text: str) -> str:
+#     return f"다음 문장의 감정을 분석해 주세요. JSON 형식으로 반환해 주세요 (예: {{'label': 'positive', 'confidence': 0.85}})\n{text}"
 
 def make_prompt_sentiment(text: str) -> str:
-    return f"다음 문장의 감정을 분석해 주세요. JSON 형식으로 반환해 주세요 (예: {{'label': 'positive', 'confidence': 0.85}})\n{text}"
+    return f"""
+    다음 문장의 감정을 분석해 주세요. 
+    JSON 코드 블록 없이 순수한 JSON 객체만 출력하세요.
+    
+    문장: "{text}"
+    
+    반환 형식 예시:
+    {{
+        "label": "positive",
+        "confidence": 0.85
+    }}
+    """
+
 
 def make_prompt_chat(context: str, user_input: str) -> str:
     return f"[Context]\n{context}\n\nUser input: {user_input}\n\n위 정보를 바탕으로 친절하고 정확한 답변을 해주세요."
