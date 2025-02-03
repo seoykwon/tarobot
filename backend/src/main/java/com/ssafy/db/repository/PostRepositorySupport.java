@@ -1,11 +1,11 @@
 package com.ssafy.db.repository;
 
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.QPost;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -21,11 +21,11 @@ public class PostRepositorySupport {
     QPost qPost = QPost.post;
 
     // 제목과 작성자를 기반으로 게시글 검색
-    public List<Post> findPostsByTitleAndAuthor(String title, String authorId) {
+    public List<Post> findPostsByTitleAndAuthor(String title, String userId) {
         return jpaQueryFactory.selectFrom(qPost)
                 .where(
                         qPost.title.contains(title),
-                        qPost.author.userId.eq(authorId),
+                        qPost.author.userId.eq(userId),
                         qPost.isActive.isTrue() // 활성화된 게시글만
                 )
                 .orderBy(qPost.createdAt.desc())
