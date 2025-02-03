@@ -39,7 +39,7 @@ const navItems = [
 
 export default function BottomNav({ currentPath }: { currentPath: string }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 border-t bg-[var(--box-background)] dark:bg-[var(--box-background)]">
+    <div className="fixed bottom-0 left-0 right-0 border-t backdrop-blur-lg bg-opacity-90 shadow-lg">
       <nav className="flex h-16 items-center justify-around px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -48,12 +48,12 @@ export default function BottomNav({ currentPath }: { currentPath: string }) {
               key={item.href}
               variant="ghost"
               className={cn(
-                "flex h-full w-full flex-col items-center justify-center gap-1 p-0 font-normal",
+                "relative flex h-full w-full flex-col items-center justify-center gap-1 p-0 font-normal",
                 currentPath === item.href && "text-primary font-medium"
               )}
               asChild
             >
-              <Link href={item.href}>
+              <Link href={item.href} className="relative px-2 py-1 rounded-lg">
                 <Icon className="h-5 w-5" />
                 <span className="text-xs">{item.name}</span>
               </Link>
