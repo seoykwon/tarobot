@@ -44,7 +44,7 @@ export default async function HomePage() {
   const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? []; // Null 방지
 
   return (
-    <main className="min-h-screen pb-16 pt-8 px-4 flex flex-col gap-y-6 transition-all duration-300">
+    <main className="min-h-screen bg-background pb-16 pt-8 px-4 flex flex-col gap-y-6 transition-all duration-300">
       {/* Today's Fortune */}
       <Card className="bg-card hover:bg-accent/50 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
         <section>
@@ -66,53 +66,21 @@ export default async function HomePage() {
               </CardContent>
             </Link>
           ) : (
-            <p>No fortune available for today.</p>
+            // 오늘의 타로 결과가 없을 경우
+            <div className="text-center space-y-4">
+              <p>오늘의 운세를 확인해보세요!!</p>
+              <Link href="/daily">
+                <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                  확인하기
+                </button>
+              </Link>
+            </div>
           )}
         </section>
       </Card>
-    <main className="min-h-screen bg-background pb-16">
-      {/* Header
-      <header className="p-4 text-center border-b">
-        <h1 className="font-login-title">MysticPixel</h1>
-      </header> */}
 
-      <div className="p-4 space-y-6">
-        {/* Today's Fortune */}
-        <Card className="bg-card hover:bg-accent/50 transition-colors p-4">
-          <section>
-            <h2 className="font-page-title">Today's Fortune</h2>
-            {fortune ? (
-              <Link href="/daily">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="relative w-16 h-24 flex-shrink-0">
-                      <GamepadIcon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-tarobot-title mb-1">{fortune.fortune}</h3>
-                      <p className="font-tarobot-description text-muted-foreground">
-                        Lucky Number: {fortune.luckyNumber}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Link>
-              ) : (
-              // 오늘의 타로 결과가 없을 경우
-              <div className="text-center space-y-4">
-                <p>오늘의 운세를 확인해보세요!!</p>
-                <Link href="/daily">
-                  <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
-                    확인하기
-                  </button>
-                </Link>
-              </div>
-            )}
-          </section>
-        </Card>
-
-        {/* Tarot Masters */}
-        <Card className="hover:bg-accent/50 transition-colors p-4">
+      {/* Tarot Masters */}
+      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg mx-auto">
         <section>
           <Link href="/tarot">
             <div className="flex items-center justify-between mb-3">
@@ -146,7 +114,7 @@ export default async function HomePage() {
       </Card>
 
       {/* Mini-Games */}
-      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
+      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg mx-auto">
         <section>
           <Link href="/game">
             <div className="flex items-center justify-between mb-3">
