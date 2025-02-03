@@ -40,47 +40,39 @@ async function fetchData<T>(url: string): Promise<T | null> {
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
   const fortune = await fetchData<Fortune>("http://localhost:8080/api/main/fortune");
-  const tarobots = await fetchData<Tarobot[]>("http://localhost:8080/api/main/tarobots");
-  const miniGames = await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames");
+  const tarobots = (await fetchData<Tarobot[]>("http://localhost:8080/api/main/tarobots")) ?? []; // Null 방지
+  const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? []; // Null 방지
 
   return (
-    <main className="min-h-screen bg-background pb-16">
-      {/* Header
-      <header className="p-4 text-center border-b">
-        <h1 className="font-login-title">MysticPixel</h1>
-      </header> */}
-
-      <div className="p-4 space-y-6">
-        {/* Today's Fortune */}
-        <Card className="bg-card hover:bg-accent/50 transition-colors p-4">
+    <main className="min-h-screen pb-16 pt-8 px-4 flex flex-col gap-y-6 transition-all duration-300">
+      {/* Today's Fortune */}
+      <Card className="bg-card hover:bg-accent/50 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
         <section>
           <h2 className="font-page-title">Today's Fortune</h2>
           {fortune ? (
             <Link href="/tarot/daily">
-              {/* <Card className="bg-card hover:bg-accent/50 transition-colors"> */}
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="relative w-16 h-24 flex-shrink-0">
-                      <GamepadIcon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-tarobot-title mb-1">{fortune.fortune}</h3>
-                      <p className="font-tarobot-description text-muted-foreground">
-                        Lucky Number: {fortune.luckyNumber}
-                      </p>
-                    </div>
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <div className="relative w-16 h-24 flex-shrink-0">
+                    <GamepadIcon className="w-6 h-6" />
                   </div>
-                </CardContent>
-              {/* </Card> */}
+                  <div>
+                    <h3 className="font-tarobot-title mb-1">{fortune.fortune}</h3>
+                    <p className="font-tarobot-description text-muted-foreground">
+                      Lucky Number: {fortune.luckyNumber}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
             </Link>
           ) : (
-            <p>No fortune available for today.</p> // 데이터 없을 때 메시지 표시
+            <p>No fortune available for today.</p>
           )}
         </section>
-         </Card>
+      </Card>
 
-        {/* Tarot Masters */}
-        <Card className="hover:bg-accent/50 transition-colors p-4">
+      {/* Tarot Masters */}
+      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
         <section>
           <Link href="/tarot">
             <div className="flex items-center justify-between mb-3">
@@ -88,35 +80,33 @@ export default async function HomePage() {
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </Link>
-          {tarobots && tarobots.length > 0 ? (
-            <div className="space-y-2">
-              {tarobots.map((master) => (
+          {tarobots.length > 0 ? (
+            <div className="gap-y-2 flex flex-col">
+              {tarobots.slice(0, 3).map((master) => (
                 <Link key={master.tarobotId} href={`/tarot/bots/${master.tarobotId}`}>
-                  {/* <Card className="hover:bg-accent/50 transition-colors"> */}
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                          <GamepadIcon className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <h3 className="font-tarobot-title">{master.name}</h3>
-                          <p className="font-tarobot-subtitle">{master.description}</p>
-                          <p className="text-sm text-muted-foreground">Rating: {master.rating}</p>
-                        </div>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                        <GamepadIcon className="w-6 h-6" />
                       </div>
-                    </CardContent>
-                  {/* </Card> */}
+                      <div>
+                        <h3 className="font-tarobot-title">{master.name}</h3>
+                        <p className="font-tarobot-subtitle">{master.description}</p>
+                        <p className="text-sm text-muted-foreground">Rating: {master.rating}</p>
+                      </div>
+                    </div>
+                  </CardContent>
                 </Link>
               ))}
             </div>
           ) : (
-            <p>No tarot masters available.</p> // 데이터 없을 때 메시지 표시
+            <p>No tarot masters available.</p>
           )}
         </section>
-        </Card>
+      </Card>
 
-        {/* Mini-Games */}
-        <Card className="hover:bg-accent/50 transition-colors p-4">
+      {/* Mini-Games */}
+      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
         <section>
           <Link href="/game">
             <div className="flex items-center justify-between mb-3">
@@ -124,35 +114,32 @@ export default async function HomePage() {
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </Link>
-          {miniGames && miniGames.length > 0 ? (
-            miniGames.map((game) => (
+          {miniGames.length > 0 ? (
+            miniGames.slice(0, 3).map((game) => (
               <Link key={game.gameId} href={`/games/${game.gameId}`}>
-                {/* <Card className="hover:bg-accent/50 transition-colors"> */}
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
-                        <GamepadIcon className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="font-tarobot-title">{game.name}</h3>
-                        <p className="font-tarobot-subtitle text-muted-foreground">{game.description}</p>
-                      </div>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
+                      <GamepadIcon className="w-6 h-6" />
                     </div>
-                  </CardContent>
-                {/* </Card> */}
+                    <div>
+                      <h3 className="font-tarobot-title">{game.name}</h3>
+                      <p className="font-tarobot-subtitle text-muted-foreground">{game.description}</p>
+                    </div>
+                  </div>
+                </CardContent>
               </Link>
             ))
           ) : (
-            <p>No mini-games available.</p> // 데이터 없을 때 메시지 표시
+            <p>No mini-games available.</p>
           )}
         </section>
-        </Card>
+      </Card>
 
-
-        <section>
-            <CardSelector/>
-        </section>
-      </div>
+      {/* 카드 셀렉터 */}
+      <section className="w-full max-w-lg mx-auto">
+        <CardSelector />
+      </section>
     </main>
   );
 }
