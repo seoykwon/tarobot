@@ -21,7 +21,7 @@
   /* 🎨 추가: 박스와 버튼 배경색 */
   --card: #EAD9F2; /* 카드 배경색을 연보라색으로 변경 */
   --card-foreground: #6B1A72; /* 카드 내부 글자색 */
-  --box-background: #EAD9F2; /* 부드러운 연보라 박스 배경 */
+  /* --box-background: #EAD9F2; 부드러운 연보라 박스 배경 */
   --button-background: #8C2796; /* 미디엄 퍼플 버튼 배경 */
   --button-hover: #6B1A72; /* 버튼 호버 색 */
   --button-text: #FFFFFF; /* 버튼 텍스트 색 */
@@ -34,19 +34,19 @@
 }
 
 .dark {
-  --background: #1a1a1a;              /* 다크 모드 */
+  --background: #252525;              /* 다크 모드 */
   --foreground: #ededed;
   --text-color: #F3E5F5;
-  --title-clolor: #F3E5F5;
+  --title-color: #F3E5F5;
   --accent-color: #F3E5F5;
   /* 🎨 다크 모드 전용 박스/버튼 스타일 */
-  --box-background: #4A0E4E; /* 딥 퍼플 */
+  /* --box-background: #4A0E4E; 딥 퍼플 */
   --button-background: #6B1A72; /* 미디엄 퍼플 */
   --button-hover: #4A0E4E; /* 버튼 호버 색 */
   --button-text: #F3E5F5; /* 버튼 텍스트 */
-  --card: #EAD9F2; /* 다크 모드에서는 딥 퍼플 */
+  --card: #4A0E4E; /* 다크 모드에서는 딥 퍼플 */
   --card-foreground: #F3E5F5;
-  --background-gradient: linear-gradient(to bottom, #1a1a1a, #2c0e3a); /* 연한 검정 → 조금 더 진한 검정 */
+  --background-gradient: linear-gradient(to bottom, #252525, #3a2c3a); /* 연한 검정 → 조금 더 진한 검정 */
   
 }
 
@@ -125,7 +125,7 @@ body {
   .font-login-title {
     font-family: var(--font-grandiflora);
     font-size: 36px;
-    color: var(--title-clolor);
+    color: var(--title-color);
   }
 
   .font-chat-button {
@@ -147,9 +147,9 @@ body {
   .font-size-20 {
     font-size: 20px;
   }
-  .content-wrapper {
-    background: var(--background-gradient); /* 동일한 그라데이션 적용 */
-  }
+  /* .content-wrapper {
+    background: var(--background-gradient); /* 동일한 그라데이션 적용 
+  } */
 }
 
 
