@@ -28,14 +28,6 @@ public class User extends BaseEntity{
     @Column(nullable = false, length = 255)
     private String password; // 비밀번호
 
-    @Column(nullable = false)
-    private boolean isAdmin; // 관리자 여부
-
-
-    /**
-     * 관리자 여부를 반환하는 메서드
-     */
-    public boolean isAdmin() {
-        return isAdmin;
-    }
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isAdmin = false; // 관리자 여부, 기본값 false
 }

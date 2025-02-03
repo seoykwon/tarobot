@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 @ApiModel("PostResponse")
 public class PostRes {
 
+    @ApiModelProperty(name = "게시글 ID", example = "1")
+    private Long id;
+
     @ApiModelProperty(name = "게시글 제목", example = "오늘의 일상")
     private String title;
 
@@ -45,10 +48,11 @@ public class PostRes {
 
     public static PostRes of(Post post) {
         PostRes res = new PostRes();
+        res.setId(post.getId());
         res.setTitle(post.getTitle());
         res.setContent(post.getContent());
         res.setImageUrl(post.getImageUrl());
-        res.setAuthorId(post.getAuthor().getUserId()); // 작성자 ID 가져오기
+        res.setAuthorId(post.getAuthor().getUserId());
         res.setViewCount(post.getViewCount());
         res.setCommentCount(post.getCommentCount());
         res.setLikeCount(post.getLikeCount());

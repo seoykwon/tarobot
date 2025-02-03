@@ -7,11 +7,11 @@ import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.PostRepository;
 import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +24,9 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    // **1. 게시글 생성**
+    /**
+     * 게시글 생성
+     */
     @Override
     @Transactional
     public Post createPost(PostRegisterReq request) {
@@ -40,15 +42,19 @@ public class PostServiceImpl implements PostService {
         return postRepository.save(post);
     }
 
-    // **2. 모든 게시글 조회 (활성화된 게시글만)**
+    /**
+     * 모든 게시글 조회 (활성화된 게시글만, 페이지네이션 지원)
+     */
     @Override
-    public List<PostRes> getAllPosts() {
-        return postRepository.findAllByIsActiveTrue().stream()
+    public List<PostRes> getAllPosts(int page, int size) {
+        return postRepository.findAllByIsActiveTrue(PageRequest.of(page, size)).stream()
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
 
-    // **3. 게시글 상세 조회**
+    /**
+     * 게시글 상세 조회
+     */
     @Override
     public PostRes getPostById(Long postId) {
         Post post = postRepository.findById(postId)
@@ -57,7 +63,9 @@ public class PostServiceImpl implements PostService {
         return PostRes.of(post);
     }
 
-    // **4. 제목으로 검색**
+    /**
+     * 제목으로 검색
+     */
     @Override
     public List<PostRes> getPostsByTitle(String title) {
         return postRepository.findByTitleContaining(title).stream()
@@ -65,7 +73,9 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    // **5. 작성자로 검색**
+    /**
+     * 작성자로 검색
+     */
     @Override
     public List<PostRes> getPostsByAuthor(String authorId) {
         User author = userRepository.findByUserId(authorId)
@@ -75,7 +85,9 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    // **6. 조회수 기준 정렬**
+    /**
+     * 조회수 기준 정렬
+     */
     @Override
     public List<PostRes> getPostsByMostViewed() {
         return postRepository.findAllByOrderByViewCountDesc().stream()
@@ -83,7 +95,9 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    // **7. 좋아요 기준 정렬**
+    /**
+     * 좋아요 기준 정렬
+     */
     @Override
     public List<PostRes> getPostsByMostLiked() {
         return postRepository.findAllByOrderByLikeCountDesc().stream()
@@ -91,7 +105,9 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    // **8. 댓글 수 기준 정렬**
+    /**
+     * 댓글 수 기준 정렬
+     */
     @Override
     public List<PostRes> getPostsByMostCommented() {
         return postRepository.findAllByOrderByCommentCountDesc().stream()
@@ -99,23 +115,33 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    // **9. 제목 및 이미지 수정**
+    /**
+     * 제목 및 이미지 수정
+     */
     @Override
     @Transactional
     public Post updatePost(Long postId, String title, String image) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        post.setTitle(title);
-        post.setImageUrl(image);
+
+        if (title != null && !title.isEmpty()) {
+            post.setTitle(title);
+        }
+
+        if (image != null && !image.isEmpty()) {
+            post.setImageUrl(image);
+        }
+
         return postRepository.save(post);
     }
 
-    // Enum 정의 (조회수, 좋아요, 댓글 수 증가를 위한 타입)
+    /**
+     * 공통 카운트 증가 메서드 정의 (조회수, 좋아요, 댓글 수 증가 처리)
+     */
     public enum CountType {
         VIEW, LIKE, COMMENT
     }
 
-    // **10~12. 공통 카운트 증가 메서드**
     private void increaseCount(Long postId, CountType type) {
         postRepository.findById(postId).ifPresent(post -> {
             switch (type) {
@@ -151,13 +177,16 @@ public class PostServiceImpl implements PostService {
         increaseCount(postId, CountType.COMMENT);
     }
 
-    // **13. 일반 사용자: 게시글 비활성화 처리**
+    /**
+     * 일반 사용자: 게시글 비활성화 처리
+     */
     @Override
     @Transactional
     public void deactivatePost(Long postId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
+        // 작성자 본인 또는 관리자만 비활성화 가능
         if (!post.getAuthor().equals(currentUser) && !currentUser.isAdmin()) {
             throw new SecurityException("비활성화 권한이 없습니다.");
         }
@@ -167,18 +196,20 @@ public class PostServiceImpl implements PostService {
         postRepository.save(post);
     }
 
-    // **14. 관리자: 실제 삭제 처리**
+    /**
+     * 관리자: 실제 삭제 처리 (비활성화된 게시글만 삭제 가능)
+     */
     @Override
     @Transactional
     public void deletePostPermanently(Long postId, User currentUser) {
-        if (!currentUser.isAdmin()) {
+        if (!currentUser.isAdmin()) { // 관리자 권한 확인
             throw new SecurityException("관리자 권한이 필요합니다.");
         }
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        if (!post.isActive()) {  // 이미 비활성화된 경우에만 삭제 허용
+        if (!post.isActive()) { // 이미 비활성화된 경우에만 삭제 허용
             postRepository.delete(post);
         } else {
             throw new IllegalStateException("비활성화되지 않은 게시글은 삭제할 수 없습니다.");
