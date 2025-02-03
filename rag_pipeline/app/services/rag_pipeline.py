@@ -50,41 +50,32 @@ async def process_user_input(session_id: str, user_input: str):
     except json.JSONDecodeError:
         ner_info = {}  
 
-    # ✅ Pinecone에 업서트할 metadata 구성
-    metadata = {
-        "created_at": int(datetime.datetime.now(seoul_tz).timestamp()),
-        "persons": ner_info.get("persons", []),  
-        "locations": ner_info.get("locations", []),  
-        "organizations": ner_info.get("organizations", []),  
-        "events": ner_info.get("events", []),  
-        "keywords": ner_info.get("keywords", [])  
-    }
-
     # ✅ Pinecone namespace 활용하도록 변경
-    upsert_task = asyncio.create_task(upsert_documents(user_id, [user_input], [metadata]))
     retrieve_task = asyncio.create_task(retrieve_documents(user_id, user_input, ner_info, top_k=3))
 
     pine_results = await retrieve_task
+
 
     # ✅ 최적화된 컨텍스트 생성
     context = prepare_context(recent_history, pine_results, ner_info)
 
     # 🔥 필수 비동기 작업 완료 보장
-    await asyncio.gather(save_task, upsert_task)
+    await asyncio.gather(save_task)
 
-    return context
+    return context, ner_info, user_id
 
 def prepare_context(recent_history, pine_results, ner_info):
     """
     최종 컨텍스트를 생성하는 함수
     """
-    # ✅ Pinecone 검색 결과 요약
-    pine_summary = []
+    # ✅ Pinecone 검색 결과에서 content 파싱
+    pine_content = []
     for doc in pine_results:
         metadata = doc.get("metadata", {})  # 🔥 `metadata`가 없을 경우 빈 딕셔너리 반환
-        pine_summary.append(f"- {metadata.get('summary', '검색 결과 없음')}")
+        pine_content.append(f"- user_input : {metadata.get('user_input', '검색 결과 없음')}")
+        pine_content.append(f"- response : {metadata.get('response', '검색 결과 없음')}")
 
-    pine_summary_text = "\n".join(pine_summary) if pine_summary else "관련 검색 결과가 없습니다."
+    pine_content_text = "\n".join(pine_content) if pine_content else "관련 검색 결과가 없습니다."
 
     # ✅ NER 정보 정리
     ner_text = "\n".join([f"- {key}: {', '.join(value) if value else '없음'}" for key, value in ner_info.items()])
@@ -95,7 +86,7 @@ def prepare_context(recent_history, pine_results, ner_info):
 {recent_history}
 
 [Pinecone 검색 요약]: 
-{pine_results}
+{pine_content_text}
 
 [NER 정보]:
 {ner_text}
@@ -107,7 +98,8 @@ async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
     """
     비동기 최적화된 RAG 기반 챗봇 파이프라인 (Streaming 지원)
     """
-    context = await process_user_input(session_id, user_input)
+    # 업서트를 위해 ner_info와 user_id도 리턴 받기
+    context, ner_info, user_id = await process_user_input(session_id, user_input)
 
     if stream:
         return response_generator(session_id, user_input, context)
@@ -116,9 +108,25 @@ async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
     print(chat_prompt)
     llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, stream=False)
 
-    save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
 
-    # 🔥 챗봇 응답 저장 완료 보장
-    await save_response_task
+    # ✅ Pinecone에 업서트할 metadata 구성
+    metadata = {
+        "created_at": int(datetime.datetime.now(seoul_tz).timestamp()),
+        "persons": ner_info.get("persons", []),  
+        "locations": ner_info.get("locations", []),  
+        "organizations": ner_info.get("organizations", []),  
+        "events": ner_info.get("events", []),  
+        "keywords": ner_info.get("keywords", []),
+        "user_input" : user_input,
+        "response" : llm_answer,
+    }
+
+    # pinecone 업서트
+    upsert_task = asyncio.create_task(upsert_documents(user_id, [user_input], [metadata]))
+    # redis 저장
+    save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
+    
+    # 🔥 필수 비동기 작업 완료 보장
+    await asyncio.gather(save_response_task, upsert_task)
 
     return llm_answer

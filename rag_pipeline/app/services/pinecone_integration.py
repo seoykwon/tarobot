@@ -151,7 +151,7 @@ async def retrieve_documents(user_id: str, query: str, ner_info: dict, top_k: in
     # 🔥 검색 결과 반환
     results = [
         {
-            "content": match["metadata"].get("content", "No content"),
+            # "content": match["metadata"].get("content", "No content"),
             "metadata": match["metadata"]
         }
         for match in response.get("matches", [])
