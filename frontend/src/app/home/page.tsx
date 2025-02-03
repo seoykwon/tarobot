@@ -53,11 +53,10 @@ export default async function HomePage() {
       <div className="p-4 space-y-6">
         {/* Today's Fortune */}
         <Card className="bg-card hover:bg-accent/50 transition-colors p-4">
-        <section>
-          <h2 className="font-page-title">Today's Fortune</h2>
-          {fortune ? (
-            <Link href="/tarot/daily">
-              {/* <Card className="bg-card hover:bg-accent/50 transition-colors"> */}
+          <section>
+            <h2 className="font-page-title">Today's Fortune</h2>
+            {fortune ? (
+              <Link href="/daily">
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="relative w-16 h-24 flex-shrink-0">
@@ -71,13 +70,21 @@ export default async function HomePage() {
                     </div>
                   </div>
                 </CardContent>
-              {/* </Card> */}
-            </Link>
-          ) : (
-            <p>No fortune available for today.</p> // 데이터 없을 때 메시지 표시
-          )}
-        </section>
-         </Card>
+              </Link>
+              ) : (
+              // 오늘의 타로 결과가 없을 경우
+              <div className="text-center space-y-4">
+                <p>오늘의 운세를 확인해보세요!!</p>
+                <Link href="/daily">
+                  <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                    확인하기
+                  </button>
+                </Link>
+              </div>
+            )}
+          </section>
+        </Card>
+
 
         {/* Tarot Masters */}
         <Card className="hover:bg-accent/50 transition-colors p-4">
