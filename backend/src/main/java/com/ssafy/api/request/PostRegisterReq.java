@@ -1,7 +1,8 @@
 package com.ssafy.api.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -9,19 +10,20 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Schema(description = "PostRegisterRequest")
-
+@Schema(description = "Post Register Request")
 public class PostRegisterReq {
 
-    @Schema(description = "게시글 제목", example = "오늘의 일상")
+    @NotBlank(message = "게시글 제목은 필수 입력 항목입니다.")
+    @Schema(description = "게시글 제목", example = "오늘의 일상", required = true)
     private String title;
 
-    @Schema(description = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!")
+    @NotBlank(message = "게시글 내용은 필수 입력 항목입니다.")
+    @Schema(description = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!", required = true)
     private String content;
 
     @Schema(description = "이미지 URL", example = "https://example.com/image.png")
     private String imageUrl;
 
-    @Schema(description = "작성자 ID", example = "user123")
-    private String authorId;
+    @Schema(description = "작성자 ID", example = "ssafy_web", required = true)
+    private String userId;
 }

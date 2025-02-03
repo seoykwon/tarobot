@@ -2,6 +2,8 @@ package com.ssafy.db.repository;
 
 import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -33,4 +35,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 활성화된 게시글만 조회
     List<Post> findAllByIsActiveTrue();
+
+    // 페이지네이션된 활성 게시글 조회
+    Page<Post> findAllByIsActiveTrue(Pageable pageable);
 }

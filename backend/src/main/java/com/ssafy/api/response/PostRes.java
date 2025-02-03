@@ -2,7 +2,7 @@ package com.ssafy.api.response;
 
 import com.ssafy.db.entity.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -12,9 +12,11 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Setter
-@Schema(description = "PostResponse")
-
+@Schema(description = "Post Response")
 public class PostRes {
+
+    @Schema(description = "게시글 ID", example = "1")
+    private Long id;
 
     @Schema(description = "게시글 제목", example = "오늘의 일상")
     private String title;
@@ -25,8 +27,8 @@ public class PostRes {
     @Schema(description = "이미지 URL", example = "https://example.com/image.png")
     private String imageUrl;
 
-    @Schema(description = "작성자 ID", example = "user123")
-    private String authorId;
+    @Schema(description = "작성자 ID", example = "ssafy_web")
+    private String userId;
 
     @Schema(description = "조회수", example = "100")
     private int viewCount;
@@ -45,10 +47,11 @@ public class PostRes {
 
     public static PostRes of(Post post) {
         PostRes res = new PostRes();
+        res.setId(post.getId());
         res.setTitle(post.getTitle());
         res.setContent(post.getContent());
         res.setImageUrl(post.getImageUrl());
-        res.setAuthorId(post.getAuthor().getUserId()); // 작성자 ID 가져오기
+        res.setUserId(post.getAuthor().getUserId());
         res.setViewCount(post.getViewCount());
         res.setCommentCount(post.getCommentCount());
         res.setLikeCount(post.getLikeCount());
