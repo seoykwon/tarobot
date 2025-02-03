@@ -32,7 +32,7 @@ export default function LoginPage() {
       await router.push("/home"); // 먼저 페이지 이동
       setTimeout(async () => {
         window.location.reload(); // 이동 후 새로고침
-      }, 500);
+      }, 1000);
     } catch (error: any) {
       console.error("Login failed:", error.message);
       alert("로그인 중 오류가 발생했습니다.");
@@ -50,7 +50,7 @@ export default function LoginPage() {
       await router.push("/home"); // 먼저 페이지 이동
       setTimeout(async () => {
         window.location.reload(); // 이동 후 새로고침
-      }, 500);
+      }, 1000);
     } catch (error: any) {
       console.error("Google login failed:", error.message);
       alert("Google 로그인 중 오류가 발생했습니다.");

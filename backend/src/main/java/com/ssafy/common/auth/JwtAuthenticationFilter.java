@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -35,14 +36,14 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		// Read the Authorization header, where the JWT Token should be
-        String header = request.getHeader(JwtTokenUtil.HEADER_STRING);
-
-        // If header does not contain BEARER or is null delegate to Spring impl and exit
-        if (header == null || !header.startsWith(JwtTokenUtil.TOKEN_PREFIX)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+//		// Read the Authorization header, where the JWT Token should be
+//        String header = request.getHeader(JwtTokenUtil.HEADER_STRING);
+//
+//        // If header does not contain BEARER or is null delegate to Spring impl and exit
+//        if (header == null || !header.startsWith(JwtTokenUtil.TOKEN_PREFIX)) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
         
         try {
             // If header is present, try grab user principal from database and perform authorization
@@ -56,34 +57,51 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         
         filterChain.doFilter(request, response);
 	}
-	
-	@Transactional(readOnly = true)
+
+    @Transactional(readOnly = true)
     public Authentication getAuthentication(HttpServletRequest request) throws Exception {
-        String token = request.getHeader(JwtTokenUtil.HEADER_STRING);
-        // 요청 헤더에 Authorization 키값에 jwt 토큰이 포함된 경우에만, 토큰 검증 및 인증 처리 로직 실행.
+        // 1️⃣ Authorization 헤더에서 가져오기
+        String token = extractToken(request);
+
         if (token != null) {
-            // parse the token and validate it (decode)
             JWTVerifier verifier = JwtTokenUtil.getVerifier();
             JwtTokenUtil.handleError(token);
             DecodedJWT decodedJWT = verifier.verify(token.replace(JwtTokenUtil.TOKEN_PREFIX, ""));
             String userId = decodedJWT.getSubject();
-            
-            // Search in the DB if we find the user by token subject (username)
-            // If so, then grab user details and create spring auth token using username, pass, authorities/roles
+
             if (userId != null) {
-                    // jwt 토큰에 포함된 계정 정보(userId) 통해 실제 디비에 해당 정보의 계정이 있는지 조회.
-            		User user = userService.getUserByUserId(userId);
-                if(user != null) {
-                        // 식별된 정상 유저인 경우, 요청 context 내에서 참조 가능한 인증 정보(jwtAuthentication) 생성.
-                		SsafyUserDetails userDetails = new SsafyUserDetails(user);
-                		UsernamePasswordAuthenticationToken jwtAuthentication = new UsernamePasswordAuthenticationToken(userId,
-                				null, userDetails.getAuthorities());
-                		jwtAuthentication.setDetails(userDetails);
-                		return jwtAuthentication;
+                User user = userService.getUserByUserId(userId);
+                if (user != null) {
+                    SsafyUserDetails userDetails = new SsafyUserDetails(user);
+                    UsernamePasswordAuthenticationToken jwtAuthentication =
+                            new UsernamePasswordAuthenticationToken(userId, null, userDetails.getAuthorities());
+                    jwtAuthentication.setDetails(userDetails);
+                    return jwtAuthentication;
                 }
             }
-            return null;
         }
         return null;
     }
+
+    private String extractToken(HttpServletRequest request) {
+        // 1️⃣ Authorization 헤더 확인
+        String headerToken = request.getHeader(JwtTokenUtil.HEADER_STRING);
+        if (headerToken != null && headerToken.startsWith(JwtTokenUtil.TOKEN_PREFIX)) {
+            return headerToken;
+        }
+
+        // 2️⃣ HttpOnly 쿠키에서 가져오기
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                System.out.println("🔍 [DEBUG] 쿠키 이름: " + cookie.getName() + ", 값: " + cookie.getValue());
+                if ("access_token".equals(cookie.getName())) {
+                    return JwtTokenUtil.TOKEN_PREFIX + cookie.getValue(); // Bearer 붙이기
+                }
+            }
+        }
+
+        System.out.println("❌ [ERROR] access_token 쿠키가 서버에 없음.");
+        return null;
+    }
+
 }

@@ -3,19 +3,20 @@ package com.ssafy.api.controller;
 import com.ssafy.api.request.UserProfileRegisterPostReq;
 import com.ssafy.api.request.UserProfileUpdateReq;
 import com.ssafy.api.response.UserProfileRes;
+import com.ssafy.api.response.UserRes;
 import com.ssafy.api.service.UserProfileService;
+import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.model.response.BaseResponseBody;
+import com.ssafy.db.entity.User;
 import com.ssafy.db.entity.UserProfile;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -78,8 +79,23 @@ public class UserProfileController {
 	public ResponseEntity<UserProfileRes> updateUserProfile(
 			@PathVariable String userId,
 			@RequestBody UserProfileUpdateReq updateReq) {
-		UserProfile updatedUserProfile =
-				userProfileService.updateUserProfile(userId, updateReq);
+		UserProfile updatedUserProfile = userProfileService.updateUserProfile(userId, updateReq);
 		return ResponseEntity.ok(UserProfileRes.of(updatedUserProfile));
+	}
+
+	@GetMapping("/me")
+	@Operation(summary = "회원 본인 프로필 조회", description = "로그인한 회원 본인의 프로필을 응답한다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "성공"),
+			@ApiResponse(responseCode = "401", description = "인증 실패"),
+			@ApiResponse(responseCode = "404", description = "사용자 없음"),
+			@ApiResponse(responseCode = "500", description = "서버 오류")
+	})
+	public ResponseEntity<UserProfileRes> getUserProfile(Authentication authentication) {
+		SsafyUserDetails userDetails = (SsafyUserDetails) authentication.getDetails();
+		String userId = userDetails.getUsername();
+		UserProfile userProfile = userProfileService.getUserProfileByUserId(userId);
+
+		return ResponseEntity.status(200).body(UserProfileRes.of(userProfile));
 	}
 }

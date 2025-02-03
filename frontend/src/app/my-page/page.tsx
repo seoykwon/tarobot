@@ -31,41 +31,31 @@ export default function MyPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // 쿠키 또는 로컬 스토리지에서 userId 가져오기
-        const userId = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("userId="))
-          ?.split("=")[1];
-
-        if (!userId) {
-          console.error("User ID not found");
-          return;
-        }
-
-        // 유저 정보 및 타로 기록 데이터 요청
-        const response = await fetch(`http://localhost:8080/api/v1/user-profiles/${userId}`, {
+        // 백엔드로 요청
+        const response = await fetch("http://localhost:8080/api/v1/user-profiles/me", {
           method: "GET",
-          credentials: "include", // 쿠키 포함
+          credentials: "include", // 쿠키 자동 포함
         });
 
         if (response.ok) {
           const data = await response.json();
-
-          // 데이터 설정
-          setUserInfo(data); // 사용자 정보
-          setTarotRecords(data.tarotRecords || []); // 최근 타로 기록
+          setUserInfo(data);
+          setTarotRecords(data.tarotRecords || []);
         } else {
           console.error("Failed to fetch user data");
+          // if (response.status === 401 || response.status === 403) {
+          //   router.push("/login"); // 인증 실패 시 로그인 페이지로 이동
+          // }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
-        setIsLoading(false); // 로딩 상태 해제
+        setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [router]);
 
   const handleLogout = async () => {
     try {

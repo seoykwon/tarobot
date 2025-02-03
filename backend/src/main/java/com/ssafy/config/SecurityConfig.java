@@ -21,6 +21,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -66,9 +67,9 @@ public class SecurityConfig {
                         .anyRequest().permitAll()                           // 나머지 요청은 모두 허용
                 )
                 .authenticationProvider(authenticationProvider()) // Authentication Provider 등록
-                .addFilter(new JwtAuthenticationFilter(
+                .addFilterBefore(new JwtAuthenticationFilter(
                         authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)),
-                        userService)) // JWT 인증 필터 추가
+                        userService), UsernamePasswordAuthenticationFilter.class) // 👈 JWT 필터를 UsernamePasswordAuthenticationFilter 이전에 실행
                 // .cors(cors -> cors.disable()) // CORS 설정 (필요 시 활성화)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 필요에 따라 활성화 가능
                 .oauth2Login(oauth2 -> oauth2
