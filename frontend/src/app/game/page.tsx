@@ -1,5 +1,8 @@
 import { TarotGame } from "@/components/TarotGame";
-
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/Card";
+import { ChevronRight, GamepadIcon } from "lucide-react";
+import CardSelector from "../home/CardShuffle";
 interface Game {
   minigameId: number;
   name: string;

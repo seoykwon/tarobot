@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import styles from './CardSelector.module.css';
+import Image from 'next/image';
 
 const CardSelector: React.FC = () => {
   const [isCardGridVisible, setIsCardGridVisible] = useState(false);
@@ -84,11 +85,13 @@ const CardSelector: React.FC = () => {
               ✕
             </button>
             <div className={styles.selectedCard}>
-              <img 
-                src={`/basic/maj${tarotNumber}.svg`}
-                alt={`Tarot card ${tarotNumber}`}
-                className={styles.selectedCardImage}
-              />
+            <Image
+              src={`/basic/maj${tarotNumber}.svg`}
+              alt={`Tarot card ${tarotNumber}`}
+              className={styles.selectedCardImage}
+              width={240} // 이미지의 고정 너비 (적절히 설정)
+              height={360} // 이미지의 고정 높이 (적절히 설정)
+            />
             </div>
           </div>
         </div>
