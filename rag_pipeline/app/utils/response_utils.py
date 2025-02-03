@@ -1,9 +1,7 @@
 # response_utils.py
 from typing import AsyncGenerator
-from app.utils.fo_mini_api import call_4o_mini, make_prompt_chat
-
-from typing import AsyncGenerator
-from app.utils.fo_mini_api import call_4o_mini, make_prompt_chat
+from app.utils.fo_mini_api import call_4o_mini
+from app.utils.prompt_generation import make_prompt_chat
 
 async def response_generator(session_id: str, user_input: str, context: str) -> AsyncGenerator[str, None]:
     """

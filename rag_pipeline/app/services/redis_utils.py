@@ -67,6 +67,7 @@ async def save_summary_history(session_id: str, new_message: str):
         - 기존 요약의 핵심 내용을 유지하면서, 불필요한 부분을 압축하세요.
         - 이후 새로운 대화를 반영하여 자연스럽게 업데이트하세요.
         - 최종적으로 업데이트된 요약 길이는 300자 내외를 유지하세요.
+        - 특히 이름, 장소 등의 키워드는 반드시 빠뜨리지 않도록 하세요.
 
         기존 요약:
         {existing_summary}

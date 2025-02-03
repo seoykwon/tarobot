@@ -49,32 +49,3 @@ async def stream_openai_response(prompt: str, max_tokens=256, temperature=0.7) -
 
     except Exception as e:
         yield f"[ERROR] OpenAI Streaming 오류: {str(e)}"  # ✅ 에러 발생 시 메시지 반환
-
-# ✅ 프롬프트 생성 함수
-def make_prompt_summarize(text: str) -> str:
-    return f"다음 한국어 텍스트를 간단히 요약해 주세요:\n{text}"
-
-def make_prompt_ner(text: str) -> str:
-    return f"""
-    다음 문장에서 주요 개체명을 추출하고 JSON 형식으로 반환하세요.
-    각 항목이 없으면 빈 배열 `[]`을 반환하세요.
-
-    [출력 예시]
-    문장: "홍길동은 2025년 1월 31일 서울에서 열린 연말 회식에 참석했다."
-    출력:
-    {{
-        "persons": ["홍길동"],
-        "dates": ["2025-01-31"],
-        "locations": ["서울"],
-        "organizations": [],
-        "events": ["연말 회식"],
-        "keywords": ["회식", "참석"]
-    }}
-
-    문장: "{text}"
-    출력:
-    """
-
-
-def make_prompt_chat(context: str, user_input: str) -> str:
-    return f"[Context]\n{context}\n\nUser input: {user_input}\n\n위 정보를 바탕으로 친절하고 정확한 답변을 해주세요."
