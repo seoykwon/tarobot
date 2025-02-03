@@ -4,6 +4,7 @@ import com.ssafy.api.service.UserService;
 import com.ssafy.common.auth.JwtAuthenticationFilter;
 import com.ssafy.common.auth.SsafyUserDetailService;
 
+import com.ssafy.common.util.JwtTokenUtil;
 import com.ssafy.config.oauth.OAuth2FailureHandler;
 import com.ssafy.config.oauth.OAuth2SuccessHandler;
 import com.ssafy.config.oauth.OAuth2UserCustomService;
@@ -16,11 +17,19 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * 인증(authentication) 와 인가(authorization) 처리를 위한 스프링 시큐리티 설정 정의.
+ */
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor // 생성자 주입을 위한 Lombok 어노테이션
 @EnableMethodSecurity(prePostEnabled = true) // @EnableGlobalMethodSecurity 대체
 public class SecurityConfig {
@@ -61,6 +70,7 @@ public class SecurityConfig {
                         authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)),
                         userService)) // JWT 인증 필터 추가
                 // .cors(cors -> cors.disable()) // CORS 설정 (필요 시 활성화)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 필요에 따라 활성화 가능
                 .oauth2Login(oauth2 -> oauth2
                     .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserCustomService))
                     .successHandler(oAuth2SuccessHandler)
@@ -68,5 +78,20 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // configuration.addAllowedOrigin("*");
+        configuration.addAllowedOriginPattern("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.addExposedHeader(JwtTokenUtil.HEADER_STRING);
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
