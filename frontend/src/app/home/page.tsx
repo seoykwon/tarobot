@@ -25,28 +25,29 @@ interface MiniGame {
 // 서버에서 데이터 가져오기 함수
 async function fetchData<T>(url: string): Promise<T | null> {
   try {
-    const response = await fetch(url, { cache: "no-store" }); // SSR에서 최신 데이터 가져오기
+    const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) {
       console.error(`Failed to fetch data from ${url}`);
-      return null; // 에러 발생 시 null 반환
+      return null;
     }
     return await response.json();
   } catch (error) {
     console.error(`Error fetching data from ${url}:`, error);
-    return null; // 네트워크 에러 등 발생 시 null 반환
+    return null;
   }
 }
 
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
   const fortune = await fetchData<Fortune>("http://localhost:8080/api/main/fortune");
-  const tarobots = (await fetchData<Tarobot[]>("http://localhost:8080/api/main/tarobots")) ?? []; // Null 방지
-  const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? []; // Null 방지
+  const tarobots = (await fetchData<Tarobot[]>("http://localhost:8080/api/main/tarobots")) ?? [];
+  const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? [];
 
   return (
-    <main className="min-h-screen bg-background pb-16 pt-8 px-4 flex flex-col gap-y-6 transition-all duration-300">
+    <main className="min-h-screen bg-transparent pb-16 pt-8 px-4 flex flex-col gap-y-6 transition-all duration-300">
+      
       {/* Today's Fortune */}
-      <Card className="bg-card hover:bg-accent/50 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
+      <Card className="bg-transparent hover:bg-accent/20 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
         <section>
           <h2 className="font-page-title">Today's Fortune</h2>
           {fortune ? (
@@ -66,7 +67,6 @@ export default async function HomePage() {
               </CardContent>
             </Link>
           ) : (
-            // 오늘의 타로 결과가 없을 경우
             <div className="text-center space-y-4">
               <p>오늘의 운세를 확인해보세요!!</p>
               <Link href="/daily">
@@ -80,7 +80,7 @@ export default async function HomePage() {
       </Card>
 
       {/* Tarot Masters */}
-      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg mx-auto">
+      <Card className="bg-transparent hover:bg-accent/20 transition-colors p-4 w-full max-w-lg mx-auto">
         <section>
           <Link href="/tarot">
             <div className="flex items-center justify-between mb-3">
@@ -114,7 +114,7 @@ export default async function HomePage() {
       </Card>
 
       {/* Mini-Games */}
-      <Card className="hover:bg-accent/50 transition-colors p-4 w-full max-w-lg mx-auto">
+      <Card className="bg-transparent hover:bg-accent/20 transition-colors p-4 w-full max-w-lg mx-auto">
         <section>
           <Link href="/game">
             <div className="flex items-center justify-between mb-3">
@@ -148,6 +148,7 @@ export default async function HomePage() {
       <section className="w-full max-w-lg mx-auto">
         <CardSelector />
       </section>
+      
     </main>
   );
 }
