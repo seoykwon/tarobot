@@ -28,8 +28,8 @@ public class TarotBotServiceImpl implements TarotBotService {
     }
 
     @Override
-    public TarotBot getTarotBotByName(String name) {
-        return tarotBotRepository.findByName(name).get();
+    public TarotBot getTarotBotById(Long id) {
+        return tarotBotRepository.findById(id).get();
     }
 
     @Override

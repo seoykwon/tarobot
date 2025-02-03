@@ -54,17 +54,17 @@ public class TarotBotController {
 		return ResponseEntity.ok(response);
 	}
 
-	@GetMapping("/{name}")
-	@Operation(summary = "이름 기반 타로 봇 조회", description = "name을 통해 타로 마스터 정보를 조회합니다.")
+	@GetMapping("/{tarotBotId}")
+	@Operation(summary = "ID 기반 타로 봇 조회", description = "ID를 통해 타로 마스터 정보를 조회합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "성공"),
 			@ApiResponse(responseCode = "404", description = "타로 마스터 없음"),
 			@ApiResponse(responseCode = "500", description = "서버 오류")
 	})
 	public ResponseEntity<TarotBotRes> getTarotBotInfo(
-			@PathVariable @Parameter(description = "조회할 name", required = true) String name) {
+			@PathVariable @Parameter(description = "조회할 bot_id", required = true) Long tarotBotId) {
 
-		TarotBot tarotBot = tarotBotService.getTarotBotByName(name);
+		TarotBot tarotBot = tarotBotService.getTarotBotById(tarotBotId);
 		return ResponseEntity.status(200).body(TarotBotRes.of(tarotBot));
 	}
 

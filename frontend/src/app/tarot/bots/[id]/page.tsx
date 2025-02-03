@@ -6,12 +6,13 @@ import { redirect } from "next/navigation";
 import { fetchTarobotDetails } from "@/app/api/taroBotsDetail";
 
 interface TarobotDetailsPageProps {
-  params: { id: string };
+  params: { id: number };
 }
 
 // 동적 라우팅을 위한 페이지 컴포넌트
 export default async function TarobotDetailsPage({ params }: TarobotDetailsPageProps) {
   // Spring Boot API에서 타로봇 상세 정보 가져오기
+  
   const tarobotDetails = await fetchTarobotDetails(params.id);
 
   // 데이터가 없으면 Not Found 페이지로 이동

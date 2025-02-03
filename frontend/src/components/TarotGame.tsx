@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/Card"
 
 interface TarotGameProps {
-  id: string
+  id: number
   name: string
   description: string
   mbti?: string

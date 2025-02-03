@@ -56,7 +56,8 @@
 import { TarotGame } from "@/components/TarotGame";
 
 interface TarotBot {
-  id: string;
+  // id: string;
+  id: number;
   name: string;
   description: string;
   mbti: string;
@@ -65,19 +66,19 @@ interface TarotBot {
 // ✅ 더미 데이터 (API가 실패하면 이 데이터를 사용)
 const dummyBots: TarotBot[] = [
   {
-    id: "1",
+    id: 1,
     name: "Mystic Sage",
     description: "An ancient tarot master who sees the unseen.",
     mbti: "INFJ",
   },
   {
-    id: "2",
+    id: 2,
     name: "Oracle of Stars",
     description: "A cosmic seer who reads the fate through the constellations.",
     mbti: "ENFP",
   },
   {
-    id: "3",
+    id: 3,
     name: "Shadow Seer",
     description: "A mysterious fortune teller who uncovers hidden truths.",
     mbti: "INTP",

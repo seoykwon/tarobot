@@ -14,6 +14,9 @@ import lombok.Setter;
 @Schema(description = "TarotBotRes")
 public class TarotBotRes {
 
+    @Schema(description = "Bot Id")
+    private Long id;
+
     @Schema(description = "Bot Name")
     private String name;
 
@@ -31,6 +34,7 @@ public class TarotBotRes {
 
     public static TarotBotRes of(TarotBot tarotBot) {
         TarotBotRes res = new TarotBotRes();
+        res.setId(tarotBot.getId());
         res.setName(tarotBot.getName());
         res.setDescription(tarotBot.getDescription());
         res.setConcept(tarotBot.getConcept());
