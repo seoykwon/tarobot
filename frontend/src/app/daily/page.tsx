@@ -1,24 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "./card-selector";
 import Image from "next/image";
 
+// 토큰 유효성 검증 및 리프레시 함수
+async function validateAndRefresh() {
+  try {
+    // access_token 검증 요청
+    const validateResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/validate`, {
+      method: "GET",
+      credentials: "include", // 쿠키 포함
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // access_token이 유효하지 않은 경우 refresh 요청
+    if (!validateResponse.ok) {
+      const refreshResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/refresh`, {
+        method: "POST",
+        credentials: "include", // 쿠키 포함
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!refreshResponse.ok) {
+        throw new Error("Token refresh failed");
+      }
+    }
+
+    return true; // 토큰이 유효하거나 새로 발급된 경우
+  } catch (error) {
+    console.error("Error during token validation or refresh:", error);
+    return false; // 유효하지 않은 경우
+  }
+}
+
 export default function FirstVisitPage() {
-  const [showCardSelector, setShowCardSelector] = useState(false); // 카드 선택 창 표시 여부
-  const [result, setResult] = useState<string | null>(null); // AI 응답 결과
-  const [selectedCard, setSelectedCard] = useState<number | null>(null); // 선택된 카드 번호
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
+  const [showCardSelector, setShowCardSelector] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [selectedCard, setSelectedCard] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 추가
   const router = useRouter();
 
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const isValid = await validateAndRefresh(); // 토큰 검증 및 갱신 호출
+      setIsLoggedIn(isValid); // 로그인 상태 업데이트
+    };
+
+    checkLoginStatus();
+  }, []);
+
   const handleCardSelect = async (cardNumber: number) => {
-    setShowCardSelector(false); // 카드 선택 창 닫기
-    setSelectedCard(cardNumber); // 선택된 카드 번호 저장
+    setShowCardSelector(false);
+    setSelectedCard(cardNumber);
     setIsLoading(true);
 
     try {
-      // AI에게 카드 번호를 전달하여 결과 요청
       const response = await fetch(
         `http://localhost:8000/chat/stream?session_id=12345&user_input=majortarotcard_${cardNumber}`,
         {
@@ -41,18 +84,23 @@ export default function FirstVisitPage() {
         botMessageText += decoder.decode(value);
       }
 
-      // AI 응답 결과 저장
       setResult(botMessageText);
 
-      // 타로 데이터 localStorage에 저장
-      localStorage.setItem(
-        "tarotData",
-        JSON.stringify({
+      // 결과를 백엔드로 전송하여 DB에 저장
+      const userId = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("user_id="))
+        ?.split("=")[1];
+
+      await fetch("/api/save-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           cardNumber,
           result: botMessageText,
-          expireAt: new Date().setHours(24, 0, 0, 0), // 오늘 자정의 타임스탬프
-        })
-      );
+          userId: userId || null, // 로그인한 사용자 ID 또는 null
+        }),
+      });
     } catch (error) {
       console.error("Error:", error);
       setResult("오류가 발생했습니다. 다시 시도해주세요.");
@@ -63,7 +111,6 @@ export default function FirstVisitPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4 pb-40">
-      {/* 메시지 */}
       {!result && (
         <>
           <h1 className="text-4xl mb-4 text-center">안녕하세요!</h1>
@@ -71,7 +118,7 @@ export default function FirstVisitPage() {
             오늘의 타로 점을 봐 드릴게요!
           </p>
           <button
-            onClick={() => setShowCardSelector(true)} // 카드 선택 창 열기
+            onClick={() => setShowCardSelector(true)}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg"
           >
             타로 점 보기
@@ -79,44 +126,44 @@ export default function FirstVisitPage() {
         </>
       )}
 
-      {/* 결과 표시 */}
       {result && (
         <div className="text-center">
           <h2 className="text-2xl mb-4">타로 점 결과</h2>
-
-          {/* 선택된 카드 이미지 표시 */}
           {selectedCard !== null && (
             <Image
-              src={`/basic/maj${selectedCard}.svg`} // 선택된 카드 이미지 경로
+              src={`/basic/maj${selectedCard}.svg`}
               alt={`Selected tarot card ${selectedCard}`}
               width={192}
               height={268}
               className="mt-2 mx-auto"
             />
           )}
-
           <p className="text-lg mt-4">{result}</p>
 
-
-          <p>로그인 하고 결과를 저장해보세요!</p>
-          {/* 로그인 버튼 */}
-          <button
-            onClick={() => router.push("/auth/login")} // 로그인 페이지로 이동
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg mt-6"
-          >
-            로그인
-          </button>
+          {isLoggedIn ? (
+            <button
+              onClick={() => router.push("/home")}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg mt-6"
+            >
+              홈으로 이동
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/auth/login")}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg mt-6"
+            >
+              로그인
+            </button>
+          )}
         </div>
       )}
 
-      {/* 로딩 상태 */}
       {isLoading && (
         <div className="mt-4">
           <p className="text-lg">결과를 가져오는 중입니다...</p>
         </div>
       )}
 
-      {/* 카드 선택 창 */}
       {showCardSelector && (
         <CardSelector
           onCardSelect={handleCardSelect}
