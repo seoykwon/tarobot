@@ -2,9 +2,8 @@ package com.ssafy.api.response;
 
 import com.ssafy.db.entity.TarotBot;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -12,22 +11,22 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel("TarotBotRes")
+@Schema(description = "TarotBotRes")
 public class TarotBotRes {
 
-    @ApiModelProperty(name = "Bot Name")
+    @Schema(description = "Bot Name")
     private String name;
 
-    @ApiModelProperty(name = "Description")
+    @Schema(description = "Description")
     private String description;
 
-    @ApiModelProperty(name = "Concept")
+    @Schema(description = "Concept")
     private String concept;
 
-    @ApiModelProperty(name = "Profile Image")
+    @Schema(description = "Profile Image")
     private String profileImage;
 
-    @ApiModelProperty(name = "MBTI")
+    @Schema(description = "MBTI")
     private String mbti;
 
     public static TarotBotRes of(TarotBot tarotBot) {

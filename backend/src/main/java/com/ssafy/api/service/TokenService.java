@@ -4,8 +4,6 @@ import com.ssafy.common.util.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-
 @RequiredArgsConstructor
 @Service
 public class TokenService {

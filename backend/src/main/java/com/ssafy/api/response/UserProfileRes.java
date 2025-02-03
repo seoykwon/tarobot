@@ -2,8 +2,8 @@ package com.ssafy.api.response;
 
 import com.ssafy.db.entity.UserProfile;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,23 +14,18 @@ import java.time.LocalDate;
  */
 @Getter
 @Setter
-@ApiModel("UserProfileRes")
+@Schema(description = "UserProfileRes")
 public class UserProfileRes {
 
-    @ApiModelProperty(name = "닉네임")
-    private String nickname;
+    @Schema(description = "닉네임")    private String nickname;
 
-    @ApiModelProperty(name = "성별")
-    private String gender;
+    @Schema(description = "성별")    private String gender;
 
-    @ApiModelProperty(name = "이메일")
-    private String email;
+    @Schema(description = "이메일")    private String email;
 
-    @ApiModelProperty(name = "프로필 이미지")
-    private String profileImage;
+    @Schema(description = "프로필 이미지")    private String profileImage;
 
-    @ApiModelProperty(name = "생년월일")
-    private LocalDate birthDate;
+    @Schema(description = "생년월일")    private LocalDate birthDate;
 
     public static UserProfileRes of(UserProfile userProfile) {
         UserProfileRes res = new UserProfileRes();

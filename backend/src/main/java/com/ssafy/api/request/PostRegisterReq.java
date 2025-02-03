@@ -1,8 +1,7 @@
 package com.ssafy.api.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -10,18 +9,19 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel("PostRegisterRequest")
+@Schema(description = "PostRegisterRequest")
+
 public class PostRegisterReq {
 
-    @ApiModelProperty(name = "게시글 제목", example = "오늘의 일상")
+    @Schema(description = "게시글 제목", example = "오늘의 일상")
     private String title;
 
-    @ApiModelProperty(name = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!")
+    @Schema(description = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!")
     private String content;
 
-    @ApiModelProperty(name = "이미지 URL", example = "https://example.com/image.png")
+    @Schema(description = "이미지 URL", example = "https://example.com/image.png")
     private String imageUrl;
 
-    @ApiModelProperty(name = "작성자 ID", example = "user123")
+    @Schema(description = "작성자 ID", example = "user123")
     private String authorId;
 }

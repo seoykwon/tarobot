@@ -1,10 +1,10 @@
 package com.ssafy.common.util;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.util.SerializationUtils;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 
 /**
@@ -53,7 +53,6 @@ public class CookieUtil {
         }
         return null;
     }
-
 
     public static String serialize(Object obj) {
         return Base64.getUrlEncoder()

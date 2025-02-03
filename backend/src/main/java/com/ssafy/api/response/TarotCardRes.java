@@ -2,8 +2,7 @@ package com.ssafy.api.response;
 
 import com.ssafy.db.entity.TarotCard;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,16 +11,16 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel("TarotCardRes")
+@Schema(description = "TarotCardRes")
 public class TarotCardRes {
 
-    @ApiModelProperty(name = "세트 번호")
+    @Schema(description = "세트 번호")
     private Integer setNumber;
 
-    @ApiModelProperty(name = "카드 번호")
+    @Schema(description = "카드 번호")
     private Integer cardNumber;
 
-    @ApiModelProperty(name = "카드 이미지 URL")
+    @Schema(description = "카드 이미지 URL")
     private String cardImageUrl;
 
     public static TarotCardRes of(TarotCard tarotCard) {

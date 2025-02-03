@@ -19,7 +19,7 @@ public class UserRepositorySupport {
     private final JPAQueryFactory jpaQueryFactory;
     QUser qUser = QUser.user;
 
-    // 예제 코드로 UserRepository에 있는 findByUserId와 기능적으로 완전히 동일하나 JpaQuery로 구현
+    // 예제 코드로 UserRepository에 있는 findByUserId와 기능적으로 완전히 동일
     public Optional<User> findUserByUserId(String userId) {
         User user = jpaQueryFactory.select(qUser).from(qUser)
                 .where(qUser.userId.eq(userId)).fetchOne();

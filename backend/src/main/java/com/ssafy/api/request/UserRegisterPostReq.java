@@ -1,8 +1,7 @@
 package com.ssafy.api.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -10,12 +9,13 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel("UserRegisterPostRequest")
+@Schema(description = "UserRegisterPostRequest")
+
 public class UserRegisterPostReq {
-	@ApiModelProperty(name="유저 이름", example="김싸피")
+	@Schema(description = "유저 이름", example="김싸피")
 	String name;
-	@ApiModelProperty(name="유저 ID", example="ssafy_web")
+	@Schema(description = "유저 ID", example="ssafy_web")
 	String id;
-	@ApiModelProperty(name="유저 Password", example="your_password")
+	@Schema(description = "유저 Password", example="your_password")
 	String password;
 }

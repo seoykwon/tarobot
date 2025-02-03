@@ -1,7 +1,6 @@
 package com.ssafy.api.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,10 +9,11 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel("UserLoginPostRequest")
+@Schema(description = "유저 로그인 요청 모델")
 public class UserLoginPostReq {
-	@ApiModelProperty(name="유저 ID", example="ssafy_web")
+	@Schema(description = "유저 ID", example = "ssafy_web", required = true)
 	String id;
-	@ApiModelProperty(name="유저 Password", example="your_password")
+
+	@Schema(description = "유저 Password", example = "your_password", required = true)
 	String password;
 }

@@ -1,6 +1,6 @@
 package com.ssafy.db.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Setter
 @NoArgsConstructor
 public class TarotCard {
-    // PK인 id는 BaseEntity를 상속받아 구현해 주세요!
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Primary Key

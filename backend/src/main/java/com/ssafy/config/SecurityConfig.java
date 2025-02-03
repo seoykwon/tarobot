@@ -3,82 +3,70 @@ package com.ssafy.config;
 import com.ssafy.api.service.UserService;
 import com.ssafy.common.auth.JwtAuthenticationFilter;
 import com.ssafy.common.auth.SsafyUserDetailService;
+
 import com.ssafy.config.oauth.OAuth2FailureHandler;
 import com.ssafy.config.oauth.OAuth2SuccessHandler;
 import com.ssafy.config.oauth.OAuth2UserCustomService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Arrays;
-
-/**
- * 인증(authentication) 와 인가(authorization) 처리를 위한 스프링 시큐리티 설정 정의.
- */
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-@RequiredArgsConstructor
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private final SsafyUserDetailService ssafyUserDetailService;
-    private final UserService userService;
+@RequiredArgsConstructor // 생성자 주입을 위한 Lombok 어노테이션
+@EnableMethodSecurity(prePostEnabled = true) // @EnableGlobalMethodSecurity 대체
+public class SecurityConfig {
+
+    private final SsafyUserDetailService ssafyUserDetailService; // 생성자 주입
+    private final UserService userService;                      // 생성자 주입
+    private final PasswordEncoder passwordEncoder;              // PasswordEncoder 주입
     private final OAuth2UserCustomService oAuth2UserCustomService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
-    
-    // Password 인코딩 방식에 BCrypt 암호화 방식 사용
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
-    // DAO 기반으로 Authentication Provider를 생성
-    // BCrypt Password Encoder와 UserDetailService 구현체를 설정
+    // DAO 기반으로 Authentication```````````````````` Provider를 생성
     @Bean
-    DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder); // PasswordEncoder 주입 사용
         daoAuthenticationProvider.setUserDetailsService(this.ssafyUserDetailService);
         return daoAuthenticationProvider;
     }
 
-    // DAO 기반의 Authentication Provider가 적용되도록 설정
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(authenticationProvider());
+    // AuthenticationManager를 빈으로 등록 (필요 시 주입 가능)
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .httpBasic().disable()
-                .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 토큰 기반 인증이므로 세션 사용 하지않음
-                .and()
-                .addFilter(new JwtAuthenticationFilter(authenticationManager(), userService)) //HTTP 요청에 JWT 토큰 인증 필터를 거치도록 필터를 추가
-                .authorizeRequests()
-                .antMatchers("/api/v1/users/me").authenticated()       //인증이 필요한 URL과 필요하지 않은 URL에 대하여 설정
-    	        	    .anyRequest().permitAll()
-                .and().cors()// ✅ 여기서 CORS 적용
-                // OAuth2 설정 추가
-                .and()
-                .oauth2Login()
-                .userInfoEndpoint()
-                .userService(oAuth2UserCustomService) // OAuth2 사용자 정보 서비스 추가
-                .and()
-                .successHandler(oAuth2SuccessHandler) // OAuth2 로그인 성공 핸들러
-                .failureHandler(oAuth2FailureHandler); // OAuth2 로그인 실패 핸들러;
+    // SecurityFilterChain을 사용하여 HttpSecurity 설정 정의
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable()) // CSRF 비활성화
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않음 (JWT 기반 인증)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/users/me").authenticated() // 인증이 필요한 URL 설정
+                        .anyRequest().permitAll()                           // 나머지 요청은 모두 허용
+                )
+                .authenticationProvider(authenticationProvider()) // Authentication Provider 등록
+                .addFilter(new JwtAuthenticationFilter(
+                        authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)),
+                        userService)) // JWT 인증 필터 추가
+                // .cors(cors -> cors.disable()) // CORS 설정 (필요 시 활성화)
+                .oauth2Login(oauth2 -> oauth2
+                    .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserCustomService))
+                    .successHandler(oAuth2SuccessHandler)
+                    .failureHandler(oAuth2FailureHandler)
+                );
+
+        return http.build();
     }
 }

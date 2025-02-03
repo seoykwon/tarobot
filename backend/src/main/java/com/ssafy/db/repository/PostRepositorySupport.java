@@ -5,6 +5,7 @@ import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.QPost;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
