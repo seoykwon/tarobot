@@ -1,10 +1,43 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation"; // Next.js의 useRouter 훅
 
 export default function UpdateProfilePage() {
+  const [profileImage, setProfileImage] = useState<string | null>(null); // 프로필 이미지
+  const [nickname, setNickname] = useState(""); // 닉네임
+  const [birthDate, setBirthDate] = useState(""); // 생년월일
+  const router = useRouter(); // 라우터 객체 생성
+
+  // 이미지 업로드 핸들러
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const imageUrl = URL.createObjectURL(file); // 이미지 URL 생성
+      setProfileImage(imageUrl);
+    }
+  };
+
+  // 저장 버튼 클릭 핸들러
+  const handleSaveChanges = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    // API 호출 (예시)
+    await fetch("/api/update-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profileImage, nickname, birthDate }),
+    });
+
+    // 저장 완료 알림
+    alert("프로필이 성공적으로 업데이트되었습니다!");
+
+    // mypage로 이동
+    router.push("/mypage");
+  };
+
   return (
-    <div className="min-h-screen text-white flex flex-col items-center p-4">
+    <div className="min-h-screen text-white flex flex-col items-center p-4 bg-gray-900">
       {/* 헤더 */}
       <header className="w-full max-w-md text-center mb-6">
         <h1 className="text-2xl font-bold">Update Your Profile</h1>
@@ -12,56 +45,62 @@ export default function UpdateProfilePage() {
       </header>
 
       {/* 폼 */}
-      <form className="w-full max-w-md space-y-6">
-        {/* 이름 입력 */}
+      <form onSubmit={handleSaveChanges} className="w-full max-w-md space-y-6">
+        {/* 이미지 변경 */}
+        <div className="flex flex-col items-center">
+          <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mb-4">
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-gray-400">No Image</span>
+            )}
+          </div>
+          <label
+            htmlFor="profile-image"
+            className="px-4 py-2 bg-fuchsia-500 hover:bg-fuchsia-600 text-white rounded-lg cursor-pointer"
+          >
+            Change Image
+          </label>
+          <input
+            type="file"
+            id="profile-image"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+        </div>
+
+        {/* 닉네임 변경 */}
         <div>
-          <label htmlFor="full-name" className="block text-sm font-medium mb-2">
-            Full Name
+          <label htmlFor="nickname" className="block text-sm font-medium mb-2">
+            Nickname
           </label>
           <input
             type="text"
-            id="full-name"
-            placeholder="Enter your full name"
-            className="w-full p-2 rounded-lg text-white placeholder-gray-500 border"
+            id="nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="Enter your nickname"
+            className="w-full p-2 rounded-lg text-black placeholder-gray-500 border"
           />
         </div>
 
-        {/* 직업 입력 */}
+        {/* 생년월일 변경 */}
         <div>
-          <label htmlFor="occupation" className="block text-sm font-medium mb-2">
-            Occupation
+          <label htmlFor="birth-date" className="block text-sm font-medium mb-2">
+            Birth Date
           </label>
           <input
-            type="text"
-            id="occupation"
-            placeholder="Enter your occupation"
-            className="w-full p-2 rounded-lg text-white placeholder-gray-500 border"
+            type="date"
+            id="birth-date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+            className="w-full p-2 rounded-lg text-black placeholder-gray-500 border"
           />
-        </div>
-
-        {/* 이메일 입력 */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            placeholder="Enter your email address"
-            className="w-full p-2 rounded-lg text-white placeholder-gray-500 border"
-          />
-        </div>
-
-        {/* 체크박스 */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="updates-promotions"
-            className="h-5 w-5 accent-fuchsia-500"
-          />
-          <label htmlFor="updates-promotions" className="text-sm text-black">
-            I agree to receive updates and promotions
-          </label>
         </div>
 
         {/* 저장 버튼 */}

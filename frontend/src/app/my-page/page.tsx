@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/Loading";
-import { User, Settings, LogOut, Star } from "lucide-react";
+import { Settings, LogOut, Star } from "lucide-react";
+import Image from "next/image";
 
 interface TarotRecord {
   id: number;
@@ -94,18 +95,23 @@ export default function MyPage() {
     <main className="min-h-screen pb-16">
       <div className="p-4">
         {/* Profile Section */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-            {userInfo?.profileImage ? (
-              <img src={userInfo.profileImage} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-8 h-8 text-primary" />
-            )}
+        <div className="flex flex-col items-center gap-6 mb-8 p-4 bg-white shadow-md rounded-lg max-w-md mx-auto">
+          {/* 프로필 이미지 */}
+          <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shadow-sm">
+            <Image
+              src={userInfo?.profileImage || "/star.svg"} // 프로필 이미지 또는 기본 이미지
+              alt="Profile"
+              width={96} // 이미지의 고정 너비 (24px * 4)
+              height={96} // 이미지의 고정 높이 (24px * 4)
+              className="rounded-full object-cover" // Tailwind 스타일
+            />
           </div>
-          <div>
-            <h1 className="font-tarobot-title text-lg">{userInfo?.nickname || "사용자님"}</h1>
-            <p className="font-article-author text-muted-foreground">{userInfo?.email || "example@email.com"}</p>
-            <p className="text-sm text-muted-foreground">
+
+          {/* 사용자 정보 */}
+          <div className="text-center">
+            <h1 className="font-tarobot-title text-xl font-semibold">{userInfo?.nickname || "사용자님"}</h1>
+            <p className="font-article-author text-muted-foreground text-sm">{userInfo?.email || "example@email.com"}</p>
+            <p className="text-sm text-muted-foreground mt-2">
               생년월일: {userInfo?.birthDate ? new Date(userInfo.birthDate).toLocaleDateString() : "알 수 없음"}
             </p>
             <p className="text-sm text-muted-foreground">성별: {userInfo?.gender || "알 수 없음"}</p>
