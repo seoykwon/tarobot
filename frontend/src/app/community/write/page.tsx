@@ -6,10 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
 interface FormData {
-  board: string;
   title: string;
   content: string;
-  anonymous: boolean;
 }
 
 export default function WritePage() {
@@ -57,29 +55,9 @@ export default function WritePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white p-4">
+    <main className="min-h-screen bg-gray-900 text-white p-4 pb-16 overflow-y-auto">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto bg-gray-800 p-6 rounded-lg">
         <h1 className="font-page-title text-xl mb-4">글 작성</h1>
-
-        {/* 게시판 선택 */}
-        <div>
-          <label htmlFor="board" className="block text-sm font-medium mb-2">
-            게시판 선택
-          </label>
-          <select
-            id="board"
-            {...register("board", { required: "게시판을 선택해주세요." })}
-            className="w-full p-2 rounded-lg bg-gray-700 text-white"
-          >
-            <option value="">-- 게시판 선택 --</option>
-            <option value="daily-insights">일일 인사이트</option>
-            <option value="tarot-readings">타로 리딩</option>
-            <option value="spiritual-guidance">영적 조언</option>
-          </select>
-          {errors.board && (
-            <p className="text-red-500 text-sm mt-1">{errors.board.message}</p>
-          )}
-        </div>
 
         {/* 제목 입력 */}
         <div>
@@ -113,19 +91,6 @@ export default function WritePage() {
           {errors.content && (
             <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
           )}
-        </div>
-
-        {/* 익명 여부 */}
-        <div className="flex items-center gap-2">
-          <input
-            id="anonymous"
-            type="checkbox"
-            {...register("anonymous")}
-            className="h-5 w-5 accent-fuchsia-500"
-          />
-          <label htmlFor="anonymous" className="text-sm">
-            익명으로 게시하기
-          </label>
         </div>
 
         {/* 버튼 */}
