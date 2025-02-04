@@ -9,7 +9,10 @@ import com.ssafy.db.repository.PostRepository;
 import com.ssafy.db.repository.PostRepositorySupport;
 import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
@@ -32,13 +35,13 @@ public class PostServiceImpl implements PostService {
 
     /**
      * 게시글 생성
+     * 요청 데이터를 받아 게시글을 생성하고 저장.
      */
     @Override
     @Transactional
     public Post createPost(PostRegisterReq request) {
         User author = userRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
-
         Post post = new Post();
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
@@ -49,17 +52,99 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 모든 게시글 조회 (활성화된 게시글만, 페이지네이션 지원)
+     * 게시글 수정
+     * 게시글 ID로 게시글을 찾아 제목 및 이미지를 수정.
      */
     @Override
-    public List<PostRes> getAllPosts(int page, int size) {
-        return postRepository.findAllByIsActiveTrue(PageRequest.of(page, size)).stream()
+    @Transactional
+    public Post updatePost(Long postId, String title, String image) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        if (title != null && !title.isEmpty()) {
+            post.setTitle(title);
+        }
+        if (image != null && !image.isEmpty()) {
+            post.setImageUrl(image);
+        }
+        return postRepository.save(post);
+    }
+
+    /**
+     * 일반 사용자: 게시글 비활성화 처리
+     * SecurityContext에서 인증정보를 가져와 게시글 작성자와 비교 후, 활성 상태를 false로 변경.
+     */
+    @Override
+    @Transactional
+    public void deactivatePost(Long postId, User currentUser) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new SecurityException("인증된 사용자 정보가 없습니다.");
+        }
+        Object principal = auth.getPrincipal();
+        String currentUserId;
+        if (principal instanceof SsafyUserDetails) {
+            currentUserId = ((SsafyUserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            currentUserId = (String) principal;
+        } else {
+            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
+        }
+        if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
+            throw new SecurityException("비활성화 권한이 없습니다.");
+        }
+        post.setActive(false);
+        postRepository.save(post);
+    }
+
+    /**
+     * 관리자: 실제 삭제 처리 (비활성화된 게시글만 삭제 가능)
+     */
+    @Override
+    @Transactional
+    public void deletePostPermanently(Long postId, User currentUser) {
+        if (!currentUser.isAdmin()) {
+            throw new SecurityException("관리자 권한이 필요합니다.");
+        }
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        if (!post.isActive()) {
+            postRepository.delete(post);
+        } else {
+            throw new IllegalStateException("비활성화되지 않은 게시글은 삭제할 수 없습니다.");
+        }
+    }
+
+    //============================== 조회/정렬/페이지네이션 ==============================
+
+    /**
+     * 기본 페이지 조회 - 활성 게시글을 정렬 조건(sort)에 따라 페이지네이션 처리하여 조회
+     * 기본 정렬은 최신순(createdAt 내림차순)이며, 클라이언트가 "like", "view", "comment" 등의 값을 전달하면 해당 정렬 기준을 적용.
+     */
+    @Override
+    public List<PostRes> getAllPosts(int page, int size, String sort) {
+        Pageable pageable;
+        if (sort == null || sort.equalsIgnoreCase("new")) {
+            pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        } else if (sort.equalsIgnoreCase("like")) {
+            pageable = PageRequest.of(page, size, Sort.by("likeCount").descending());
+        } else if (sort.equalsIgnoreCase("view")) {
+            pageable = PageRequest.of(page, size, Sort.by("viewCount").descending());
+        } else if (sort.equalsIgnoreCase("comment")) {
+            pageable = PageRequest.of(page, size, Sort.by("commentCount").descending());
+        } else {
+            // 기본값: 최신순
+            pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        }
+        Page<Post> postPage = postRepository.findAllByIsActiveTrue(pageable);
+        return postPage.getContent().stream()
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 게시글 상세 조회 (활성화 여부 체크)
+     * 게시글 상세 조회 (활성화된 게시글만)
      */
     @Override
     public PostRes getPostById(Long postId) {
@@ -70,7 +155,7 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 제목으로 검색 (활성화된 게시글만)
+     * 제목으로 게시글 검색 (활성화된 게시글만)
      */
     @Override
     public List<PostRes> getPostsByTitle(String title) {
@@ -81,7 +166,7 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 작성자로 검색 (활성화된 게시글만)
+     * 작성자로 게시글 검색 (활성화된 게시글만)
      */
     @Override
     public List<PostRes> getPostsByAuthor(String userId) {
@@ -94,70 +179,27 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 최근 생성일 기준 게시글 조회
-     */
-    public List<PostRes> getPostsOrderByCreatedAtDesc() {
-        return postRepository.findAllByOrderByCreatedAtDesc().stream()
-                .filter(Post::isActive)
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
+     * 제목과 작성자로 게시글 검색
+    */
+         public List<PostRes> getPostsByTitleAndAuthor(String title, String userId) {
+             return postRepositorySupport.findPostsByTitleAndAuthor(title, userId).stream()
+                     .map(PostRes::of)
+                     .collect(Collectors.toList());
+         }
+
 
     /**
-     * 조회수 기준 정렬
+     * 인기 게시글 검색 - 댓글 수와 좋아요 수가 일정 이상인 게시글 조회 (동적 쿼리 - RepositorySupport 활용)
+     //    public List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount) {
+     //        return postRepositorySupport.findPopularPosts(minCommentCount, minLikeCount).stream()
+     //                .map(PostRes::of)
+     //                .collect(Collectors.toList());
+     //    }
      */
-    @Override
-    public List<PostRes> getPostsByMostViewed() {
-        return postRepository.findAllByOrderByViewCountDesc().stream()
-                .filter(Post::isActive)
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
 
+    //============================== 조회수/좋아요/댓글 증가==============================
     /**
-     * 좋아요 기준 정렬
-     */
-    @Override
-    public List<PostRes> getPostsByMostLiked() {
-        return postRepository.findAllByOrderByLikeCountDesc().stream()
-                .filter(Post::isActive)
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 댓글 수 기준 정렬
-     */
-    @Override
-    public List<PostRes> getPostsByMostCommented() {
-        return postRepository.findAllByOrderByCommentCountDesc().stream()
-                .filter(Post::isActive)
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 제목 및 이미지 수정
-     */
-    @Override
-    @Transactional
-    public Post updatePost(Long postId, String title, String image) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
-        if (title != null && !title.isEmpty()) {
-            post.setTitle(title);
-        }
-
-        if (image != null && !image.isEmpty()) {
-            post.setImageUrl(image);
-        }
-
-        return postRepository.save(post);
-    }
-
-    /**
-     * 공통 카운트 증가 메서드 정의 (조회수, 좋아요, 댓글 수 증가 처리)
+     * 공통 카운트 증가 처리 (조회수, 좋아요, 댓글)
      */
     public enum CountType {
         VIEW, LIKE, COMMENT
@@ -180,94 +222,65 @@ public class PostServiceImpl implements PostService {
         });
     }
 
+    /**
+     * 조회수 증가 처리
+     */
     @Override
     @Transactional
     public void increaseViewCount(Long postId) {
         increaseCount(postId, CountType.VIEW);
     }
 
+    /**
+     * 좋아요 수 증가 처리
+     */
     @Override
     @Transactional
     public void increaseLikeCount(Long postId) {
         increaseCount(postId, CountType.LIKE);
     }
 
+    /**
+     * 댓글 수 증가 처리
+     */
     @Override
     @Transactional
     public void increaseCommentCount(Long postId) {
         increaseCount(postId, CountType.COMMENT);
     }
 
-    /**
-     * 일반 사용자: 게시글 비활성화 처리
-     * SecurityContextHolder에서 인증정보를 가져와 게시글 작성자와 비교 후 active 상태를 false로 변경.
-     */
-    @Override
-    @Transactional
-    public void deactivatePost(Long postId, User currentUser) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
-        // 현재 인증된 사용자 정보 가져오기
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new SecurityException("인증된 사용자 정보가 없습니다.");
-        }
-        Object principal = auth.getPrincipal();
-        String currentUserId;
-        if (principal instanceof SsafyUserDetails) {
-            currentUserId = ((SsafyUserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            currentUserId = (String) principal;
-        } else {
-            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
-        }
-
-        // 게시글 작성자와 인증된 사용자 비교 (관리자 예외 처리 포함)
-        if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
-            throw new SecurityException("비활성화 권한이 없습니다.");
-        }
-
-        // 비활성화 처리
-        post.setActive(false);
-        postRepository.save(post);
-    }
 
     /**
-     * 관리자: 실제 삭제 처리 (비활성화된 게시글만 삭제 가능)
+     * 조회수 기준 정렬 조회 (별도 엔드포인트 대신 통합 API에서 정렬 파라미터로 처리)
+     //    @Override
+     //    public List<PostRes> getPostsByMostViewed() {
+     //        return postRepository.findAllByOrderByViewCountDesc().stream()
+     //                .filter(Post::isActive)
+     //                .map(PostRes::of)
+     //                .collect(Collectors.toList());
+     //    }
      */
-    @Override
-    @Transactional
-    public void deletePostPermanently(Long postId, User currentUser) {
-        if (!currentUser.isAdmin()) { // 관리자 권한 확인
-            throw new SecurityException("관리자 권한이 필요합니다.");
-        }
-
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
-        if (!post.isActive()) { // 이미 비활성화된 경우에만 삭제 허용
-            postRepository.delete(post);
-        } else {
-            throw new IllegalStateException("비활성화되지 않은 게시글은 삭제할 수 없습니다.");
-        }
-    }
 
     /**
-     * 제목과 작성자로 게시글 검색
+     * 좋아요 기준 정렬 조회 (별도 엔드포인트 대신 통합 API에서 정렬 파라미터로 처리)
+     //    @Override
+     //    public List<PostRes> getPostsByMostLiked() {
+     //        return postRepository.findAllByOrderByLikeCountDesc().stream()
+     //                .filter(Post::isActive)
+     //                .map(PostRes::of)
+     //                .collect(Collectors.toList());
+     //    }
      */
-    public List<PostRes> getPostsByTitleAndAuthor(String title, String userId) {
-        return postRepositorySupport.findPostsByTitleAndAuthor(title, userId).stream()
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
 
     /**
-     * 인기 게시글 검색 - 댓글 수와 좋아요 수가 일정 이상인 게시글 조회
+     * 댓글 수 기준 정렬 조회 (별도 엔드포인트 대신 통합 API에서 정렬 파라미터로 처리)
+     //    @Override
+     //    public List<PostRes> getPostsByMostCommented() {
+     //        return postRepository.findAllByOrderByCommentCountDesc().stream()
+     //                .filter(Post::isActive)
+     //                .map(PostRes::of)
+     //                .collect(Collectors.toList());
+     //    }
      */
-    public List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount) {
-        return postRepositorySupport.findPopularPosts(minCommentCount, minLikeCount).stream()
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
+
 }
