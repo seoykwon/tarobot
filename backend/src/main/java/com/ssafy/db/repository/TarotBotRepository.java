@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface TarotBotRepository extends JpaRepository<TarotBot, Long> {
-    Optional<TarotBot> findByBotName(String botName);
+    Optional<TarotBot> findByName(String Name);
 }

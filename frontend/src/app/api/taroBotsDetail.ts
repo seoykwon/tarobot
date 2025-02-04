@@ -1,6 +1,7 @@
 // src/api/chatbots.ts
 export interface Review {
     id: number;
+    tarobot: string;
     author: string;
     rating: number;
     content: string;
@@ -8,18 +9,20 @@ export interface Review {
   }
   
   export interface tarobotDetails {
-    id: string;
+    id: number;
     name: string;
-    profileImage: string;
     description: string;
-    expertise: string[];
+    concept: string;
+    mbti: string;
+    profileImage: string;
+    expertise: [string];
     reviews: Review[];
   }
   
   // Spring Boot API에서 챗봇 상세 정보 가져오기
-  export const fetchTarobotDetails = async (id: string): Promise<tarobotDetails | null> => {
+  export const fetchTarobotDetails = async (id: number): Promise<tarobotDetails | null> => {
     try {
-      const response = await fetch(`http://localhost:8080/api/tarobots/${id}`, {
+      const response = await fetch(`http://localhost:8080/api/v1/tarot-bots/${id}`, {
         cache: "no-store", // 매 요청마다 최신 데이터 가져오기
         headers: {
           "Content-Type": "application/json",
