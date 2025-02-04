@@ -44,12 +44,12 @@ export default async function HomePage() {
   const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? [];
 
   return (
-    <main className="min-h-screen bg-transparent pb-16 pt-8 px-4 flex flex-col gap-y-6 transition-all duration-300">
+    <main className="min-h-screen bg-transparent pb-16 pt-8 px-0 md:px-4 lg:px-16 flex flex-col gap-y-6 transition-all duration-300 w-full max-w-3xl mx-auto">
       
       {/* Today's Fortune */}
       <Card className="bg-transparent hover:bg-accent/20 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">
         <section>
-          <h2 className="font-page-title">Today's Fortune</h2>
+          <h2 className="font-page-title">오늘의 운세</h2>
           {fortune ? (
             <Link href="/daily">
               <CardContent className="p-4">
