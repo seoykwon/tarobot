@@ -19,8 +19,8 @@ interface TarotSummary {
 }
 
 export default function CalendarPage() {
-  const [currentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date()); // 현재 날짜 (달력 기준)
+  const [selectedDate, setSelectedDate] = useState(new Date()); // 선택된 날짜
   const [daysInfo, setDaysInfo] = useState<DayInfo[]>([]);
   const [tarotData, setTarotData] = useState<TarotSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -94,12 +94,51 @@ export default function CalendarPage() {
 
   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+  // Move to previous month
+  const handlePreviousMonth = () => {
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+    setCurrentDate(newDate);
+    if (selectedDate.getMonth() === currentDate.getMonth()) {
+      setSelectedDate(new Date(newDate));
+    }
+    fetchCalendarData(newDate.getFullYear(), newDate.getMonth());
+  };
+
+  // Move to next month (restrict to the current month or earlier)
+  const handleNextMonth = () => {
+    const today = new Date();
+    if (
+      currentDate.getFullYear() === today.getFullYear() &&
+      currentDate.getMonth() >= today.getMonth()
+    ) {
+      return; // Do nothing if already in the current month or later
+    }
+
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
+    setCurrentDate(newDate);
+    fetchCalendarData(newDate.getFullYear(), newDate.getMonth());
+  };
+
   return (
     <main className="min-h-screen bg-background pb-16">
       <div className="p-4">
         <div className="flex items-center gap-2 mb-6">
           <Calendar className="w-6 h-6" />
           <h1 className="font-page-title">Mystic Calendar</h1>
+        </div>
+
+        {/* Month Navigation */}
+        <div className="flex justify-center items-center mb-4 gap-4">
+          <Button variant="ghost" onClick={handlePreviousMonth}>
+            ←
+          </Button>
+          <h2 className="text-lg font-bold">
+            {currentDate.toLocaleString("default", { year: "numeric" })}{" "}
+            {currentDate.toLocaleString("default", { month: "long" })}
+          </h2>
+          <Button variant="ghost" onClick={handleNextMonth}>
+            →
+          </Button>
         </div>
 
         {/* Calendar Grid */}

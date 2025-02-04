@@ -30,10 +30,11 @@ export default async function RootLayout({
     }
   }
 
+
   return (
     <html lang="ko" className={theme === "dark" ? "dark" : ""}>
-      <body>
-        <header className="p-4 relative flex items-center bg-accent-color dark:bg-gray-900">
+      <body className="bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
+        <header className="p-4 relative flex items-center bg-accent-color">
           <h1 className="absolute left-1/2 transform -translate-x-1/2 text-lg font-login-title">
           🌟 Tarot AI
           </h1>
