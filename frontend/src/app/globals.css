@@ -5,6 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Black+And+White+Picture&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Grandiflora+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,6 +30,7 @@
   /* Font Styles */
   --font-nanum-pen: 'Nanum Pen Script', cursive;
   --font-nanum-brush: 'Nanum Brush Script', cursive;
+  --font-noto-sans: 'Noto Sans KR', sans-serif;
   --font-black-white: 'Black And White Picture', cursive;
   --font-grandiflora: 'Grandiflora One', serif;
   --background-gradient: linear-gradient(to bottom, #F2E6F7, #D8BFD8); /* 연한 보라 → 조금 더 진한 보라 */
@@ -65,7 +67,7 @@ body {
   padding: 0;
   color: var(--text-color);            /* 기본 글자 색상: 전역 foreground */
   background: var(--background-gradient);
-  font-family: var(--font-nanum-brush);  /* 기본 폰트: Nanum Pen Script */
+  font-family: var(--font-noto-sans);  /* 기본 폰트: Nanum Pen Script */
   font-size: 18px;                     /* 기본 글자 크기 */
 }
 
@@ -104,23 +106,23 @@ body {
 }
   /* 각 영역의 폰트 및 텍스트 색상 설정 */
   .font-card-select {
-    font-family: var(--font-nanum-brush);
+    font-family: var(--font-noto-sans);
     font-size: 24px;
   }
   .font-page-title {  /* 오늘의 운세/타로마스터 등 */
-    font-family: var(--font-black-white);
+    font-family: var(--font-noto-sans);
     color: var(--accent-color);
     color: var(--accent-color);
     font-size: 24px;
   }
 
   .font-tarobot-title { /* 박스안 이름 */
-    font-family: var(--font-black-white);
+    font-family: var(--font-noto-sans);
     font-size: 22px;
   }
 
   .font-tarobot-subtitle { /* 박스안 별명 설명/예 : 마지막 예언가 */
-    font-family: var(--font-nanum-brush);
+    font-family: var(--font-noto-sans);
     font-size: 20px;
   }
 
@@ -130,12 +132,12 @@ body {
   }
 
   .font-tarobot-description { /* 내용 설명 */
-    font-family: var(--font-nanum-pen);
+    font-family: var(--font-noto-sans);
     font-size: 18px;
   }
 
   .font-chat {
-    font-family: var(--font-nanum-brush);
+    font-family: var(--font-noto-sans);
     font-size: 16px;
   }
 
@@ -150,7 +152,7 @@ body {
     font-size: 18px;
   }
   .font-article-author {  /* 게시글 저자, 좋아요 등등, 다이어리 날짜  */
-    font-family: var(--font-nanum-brush);
+    font-family: var(--font-noto-sans);
     font-size: 14px;
   }
 
