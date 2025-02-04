@@ -3,8 +3,6 @@ import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import { cookies, headers } from "next/headers";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import { cookies, headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "타로봇",
@@ -18,12 +16,7 @@ export default async function RootLayout({
 }>) {
   // SSR에서 다크 모드 상태 확인
   const theme = cookies().get("theme")?.value || "light";
-  // SSR에서 다크 모드 상태 확인
-  const theme = cookies().get("theme")?.value || "light";
 
-  // 서버에서 이전 페이지 URL 가져오기 (Referer 헤더 확인)
-  let currentPath = "/";
-  const referer = headers().get("referer");
   // 서버에서 이전 페이지 URL 가져오기 (Referer 헤더 확인)
   let currentPath = "/";
   const referer = headers().get("referer");
