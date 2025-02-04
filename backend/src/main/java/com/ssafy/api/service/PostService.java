@@ -23,5 +23,7 @@ public interface PostService {
     void increaseLikeCount(Long postId); // 좋아요 증가
     void increaseCommentCount(Long postId); // 댓글 수 증가
     void deactivatePost(Long postId, User currentUser); // 게시글 비활성화 (일반 사용자 및 관리자)
-    void deletePostPermanently(Long postId, User currentUser); // 게시글 삭제 (관리자 전용)
+    void deletePostPermanently(Long postId, User currentUser);// 게시글 삭제 (관리자 전용)
+    List<PostRes> getPostsByTitleAndAuthor(String title, String userId); //제목과 작성자로 게시글 검색
+    List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount); // 인기 게시글 검색(댓글 수와 좋아요 수가 일정 이상)
 }

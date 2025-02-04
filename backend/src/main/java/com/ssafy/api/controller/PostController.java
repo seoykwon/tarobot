@@ -112,7 +112,7 @@ public class PostController {
 
     // **7. 게시글 삭제 (비활성화 처리)**
     @DeleteMapping("/{postId}")
-    @Operation(summary = "게시글 삭제 (비활성화)", description = "일반 사용자는 게시글을 비활성화 처리합니다.")
+    @Operation(summary = "게시글 삭제 (비활성화)", description = "일반 사용자는 게시글을 비활성화 처리합니다. 비활성화된 게시글은 일반 검색 결과에서 노출되지 않습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "성공"),
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음"),
@@ -138,5 +138,34 @@ public class PostController {
             @Parameter(hidden = true) User currentUser) {
         postService.deletePostPermanently(postId, currentUser);
         return ResponseEntity.noContent().build();
+    }
+    // 제목과 작성자 조건로 게시글 검색
+    @GetMapping("/search/title-and-author")
+    @Operation(summary = "제목과 작성자 검색", description = "제목과 작성자 ID에 해당하는 게시글을 검색합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "해당 작성자 ID의 게시글을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<List<PostRes>> getPostsByTitleAndAuthor(
+            @RequestParam @Parameter(description = "검색할 제목", required = true) String title,
+            @RequestParam @Parameter(description = "작성자 ID", required = true) String userId) {
+        List<PostRes> posts = postService.getPostsByTitleAndAuthor(title, userId);
+        return ResponseEntity.ok(posts);
+    }
+
+    // 인기 게시글 검색
+    @GetMapping("/search/popular")
+    @Operation(summary = "인기 게시글 검색", description = "댓글 수와 좋아요 수가 일정 이상인 활성화된 게시글을 검색합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "해당 조건의 게시글을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<List<PostRes>> getPopularPosts(
+            @RequestParam @Parameter(description = "최소 댓글 수", required = true) int minCommentCount,
+            @RequestParam @Parameter(description = "최소 좋아요 수", required = true) int minLikeCount) {
+        List<PostRes> posts = postService.getPopularPosts(minCommentCount, minLikeCount);
+        return ResponseEntity.ok(posts);
     }
 }

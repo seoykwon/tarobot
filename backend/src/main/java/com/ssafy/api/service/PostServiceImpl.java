@@ -6,6 +6,7 @@ import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.PostRepository;
+import com.ssafy.db.repository.PostRepositorySupport;
 import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final PostRepositorySupport postRepositorySupport;
     private final UserRepository userRepository;
 
     /**
@@ -57,7 +59,7 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 게시글 상세 조회
+     * 게시글 상세 조회 (활성화 여부 체크)
      */
     @Override
     public PostRes getPostById(Long postId) {
@@ -68,23 +70,35 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 제목으로 검색
+     * 제목으로 검색 (활성화된 게시글만)
      */
     @Override
     public List<PostRes> getPostsByTitle(String title) {
         return postRepository.findByTitleContaining(title).stream()
+                .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 작성자로 검색
+     * 작성자로 검색 (활성화된 게시글만)
      */
     @Override
     public List<PostRes> getPostsByAuthor(String userId) {
         User author = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
         return postRepository.findAllByAuthor(author).stream()
+                .filter(Post::isActive)
+                .map(PostRes::of)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 최근 생성일 기준 게시글 조회
+     */
+    public List<PostRes> getPostsOrderByCreatedAtDesc() {
+        return postRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
@@ -95,6 +109,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostRes> getPostsByMostViewed() {
         return postRepository.findAllByOrderByViewCountDesc().stream()
+                .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
@@ -105,6 +120,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostRes> getPostsByMostLiked() {
         return postRepository.findAllByOrderByLikeCountDesc().stream()
+                .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
@@ -115,6 +131,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostRes> getPostsByMostCommented() {
         return postRepository.findAllByOrderByCommentCountDesc().stream()
+                .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
@@ -183,6 +200,7 @@ public class PostServiceImpl implements PostService {
 
     /**
      * 일반 사용자: 게시글 비활성화 처리
+     * SecurityContextHolder에서 인증정보를 가져와 게시글 작성자와 비교 후 active 상태를 false로 변경.
      */
     @Override
     @Transactional
@@ -190,17 +208,23 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        // SecurityContextHolder에서 현재 인증된 사용자 정보(SsafyUserDetails)를 가져옵니다.
+        // 현재 인증된 사용자 정보 가져오기
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof SsafyUserDetails)) {
+        if (auth == null) {
             throw new SecurityException("인증된 사용자 정보가 없습니다.");
         }
-        SsafyUserDetails userDetails = (SsafyUserDetails) auth.getPrincipal(); // getPrincipal() 사용
-        String currentUserId = userDetails.getUsername();
+        Object principal = auth.getPrincipal();
+        String currentUserId;
+        if (principal instanceof SsafyUserDetails) {
+            currentUserId = ((SsafyUserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            currentUserId = (String) principal;
+        } else {
+            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
+        }
 
-        // 게시글 작성자의 userId와 현재 인증된 사용자의 userId를 비교합니다.
-        // 그리고 인증된 사용자가 관리자가 아닌 경우 권한 부족 예외를 발생시킵니다.
-        if (!post.getAuthor().getUserId().equals(currentUserId) && !userDetails.getUser().isAdmin()) {
+        // 게시글 작성자와 인증된 사용자 비교 (관리자 예외 처리 포함)
+        if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
             throw new SecurityException("비활성화 권한이 없습니다.");
         }
 
@@ -227,5 +251,23 @@ public class PostServiceImpl implements PostService {
         } else {
             throw new IllegalStateException("비활성화되지 않은 게시글은 삭제할 수 없습니다.");
         }
+    }
+
+    /**
+     * 제목과 작성자로 게시글 검색
+     */
+    public List<PostRes> getPostsByTitleAndAuthor(String title, String userId) {
+        return postRepositorySupport.findPostsByTitleAndAuthor(title, userId).stream()
+                .map(PostRes::of)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 인기 게시글 검색 - 댓글 수와 좋아요 수가 일정 이상인 게시글 조회
+     */
+    public List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount) {
+        return postRepositorySupport.findPopularPosts(minCommentCount, minLikeCount).stream()
+                .map(PostRes::of)
+                .collect(Collectors.toList());
     }
 }

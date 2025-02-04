@@ -32,13 +32,13 @@ public class PostRepositorySupport {
                 .fetch();
     }
 
-    // 특정 조건 기반으로 동적 검색 (예: 댓글 수와 좋아요 수가 높은 게시글)
+    // 인기 게시글 검색 (댓글 수와 좋아요 수가 일정 이상인 게시글)
     public List<Post> findPopularPosts(int minCommentCount, int minLikeCount) {
         return jpaQueryFactory.selectFrom(qPost)
                 .where(
                         qPost.commentCount.goe(minCommentCount),
                         qPost.likeCount.goe(minLikeCount),
-                        qPost.isActive.isTrue()
+                        qPost.isActive.isTrue() // 활성화된 게시글만
                 )
                 .orderBy(qPost.likeCount.desc(), qPost.commentCount.desc())
                 .fetch();

@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 /**
@@ -24,7 +23,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 조회수 기준으로 모든 게시글 조회 (내림차순 정렬)
     List<Post> findAllByOrderByViewCountDesc();
 
-    // 특정 작성자(User) 기반으로 게시글 조회
+    // 특정 작성자(User) 기반으로 게시글 조회 (전체)
     List<Post> findAllByAuthor(User author);
 
     // 댓글 수 기준으로 게시글 조회 (내림차순 정렬)
@@ -32,9 +31,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 좋아요 수 기준으로 게시글 조회 (내림차순 정렬)
     List<Post> findAllByOrderByLikeCountDesc();
-
-    // 활성화된 게시글만 조회
-    List<Post> findAllByIsActiveTrue();
 
     // 페이지네이션된 활성 게시글 조회
     Page<Post> findAllByIsActiveTrue(Pageable pageable);
