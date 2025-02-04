@@ -2,20 +2,26 @@
 
 import { useState } from "react";
 
+// 댓글 인터페이스
 interface Comment {
-  commentId: number;
-  author: string;
-  content: string;
-  createdAt: string;
+  commentId: number; // 댓글 고유 ID
+  author: string; // 댓글 작성자
+  content: string; // 댓글 내용
+  createdAt: string; // 댓글 작성 날짜
 }
 
+// 게시글 세부 정보 인터페이스
 interface PostDetails {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  date: string;
-  comments: Comment[];
+  id: string; // 게시글 고유 ID
+  title: string; // 게시글 제목
+  content: string; // 게시글 내용
+  author: string; // 작성자 (userId)
+  date: string; // 생성 날짜 (createdAt)
+  comments: Comment[]; // 댓글 배열
+  imageUrl?: string; // 이미지 URL (선택적 필드)
+  viewCount: number; // 조회수
+  commentCount: number; // 댓글 수
+  likeCount: number; // 좋아요 수
 }
 
 // 댓글 작성 API 호출 함수
@@ -69,6 +75,11 @@ export default function PostDetailsClient({ post }: { post: PostDetails }) {
         <p className="font-article-author text-sm text-muted-foreground">
           By {post.author} • {post.date}
         </p>
+        <img
+          src={post.imageUrl || "/star.svg"} // 이미지가 없으면 기본 이미지 사용
+          alt={post.title}
+          className="w-full h-auto rounded-lg mt-4"
+        />
         <p className="font-tarobot-description mt-4">{post.content}</p>
       </section>
 
