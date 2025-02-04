@@ -128,9 +128,9 @@ export default async function TarotBotsPage() {
                 description={bot.description}
                 concept={bot.concept}
                 mbti={bot.mbti}
-                imageSrc="/target.svg"
+                // imageSrc="/target.svg"
                 linkPrefix="/tarot/bots"
-                // imageSrc = {bot.profileImag}
+                imageSrc = {bot.profileImage}
               />
             ))}
           </div>

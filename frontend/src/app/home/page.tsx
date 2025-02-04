@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
 import CardSelector from "./CardShuffle";
+import Image from "next/image";
 
 interface Fortune {
   date: string;
@@ -9,11 +10,12 @@ interface Fortune {
   luckyNumber: number;
 }
 
-interface Tarobot {
-  tarobotId: number;
+interface Tarotbot {
+  id: number;
   name: string;
   description: string;
   rating: number;
+  profileImage: string;
 }
 
 interface MiniGame {
@@ -40,7 +42,7 @@ async function fetchData<T>(url: string): Promise<T | null> {
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
   const fortune = await fetchData<Fortune>("http://localhost:8080/api/main/fortune");
-  const tarobots = (await fetchData<Tarobot[]>("http://localhost:8080/api/main/tarobots")) ?? [];
+  const tarotbots = (await fetchData<Tarotbot[]>("http://localhost:8080/api/v1/tarot-bots")) ?? [];
   const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? [];
 
   return (
@@ -58,8 +60,8 @@ export default async function HomePage() {
                     <GamepadIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-tarobot-title mb-1">{fortune.fortune}</h3>
-                    <p className="font-tarobot-description text-muted-foreground">
+                    <h3 className="font-tarotbot-title mb-1">{fortune.fortune}</h3>
+                    <p className="font-tarotbot-description text-muted-foreground">
                       Lucky Number: {fortune.luckyNumber}
                     </p>
                   </div>
@@ -88,18 +90,24 @@ export default async function HomePage() {
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </Link>
-          {tarobots.length > 0 ? (
+          {tarotbots.length > 0 ? (
             <div className="gap-y-2 flex flex-col">
-              {tarobots.slice(0, 3).map((master) => (
-                <Link key={master.tarobotId} href={`/tarot/bots/${master.tarobotId}`}>
+              {tarotbots.slice(0, 3).map((master) => (
+                <Link key={master.id} href={`/tarot/bots/${master.id}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                        <GamepadIcon className="w-6 h-6" />
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                        <Image 
+                          src={master.profileImage} 
+                          alt={master.name} 
+                          width={48} 
+                          height={48} 
+                          className="object-cover w-full h-full"
+                        />
                       </div>
                       <div>
-                        <h3 className="font-tarobot-title">{master.name}</h3>
-                        <p className="font-tarobot-subtitle">{master.description}</p>
+                        <h3 className="font-tarotbot-title">{master.name}</h3>
+                        <p className="font-tarotbot-subtitle">{master.description}</p>
                         <p className="text-sm text-muted-foreground">Rating: {master.rating}</p>
                       </div>
                     </div>
@@ -131,8 +139,8 @@ export default async function HomePage() {
                       <GamepadIcon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="font-tarobot-title">{game.name}</h3>
-                      <p className="font-tarobot-subtitle text-muted-foreground">{game.description}</p>
+                      <h3 className="font-tarotbot-title">{game.name}</h3>
+                      <p className="font-tarotbot-subtitle text-muted-foreground">{game.description}</p>
                     </div>
                   </div>
                 </CardContent>
