@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { MessageSquare, Heart, Clock, ArrowUp } from "lucide-react";
+import { MessageSquare, Heart, Clock, ArrowUp, Search } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // 게시글 데이터 타입 정의
 interface Post {
@@ -39,12 +40,15 @@ export default function CommunityClient({
 }: {
   announcements: Announcement[];
 }) {
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>("latest");
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
-  const [showScrollTop, setShowScrollTop] = useState<boolean>(false); // 최상단 버튼 표시 여부
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
+  const [showSearchOverlay, setShowSearchOverlay] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   // 게시글 데이터 가져오기
@@ -71,6 +75,16 @@ export default function CommunityClient({
       console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 검색 제출 핸들러
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/community/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSearchOverlay(false);
+      setSearchQuery("");
     }
   };
 
@@ -112,7 +126,7 @@ export default function CommunityClient({
   // 스크롤 탑 버튼 표시 여부 체크
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 200); // 스크롤이 일정 이상 내려갔을 때 표시
+      setShowScrollTop(window.scrollY > 200);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -132,8 +146,12 @@ export default function CommunityClient({
             <Card key={announcement.announcementId} className="mb-4">
               <div className="p-4">
                 <h3 className="font-tarobot-title">{announcement.title}</h3>
-                <p className="text-sm text-muted-foreground">{announcement.content}</p>
-                <p className="text-xs text-muted-foreground mt-2">작성일자: {announcement.createdAt}</p>
+                <p className="text-sm text-muted-foreground">
+                  {announcement.content}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  작성일자: {announcement.createdAt}
+                </p>
               </div>
             </Card>
           ))
@@ -142,20 +160,58 @@ export default function CommunityClient({
         )}
       </section>
 
-      {/* 필터 버튼 */}
-      <div className="flex justify-center mb-4">
-        {FILTERS.map((filter) => (
+      {/* 필터 버튼과 검색 버튼 */}
+      <div className="flex justify-center items-center mb-4 relative">
+        <div className="flex space-x-2">
+          {FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setSelectedFilter(filter.value)}
+              className={`px-4 py-2 rounded-full ${
+                selectedFilter === filter.value
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-black"
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
           <button
-            key={filter.value}
-            onClick={() => setSelectedFilter(filter.value)}
-            className={`px-4 py-2 rounded-full mx-2 ${
-              selectedFilter === filter.value ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
-            }`}
+            onClick={() => setShowSearchOverlay(true)}
+            className="ml-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
           >
-            {filter.label}
+            <Search className="w-5 h-5" />
           </button>
-        ))}
+        </div>
       </div>
+
+      {/* 검색 오버레이 */}
+      {showSearchOverlay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <form onSubmit={handleSearchSubmit} className="space-y-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="검색어를 입력하세요..."
+                className="w-full p-3 border rounded-lg"
+                autoFocus
+              />
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSearchOverlay(false)}
+                >
+                  취소
+                </Button>
+                <Button type="submit">검색</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* 게시글 목록 */}
       <section className="p-4 space-y-4">
@@ -167,7 +223,9 @@ export default function CommunityClient({
                   {/* 텍스트 콘텐츠 */}
                   <div className="flex-1 min-w-0">
                     <h2 className="font-tarobot-title">{post.title}</h2>
-                    <p className="font-tarobot-description mb-2 line-clamp-2">{post.description}</p>
+                    <p className="font-tarobot-description mb-2 line-clamp-2">
+                      {post.description}
+                    </p>
                     <div className="flex items-center gap-4 text-muted-foreground text-sm">
                       <MessageSquare className="w-4 h-4" />
                       <span>{post.comments}</span>
@@ -202,7 +260,10 @@ export default function CommunityClient({
       {/* Write 버튼 */}
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
         <Link href="/community/write">
-          <Button size="lg" className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white rounded-full px-6 py-3 shadow-lg">
+          <Button
+            size="lg"
+            className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white rounded-full px-6 py-3 shadow-lg"
+          >
             WRITE
           </Button>
         </Link>
