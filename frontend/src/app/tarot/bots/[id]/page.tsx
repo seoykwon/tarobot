@@ -12,7 +12,6 @@ interface TarobotDetailsPageProps {
 // 동적 라우팅을 위한 페이지 컴포넌트
 export default async function TarobotDetailsPage({ params }: TarobotDetailsPageProps) {
   // Spring Boot API에서 타로봇 상세 정보 가져오기
-  
   const tarobotDetails = await fetchTarobotDetails(params.id);
 
   // 데이터가 없으면 Not Found 페이지로 이동
@@ -33,14 +32,18 @@ export default async function TarobotDetailsPage({ params }: TarobotDetailsPageP
             className="rounded-full"
           />
           <div>
-            <h1 className="font-tarobot-title">{tarobotDetails.name}</h1>
-            <p className="font-tarobot-description">{tarobotDetails.description}</p>
+            <h1 className="font-tarobot-title text-lg">{tarobotDetails.name}</h1>
+            <p className="font-tarobot-description text-sm text-gray-300">{tarobotDetails.description}</p>
+            <p className="font-tarobot-description text-sm text-gray-400 mt-1">
+              Concept: {tarobotDetails.concept}
+            </p>
             <div className="flex items-center gap-2 mt-2">
-              <Star className="w-5 h-5 font-tarobot-description text-yellow-400" /> 
-              <span>4.8 (58 reviews)</span>
+              <Star className="w-5 h-5 font-tarobot-description text-yellow-400" />
+              <span>MBTI: {tarobotDetails.mbti}</span>
             </div>
           </div>
         </div>
+
         {/* 전문 분야 */}
         <div className="mt-4">
           {tarobotDetails.expertise.map((tag, index) => (
@@ -57,22 +60,26 @@ export default async function TarobotDetailsPage({ params }: TarobotDetailsPageP
       {/* 리뷰 섹션 */}
       <section className="mb-6">
         <h2 className="font-tarobot-title mb-4">Consultation Reviews</h2>
-        <div className="space-y-4">
-          {tarobotDetails.reviews.map((review) => (
-            <div key={review.id} className="bg-gray-700 text-white p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-tarobot-subtitle">{review.author}</h3>
-                <span className="font-article-author">{review.date}</span>
+        {tarobotDetails.reviews.length > 0 ? (
+          <div className="space-y-4">
+            {tarobotDetails.reviews.map((review) => (
+              <div key={review.id} className="bg-gray-700 text-white p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-tarobot-subtitle">{review.author}</h3>
+                  <span className="font-article-author text-sm">{review.date}</span>
+                </div>
+                <p className="font-tarobot-descriptions mb-2">{review.content}</p>
+                <div className="flex items-center gap-1">
+                  {[...Array(review.rating)].map((_, index) => (
+                    <Star key={index} className="w-4 h-4 text-yellow-400" />
+                  ))}
+                </div>
               </div>
-              <p className="font-tarobot-descriptions mb-2">{review.content}</p>
-              <div className="flex items-center gap-1">
-                {[...Array(review.rating)].map((_, index) => (
-                  <Star key={index} className="w-4 h-4 text-yellow-400" />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-400">No reviews available for this Tarobot.</p>
+        )}
       </section>
 
       {/* 소통하기 버튼 */}
