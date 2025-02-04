@@ -3,15 +3,16 @@ import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/Card"
 
 interface TarotGameProps {
-  id: string
+  id: number
   name: string
   description: string
   mbti?: string
+  concept?: string
   imageSrc: string
   linkPrefix: string
 }
 
-export function TarotGame({ id, name, description, mbti, imageSrc, linkPrefix }: TarotGameProps) {
+export function TarotGame({ id, name, description, mbti, concept, imageSrc, linkPrefix }: TarotGameProps) {
   return (
     <Link href={`${linkPrefix}/${id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -22,6 +23,7 @@ export function TarotGame({ id, name, description, mbti, imageSrc, linkPrefix }:
           <CardContent className="p-0 flex-1">
             <h2 className="text-lg font-semibold">{name}</h2>
             <p className="text-sm text-muted-foreground mb-2">{description}</p>
+            {concept && <p className="text-sm text-muted-foreground">{concept}</p>}
             {mbti && <p className="text-sm text-muted-foreground">{mbti}</p>}
           </CardContent>
         </div>

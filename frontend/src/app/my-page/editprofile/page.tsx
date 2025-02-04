@@ -7,6 +7,8 @@ export default function UpdateProfilePage() {
   const [profileImage, setProfileImage] = useState<string | null>(null); // 프로필 이미지
   const [nickname, setNickname] = useState(""); // 닉네임
   const [birthDate, setBirthDate] = useState(""); // 생년월일
+  const [gender, setGender] = useState(""); // 성별
+  const [email, setEmail] = useState(""); // 이메일
   const router = useRouter(); // 라우터 객체 생성
 
   // 이미지 업로드 핸들러
@@ -22,22 +24,32 @@ export default function UpdateProfilePage() {
   const handleSaveChanges = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    // API 호출 (예시)
-    await fetch("/api/update-profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profileImage, nickname, birthDate }),
-    });
+    try {
+      // API 호출
+      const response = await fetch(`http://localhost:8080/api/v1/user-profiles/${userId}`, {
+        method: "PATCH",
+        credentials: "include", // 쿠키 포함
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname, gender, email, profileImage, birthDate }),
+      });
 
-    // 저장 완료 알림
-    alert("프로필이 성공적으로 업데이트되었습니다!");
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
 
-    // mypage로 이동
-    router.push("/mypage");
+      // 저장 완료 알림
+      alert("프로필이 성공적으로 업데이트되었습니다!");
+
+      // mypage로 이동
+      router.push("/mypage");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("프로필 업데이트 중 오류가 발생했습니다.");
+    }
   };
 
   return (
-    <div className="min-h-screen text-white flex flex-col items-center p-4 bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center p-4 bg-gray-900 pb-16">
       {/* 헤더 */}
       <header className="w-full max-w-md text-center mb-6">
         <h1 className="text-2xl font-bold">Update Your Profile</h1>
@@ -99,6 +111,39 @@ export default function UpdateProfilePage() {
             id="birth-date"
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
+            className="w-full p-2 rounded-lg text-black placeholder-gray-500 border"
+          />
+        </div>
+
+        {/* 성별 변경 */}
+        <div>
+          <label htmlFor="gender" className="block text-sm font-medium mb-2">
+            Gender
+          </label>
+          <select
+            id="gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full p-2 rounded-lg text-black placeholder-gray-500 border"
+          >
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        {/* 이메일 변경 */}
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium mb-2">
+            Email Address
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email address"
             className="w-full p-2 rounded-lg text-black placeholder-gray-500 border"
           />
         </div>

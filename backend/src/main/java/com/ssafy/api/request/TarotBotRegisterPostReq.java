@@ -1,7 +1,7 @@
 package com.ssafy.api.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,20 +10,21 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@ApiModel("TarotBotRegisterPostRequest")
-public class TarotBotRegisterPostReq {
-	@ApiModelProperty(name="타로 봇 이름", example="MysticTarot")
-	private String botName;
+@Schema(description = "TarotBotRegisterPostRequest")
 
-	@ApiModelProperty(name = "타로 봇 설명", example = "A tarot card reading bot")
+public class TarotBotRegisterPostReq {
+	@Schema(description = "타로 봇 이름", example="MysticTarot")
+	private String name;
+
+	@Schema(description = "타로 봇 설명", example = "A tarot card reading bot")
 	private String description;
 
-	@ApiModelProperty(name = "타로 봇 컨셉", example = "Mystical")
+	@Schema(description = "타로 봇 컨셉", example = "Mystical")
 	private String concept;
 
-	@ApiModelProperty(name = "프로필 이미지 URL", example = "https://example.com/image.png")
+	@Schema(description = "프로필 이미지 URL", example = "https://example.com/image.png")
 	private String profileImage;
 
-	@ApiModelProperty(name = "타로 봇 MBTI", example = "INTJ")
+	@Schema(description = "타로 봇 MBTI", example = "INTJ")
 	private String mbti;
 }

@@ -30,6 +30,7 @@ export default async function RootLayout({
     }
   }
 
+
   return (
     <html lang="ko" className={theme === "dark" ? "dark" : ""}>
       <body className="bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">

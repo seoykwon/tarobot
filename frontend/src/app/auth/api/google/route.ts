@@ -1,6 +1,6 @@
   // Google 로그인 요청
   export const googleLoginRequest = async () => {
-    const response = await fetch("http://localhost:8080/api/auth/google", {
+    const response = await fetch("http://localhost:8080/oauth2/authorization/google", {
       method: "GET",
       credentials: "include", // HttpOnly 쿠키 포함
     });

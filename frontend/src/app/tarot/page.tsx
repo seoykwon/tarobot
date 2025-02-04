@@ -56,31 +56,40 @@
 import { TarotGame } from "@/components/TarotGame";
 
 interface TarotBot {
-  id: string;
+  // id: string;
+  id: number;
   name: string;
   description: string;
   mbti: string;
+  concept: string;
+  profileImage: string;
 }
 
 // ✅ 더미 데이터 (API가 실패하면 이 데이터를 사용)
 const dummyBots: TarotBot[] = [
   {
-    id: "1",
+    id: 1,
     name: "Mystic Sage",
     description: "An ancient tarot master who sees the unseen.",
     mbti: "INFJ",
+    concept: "임시",
+    profileImage: "임시",
   },
   {
-    id: "2",
+    id: 2,
     name: "Oracle of Stars",
     description: "A cosmic seer who reads the fate through the constellations.",
     mbti: "ENFP",
+    concept: "임시",
+    profileImage: "임시",
   },
   {
-    id: "3",
+    id: 3,
     name: "Shadow Seer",
     description: "A mysterious fortune teller who uncovers hidden truths.",
     mbti: "INTP",
+    concept: "임시",
+    profileImage: "임시",
   },
 ];
 
@@ -117,9 +126,11 @@ export default async function TarotBotsPage() {
                 id={bot.id}
                 name={bot.name}
                 description={bot.description}
+                concept={bot.concept}
                 mbti={bot.mbti}
                 imageSrc="/target.svg"
                 linkPrefix="/tarot/bots"
+                // imageSrc = {bot.profileImag}
               />
             ))}
           </div>

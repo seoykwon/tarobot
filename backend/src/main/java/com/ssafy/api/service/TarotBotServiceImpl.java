@@ -1,27 +1,24 @@
 package com.ssafy.api.service;
 
+
 import com.ssafy.api.request.TarotBotRegisterPostReq;
 import com.ssafy.db.entity.TarotBot;
 import com.ssafy.db.repository.TarotBotRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import com.ssafy.db.repository.TarotBotRepositorySupport;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TarotBotServiceImpl implements TarotBotService {
-    @Autowired
-    TarotBotRepository tarotBotRepository;
-
-    @Autowired
-    TarotBotRepositorySupport tarotBotRepositorySupport;
+    private final TarotBotRepository tarotBotRepository;
 
     @Override
     public TarotBot createTarotBot(TarotBotRegisterPostReq registerInfo) {
         TarotBot tarotBot = new TarotBot();
-        tarotBot.setBotName(registerInfo.getBotName());
+        tarotBot.setName(registerInfo.getName());
         tarotBot.setDescription(registerInfo.getDescription());
         tarotBot.setConcept(registerInfo.getConcept());
         tarotBot.setProfileImage(registerInfo.getProfileImage());
@@ -31,13 +28,27 @@ public class TarotBotServiceImpl implements TarotBotService {
     }
 
     @Override
-    public TarotBot getTarotBotByBotName(String botName) {
-        TarotBot tarotBot = tarotBotRepositorySupport.findTarotBotByBotName(botName).get();
-        return tarotBot;
+    public TarotBot getTarotBotById(Long id) {
+        return tarotBotRepository.findById(id).get();
     }
 
     @Override
     public List<TarotBot> getAllTarotBots() {
         return tarotBotRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public TarotBot updateTarotBot(Long tarotBotId, TarotBotRegisterPostReq updateInfo) {
+        TarotBot tarotBot = tarotBotRepository.findById(tarotBotId)
+                .orElseThrow(() -> new IllegalArgumentException("TarotBot not found with id: " + tarotBotId));
+
+        tarotBot.setName(updateInfo.getName());
+        tarotBot.setDescription(updateInfo.getDescription());
+        tarotBot.setConcept(updateInfo.getConcept());
+        tarotBot.setProfileImage(updateInfo.getProfileImage());
+        tarotBot.setMbti(updateInfo.getMbti());
+
+        return tarotBotRepository.save(tarotBot);
     }
 }
