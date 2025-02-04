@@ -25,20 +25,38 @@ export default function ChatPage() {
 
     try {
       // fetch를 사용하여 POST 요청
-      const response = await fetch("/api/chat", {
-        method: "POST",
+      // const response = await fetch("http://127.0.0.1:8000/chat", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ session_id: sessionId, user_input: input }),
+      // });
+      // console.log(typeof input, input);
+      // if (!response.ok) {
+      //   throw new Error("Failed to fetch response from server");
+      // }
+      // const data = await response.json();
+      // const botMessage = { sender: "bot", text: data.reply };
+
+      // 챗봇 쪽을 바꿔야 할 거 같긴 한데, 일단 테스트 용으로 query로 보내기
+      // 쿼리 스트링으로 session_id와 user_input을 포함
+      const queryParams = new URLSearchParams({
+        session_id: sessionId,
+        user_input: input,
+      }).toString();
+
+      const response = await fetch(`http://127.0.0.1:8000/chat?${queryParams}`, {
+        method: "POST",  // FastAPI가 GET이 아니라 POST를 사용하고 있으므로 유지
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch response from server");
-      }
-
       const data = await response.json();
-      const botMessage = { sender: "bot", text: data.reply };
+      console.log(data);
+      const botMessage = { sender: "bot", text: data.answer };
+
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Error:", error);

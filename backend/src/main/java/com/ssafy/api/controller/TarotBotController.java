@@ -61,11 +61,11 @@ public class TarotBotController {
 			@ApiResponse(responseCode = "404", description = "타로 마스터 없음"),
 			@ApiResponse(responseCode = "500", description = "서버 오류")
 	})
-	public ResponseEntity<TarotBotRes> getTarotBotInfo(
+	public ResponseEntity<TarotBot> getTarotBotInfo(
 			@PathVariable @Parameter(description = "조회할 bot_id", required = true) Long tarotBotId) {
 
 		TarotBot tarotBot = tarotBotService.getTarotBotById(tarotBotId);
-		return ResponseEntity.status(200).body(TarotBotRes.of(tarotBot));
+		return ResponseEntity.ok(tarotBot);
 	}
 
 	@PutMapping("/{tarotBotId}")
