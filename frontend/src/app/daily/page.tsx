@@ -87,6 +87,7 @@ export default function FirstVisitPage() {
       setResult(botMessageText);
 
       // 결과를 백엔드로 전송하여 DB에 저장
+      // 지금은 없는 주소라서 제대로 작동하지 않음음
       const userId = document.cookie
         .split("; ")
         .find((row) => row.startsWith("user_id="))
