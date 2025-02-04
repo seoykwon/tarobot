@@ -1,7 +1,6 @@
 // src/api/chatbots.ts
 export interface Review {
     id: number;
-    tarobot: string;
     author: string;
     rating: number;
     content: string;
