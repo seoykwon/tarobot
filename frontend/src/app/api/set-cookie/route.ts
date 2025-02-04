@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  const response = NextResponse.redirect(new URL('/home', request.url)); // 절대 URL 사용
+  const response = NextResponse.redirect(new URL('/daily', request.url)); // 절대 URL 사용
 
   // 쿠키 설정 (HttpOnly, Secure 옵션 포함)
   response.cookies.set('isVisited', 'true', {
