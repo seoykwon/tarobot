@@ -9,18 +9,23 @@ interface Comment {
 }
 
 interface PostDetails {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  date: string;
-  comments: Comment[];
+  id: string; // post의 고유 ID
+  title: string; // 게시물 제목
+  content: string; // 게시물 내용
+  author: string; // 작성자 (userId)
+  date: string; // 생성 날짜 (createdAt)
+  comments: Comment[]; // 댓글 배열
+  imageUrl?: string; // 이미지 URL (선택적 필드)
+  viewCount: number; // 조회수
+  commentCount: number; // 댓글 수
+  likeCount: number; // 좋아요 수
 }
+
 
 // 게시글 상세 정보 API 호출 함수
 async function fetchPostDetails(id: string): Promise<PostDetails | null> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${id}`, {
+    const res = await fetch(`http://localhost:8080/api/v1/posts/${id}`, {
       cache: "no-store",
     });
 

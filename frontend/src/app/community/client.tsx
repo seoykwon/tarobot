@@ -52,14 +52,23 @@ export default function CommunityClient({
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/v1/posts?page=${pageNum-1}&size=10`,
-        { cache: "no-store" }
+        `http://localhost:8080/api/v1/posts?page=${pageNum}&pageSize=10`,
+        {
+          method: "GET", // HTTP 메서드는 문자열로 지정해야 합니다.
+          credentials: "include", // 쿠키 포함 설정
+          cache: "no-store", // 캐싱 방지 설정
+          headers: {
+            "Content-Type": "application/json", // 요청 헤더 설정
+          },
+        }
       );
+
       if (!response.ok) {
         console.error("Failed to fetch posts");
         setHasMore(false); // ✅ API 응답이 실패하면 더 이상 요청하지 않도록 설정
         return;
       }
+
       const data = await response.json();
       if (!data || data.length === 0) { // ✅ 여기서 바로 배열 체크
         setHasMore(false);
@@ -72,14 +81,15 @@ export default function CommunityClient({
       console.error("Error fetching posts:", error);
       setHasMore(false); // ✅ 에러 발생 시 더 이상 요청하지 않도록 설정
     } finally {
-      setLoading(false);
+      setLoading(false); // 로딩 상태 해제
     }
   };
+
 
   // 초기 데이터 로드
   useEffect(() => {
     fetchPosts(selectedFilter, page);
-  }, []);
+  });
 
   // 필터 변경 시 초기화 및 데이터 호출
   useEffect(() => {
