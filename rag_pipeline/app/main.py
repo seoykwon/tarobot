@@ -1,7 +1,6 @@
 # main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import redis
@@ -9,16 +8,6 @@ from app.services.rag_pipeline import rag_pipeline, process_user_input
 from app.utils.response_utils import response_generator  # ✅ Streaming import
 
 app = FastAPI()
-
-# CORS 설정
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js 프론트엔드의 주소
-    allow_credentials=True,
-    allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST 등)
-    allow_headers=["*"],  # 모든 헤더 허용
-)
-
 
 # Redis 연결
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
