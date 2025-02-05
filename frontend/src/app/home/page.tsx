@@ -151,11 +151,6 @@ export default async function HomePage() {
           )}
         </section>
       </Card>
-
-      {/* 카드 셀렉터 */}
-      <section className="w-full max-w-lg mx-auto">
-        <CardSelector />
-      </section>
       
     </main>
   );
