@@ -47,7 +47,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<List<PostRes>> getAllPosts(
-            @RequestParam(defaultValue = "0") @Parameter(description = "페이지 번호", required = false) int page,
+            @RequestParam(defaultValue = "1") @Parameter(description = "페이지 번호", required = false) int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "페이지 크기", required = false) int size) {
         List<PostRes> posts = postService.getAllPosts(page, size);
         return ResponseEntity.ok(posts);

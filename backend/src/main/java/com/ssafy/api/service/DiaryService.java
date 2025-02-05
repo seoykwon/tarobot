@@ -4,6 +4,7 @@ import com.ssafy.api.request.DiaryCreateReq;
 import com.ssafy.api.request.DiaryUpdateReq;
 import com.ssafy.db.entity.Diary;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -15,4 +16,5 @@ public interface DiaryService {
 	Diary getDiaryById(Long diaryId);
 	Diary updateDiary(Long diaryId, DiaryUpdateReq diaryUpdateReq);
 	void deleteDiary(Long diaryId);
+	List<Diary> getDiariesByConsultDate(LocalDate consultDate, String userId);
 }

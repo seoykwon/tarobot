@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,5 +79,12 @@ public class DiaryServiceImpl implements DiaryService {
 			throw new IllegalArgumentException("Diary not found with id: " + diaryId);
 		}
 		diaryRepository.deleteById(diaryId);
+	}
+
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<Diary> getDiariesByConsultDate(LocalDate consultDate, String userId) {
+		return diaryRepository.findByConsultDateAndUser_UserId(consultDate, userId);
 	}
 }
