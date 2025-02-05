@@ -68,7 +68,7 @@ body {
   color: var(--text-color);            /* 기본 글자 색상: 전역 foreground */
   background: var(--background-gradient);
   font-family: var(--font-noto-sans);  /* 기본 폰트: Nanum Pen Script */
-  font-size: 18px;                     /* 기본 글자 크기 */
+  font-size: 16px;                     /* 기본 글자 크기 */
 }
 
 @layer utilities {
