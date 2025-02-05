@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
-import CardSelector from "./CardShuffle";
 
 interface Fortune {
   date: string;
@@ -143,11 +142,6 @@ export default async function HomePage() {
           )}
         </section>
       </Card>
-
-      {/* 카드 셀렉터 */}
-      <section className="w-full max-w-lg mx-auto">
-        <CardSelector />
-      </section>
       
     </main>
   );
