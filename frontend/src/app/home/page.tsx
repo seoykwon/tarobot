@@ -43,7 +43,9 @@ export default async function HomePage() {
   const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? [];
 
   return (
-    <main className="min-h-screen bg-transparent pb-16 pt-8 px-0 md:px-4 lg:px-16 flex flex-col gap-y-6 transition-all duration-300 w-full max-w-3xl mx-auto">
+    <main className="min-h-[calc(100svh-128px)] bg-transparent pt-8 px-0 md:px-4 lg:px-16 
+  flex flex-col gap-y-6 transition-all duration-300 w-full max-w-3xl mx-auto 
+  overflow-auto pb-[env(safe-area-inset-bottom)]">
       
       {/* Today's Fortune */}
       <Card className="bg-transparent hover:bg-accent/20 transition-colors p-4 w-full max-w-lg min-h-[200px] mx-auto">

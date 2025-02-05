@@ -152,7 +152,7 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-grow p-2 rounded-lg bg-gray-800 text-white"
+            className="flex-grow p-2 rounded-lg bg-gray-800"
           />
 
           {/* 전송 버튼 */}

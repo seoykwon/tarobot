@@ -33,12 +33,12 @@ export default async function TarobotDetailsPage({ params }: TarobotDetailsPageP
           />
           <div>
             <h1 className="font-tarobot-title text-lg">{tarobotDetails.name}</h1>
-            <p className="font-tarobot-description text-sm text-gray-300">{tarobotDetails.description}</p>
-            <p className="font-tarobot-description text-sm text-gray-400 mt-1">
+            <p className="font-tarobot-description text-sm">{tarobotDetails.description}</p>
+            <p className="font-tarobot-description text-sm mt-1">
               Concept: {tarobotDetails.concept}
             </p>
             <div className="flex items-center gap-2 mt-2">
-              <Star className="w-5 h-5 font-tarobot-description text-yellow-400" />
+              <Star className="w-5 h-5 font-tarobot-description" />
               <span>MBTI: {tarobotDetails.mbti}</span>
             </div>
           </div>
