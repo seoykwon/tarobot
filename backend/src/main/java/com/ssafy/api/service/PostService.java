@@ -25,16 +25,13 @@ public interface PostService {
     void increaseLikeCount(Long postId);
     void increaseCommentCount(Long postId);
 
-
+    // 검색 기능 - 게시글 제목 및 내용 검색
     List<PostRes> getPostsByTitle(String title);
+    List<PostRes> getPostsByContent(String content);
+
+    /*
     List<PostRes> getPostsByAuthor(String userId);
     List<PostRes> getPostsByTitleAndAuthor(String title, String userId);
-
-    // 아래 메서드들은 통합 API로 대체되어 주석 처리
-    /*
-    List<PostRes> getPostsByMostViewed();
-    List<PostRes> getPostsByMostLiked();
-    List<PostRes> getPostsByMostCommented();
     List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount);
     */
 }

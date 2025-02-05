@@ -13,13 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +35,6 @@ public class PostServiceImpl implements PostService {
 
     /**
      * 게시글 생성
-     * 요청 데이터를 받아 게시글을 생성하고 저장.
      */
     @Override
     @Transactional
@@ -53,7 +52,6 @@ public class PostServiceImpl implements PostService {
 
     /**
      * 게시글 수정
-     * 게시글 ID로 게시글을 찾아 제목 및 이미지를 수정.
      */
     @Override
     @Transactional
@@ -71,7 +69,8 @@ public class PostServiceImpl implements PostService {
 
     /**
      * 일반 사용자: 게시글 비활성화 처리
-     * SecurityContext에서 인증정보를 가져와 게시글 작성자와 비교 후, 활성 상태를 false로 변경.
+     * - SecurityContext에서 JWT 인증 정보를 가져와 요청자와 게시글 작성자(또는 관리자)를 비교한 후,
+     *   게시글의 활성 상태(active)를 false로 변경합니다.
      */
     @Override
     @Transactional
@@ -116,11 +115,13 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    //============================== 조회/정렬/페이지네이션 ==============================
+    //============================== 조회/정렬/페이지네이션 및 검색 ==============================
 
     /**
-     * 기본 페이지 조회 - 활성 게시글을 정렬 조건(sort)에 따라 페이지네이션 처리하여 조회
-     * 기본 정렬은 최신순(createdAt 내림차순)이며, 클라이언트가 "like", "view", "comment" 등의 값을 전달하면 해당 정렬 기준을 적용.
+     * 게시글 목록 조회
+     * - 활성 게시글을 페이지네이션 및 정렬 조건(sort)에 따라 조회합니다.
+     * - 기본 정렬은 최신순(createdAt 내림차순)이며,
+     *   클라이언트는 sort 파라미터로 "like", "view", "comment" 등의 값을 전달할 수 있습니다.
      */
     @Override
     public List<PostRes> getAllPosts(int page, int size, String sort) {
@@ -134,7 +135,6 @@ public class PostServiceImpl implements PostService {
         } else if (sort.equalsIgnoreCase("comment")) {
             pageable = PageRequest.of(page, size, Sort.by("commentCount").descending());
         } else {
-            // 기본값: 최신순
             pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         }
         Page<Post> postPage = postRepository.findAllByIsActiveTrue(pageable);
@@ -155,49 +155,61 @@ public class PostServiceImpl implements PostService {
     }
 
     /**
-     * 제목으로 게시글 검색 (활성화된 게시글만)
+     * 게시글 제목 기반 검색
+     * - 제목에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
      */
     @Override
     public List<PostRes> getPostsByTitle(String title) {
-        return postRepository.findByTitleContaining(title).stream()
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Page<Post> postPage = postRepository.findByTitleContaining(title, pageable);
+        return postPage.getContent().stream()
                 .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 작성자로 게시글 검색 (활성화된 게시글만)
+     * 게시글 내용 기반 검색
+     * - 게시글 내용에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
      */
+    public List<PostRes> getPostsByContent(String content) {
+        Pageable pageable = PageRequest.of(1, 10, Sort.by("createdAt").descending());
+        Page<Post> postPage = postRepository.findByContentContaining(content, pageable);
+        return postPage.getContent().stream()
+                .filter(Post::isActive)
+                .map(PostRes::of)
+                .collect(Collectors.toList());
+    }
+
+//    /**
+//     * 작성자 기반 검색
+//     * - 주어진 작성자 ID에 해당하는 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
+//     */
+//    @Override
+//    public List<PostRes> getPostsByAuthor(String userId) {
+//        User author = userRepository.findByUserId(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+//        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+//        Page<Post> postPage = postRepository.findAllByAuthor(author, pageable);
+//        return postPage.getContent().stream()
+//                .filter(Post::isActive)
+//                .map(PostRes::of)
+//                .collect(Collectors.toList());
+//    }
+
+    // 작성자+제목 기반 검색
+    /*
     @Override
-    public List<PostRes> getPostsByAuthor(String userId) {
-        User author = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
-        return postRepository.findAllByAuthor(author).stream()
-                .filter(Post::isActive)
+    public List<PostRes> getPostsByTitleAndAuthor(String title, String userId) {
+        return postRepositorySupport.findPostsByTitleAndAuthor(title, userId)
+                .stream()
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 제목과 작성자로 게시글 검색
     */
-         public List<PostRes> getPostsByTitleAndAuthor(String title, String userId) {
-             return postRepositorySupport.findPostsByTitleAndAuthor(title, userId).stream()
-                     .map(PostRes::of)
-                     .collect(Collectors.toList());
-         }
 
+    //============================== 조회수/좋아요/댓글 증가 ==============================
 
-    /**
-     * 인기 게시글 검색 - 댓글 수와 좋아요 수가 일정 이상인 게시글 조회 (동적 쿼리 - RepositorySupport 활용)
-     //    public List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount) {
-     //        return postRepositorySupport.findPopularPosts(minCommentCount, minLikeCount).stream()
-     //                .map(PostRes::of)
-     //                .collect(Collectors.toList());
-     //    }
-     */
-
-    //============================== 조회수/좋아요/댓글 증가==============================
     /**
      * 공통 카운트 증가 처리 (조회수, 좋아요, 댓글)
      */
@@ -248,39 +260,4 @@ public class PostServiceImpl implements PostService {
     public void increaseCommentCount(Long postId) {
         increaseCount(postId, CountType.COMMENT);
     }
-
-
-    /**
-     * 조회수 기준 정렬 조회 (별도 엔드포인트 대신 통합 API에서 정렬 파라미터로 처리)
-     //    @Override
-     //    public List<PostRes> getPostsByMostViewed() {
-     //        return postRepository.findAllByOrderByViewCountDesc().stream()
-     //                .filter(Post::isActive)
-     //                .map(PostRes::of)
-     //                .collect(Collectors.toList());
-     //    }
-     */
-
-    /**
-     * 좋아요 기준 정렬 조회 (별도 엔드포인트 대신 통합 API에서 정렬 파라미터로 처리)
-     //    @Override
-     //    public List<PostRes> getPostsByMostLiked() {
-     //        return postRepository.findAllByOrderByLikeCountDesc().stream()
-     //                .filter(Post::isActive)
-     //                .map(PostRes::of)
-     //                .collect(Collectors.toList());
-     //    }
-     */
-
-    /**
-     * 댓글 수 기준 정렬 조회 (별도 엔드포인트 대신 통합 API에서 정렬 파라미터로 처리)
-     //    @Override
-     //    public List<PostRes> getPostsByMostCommented() {
-     //        return postRepository.findAllByOrderByCommentCountDesc().stream()
-     //                .filter(Post::isActive)
-     //                .map(PostRes::of)
-     //                .collect(Collectors.toList());
-     //    }
-     */
-
 }
