@@ -15,7 +15,7 @@ interface Post {
   commentCount: number; // ✅ commentCount로 변경
   likeCount: number; // ✅ likeCount로 변경
   createdAt: string; // ✅ createdAt 추가
-  author: string;  // ✅ API에서는 "userId"가 실제 작성자 정보임
+  userId: string;  // ✅ API에서는 "userId"가 실제 작성자 정보임
   imageUrl: string; // ✅ API 응답 필드에 맞게 수정
 }
 
@@ -52,7 +52,7 @@ export default function CommunityClient({
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/v1/posts?page=${pageNum}&pageSize=10`,
+        `http://localhost:8080/api/v1/posts?page=${pageNum-1}&size=10`,
         {
           method: "GET", // HTTP 메서드는 문자열로 지정해야 합니다.
           credentials: "include", // 쿠키 포함 설정
@@ -188,13 +188,13 @@ export default function CommunityClient({
                       <Heart className="w-4 h-4" />
                       <span>{post.likeCount}</span> {/* ✅ likes → likeCount */}
                       <Clock className="w-4 h-4" />
-                      <span>{post.createdAt}</span> {/* ✅ createdAt 추가 */}
-                      <span>by {post.author}</span> {/* ✅ userId를 표시 */}
+                      <span>{new Date(post.createdAt).toISOString().replace("T", " ").split(".")[0]}</span> {/* ✅ createdAt 추가 */}
+                      <span>by {post.userId}</span> {/* ✅ userId를 표시 */}
                     </div>
                   </div>
                   {/* 썸네일 이미지 */}
                   <Image
-                    src={post.imageUrl || "/images/dummy1.png"} {/* ✅ thumbnail → imageUrl */}
+                    src={post.imageUrl || "/images/dummy1.png"}
                     alt={post.title}
                     width={80}
                     height={80}
