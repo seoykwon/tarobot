@@ -173,7 +173,7 @@ public class PostServiceImpl implements PostService {
      * - 게시글 내용에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
      */
     public List<PostRes> getPostsByContent(String content) {
-        Pageable pageable = PageRequest.of(1, 10, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Page<Post> postPage = postRepository.findByContentContaining(content, pageable);
         return postPage.getContent().stream()
                 .filter(Post::isActive)
