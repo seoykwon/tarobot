@@ -54,6 +54,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -92,6 +93,7 @@ export default function MemoryGame() {
   const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
   const [matches, setMatches] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
+  const router = useRouter(); // useRouter 초기화
 
   const handleCardClick = (clickedIndex: number) => {
     if (isChecking || cards[clickedIndex].isMatched) return;
@@ -207,14 +209,24 @@ export default function MemoryGame() {
         ))}
       </div>
 
-      <Button
-        onClick={resetGame}
-        variant="outline"
-        size="lg"
-        className="bg-indigo-950 border-indigo-700 hover:bg-indigo-900 hover:border-indigo-500 text-indigo-200 hover:text-indigo-100"
-      >
-        새 게임 시작하기
-      </Button>
+      <div className="flex justify-between w-full max-w-md">
+        <Button
+          onClick={resetGame}
+          variant="outline"
+          size="lg"
+          className="bg-indigo-950 border-indigo-700 hover:bg-indigo-900 hover:border-indigo-500 text-indigo-200 hover:text-indigo-100"
+        >
+          새 게임 시작하기
+        </Button>
+        <Button
+          onClick={() => router.push("/")} // 홈 화면으로 이동
+          variant="outline"
+          size="lg"
+          className="bg-indigo-950 border-indigo-700 hover:bg-indigo-900 hover:border-indigo-500 text-indigo-200 hover:text-indigo-100"
+        >
+          종료하기
+        </Button>
+      </div>
     </div>
   );
 }
