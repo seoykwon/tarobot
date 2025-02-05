@@ -49,7 +49,7 @@ export default function BottomNav({ currentPath }: { currentPath: string }) {
               variant="ghost"
               className={cn(
                 "relative flex h-full w-full flex-col items-center justify-center gap-1 p-0 font-normal",
-                currentPath === item.href && "text-primary font-medium"
+                currentPath === item.href && "text-[var(--text-color)] font-medium"
               )}
               asChild
             >
