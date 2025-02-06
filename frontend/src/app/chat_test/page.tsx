@@ -23,8 +23,8 @@ export default function ChatPage() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
   const [showCardSelector, setShowCardSelector] = useState(false)
   const [showReviewOverlay, setShowReviewOverlay] = useState(false)
+  const [showSummaryOverlay, setShowSummaryOverlay] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
-  const [showSummaryOverlay, setShowSummaryOverlay] = useState(false);
 
   // 초기 채팅 시작
   useEffect(() => {
@@ -50,15 +50,12 @@ export default function ChatPage() {
   // 옵션 선택 처리
   const handleOptionSelect = async (option: string) => {
     setIsLoading(true)
-
     const userMessage: MessageType = {
       sender: "user",
       text: `${option}을 선택했습니다.`,
     }
     setMessages((prev) => [...prev, userMessage])
-
     try {
-      // 세션 ID와 사용자 입력을 쿼리 파라미터로 전달
       const sessionId = "12345" // 실제 구현시 고유한 세션 ID 생성 필요
       const response = await fetch(
         `http://localhost:8000/chat/stream?session_id=${sessionId}&user_input=${encodeURIComponent(option)}`,
@@ -67,7 +64,6 @@ export default function ChatPage() {
           headers: { "Content-Type": "application/json" },
         }
       )
-
       if (!response.body) throw new Error("ReadableStream not supported")
 
       const reader = response.body.getReader()
@@ -78,24 +74,19 @@ export default function ChatPage() {
       while (!done) {
         const { value, done: readerDone } = await reader.read()
         done = readerDone
-
         botMessageText += decoder.decode(value)
-
         setMessages((prev) => {
           const updatedMessages = [...prev]
           const lastMessage = updatedMessages[updatedMessages.length - 1]
-
           if (lastMessage && lastMessage.sender === "bot") {
             lastMessage.text = botMessageText
           } else {
             updatedMessages.push({ sender: "bot", text: botMessageText })
           }
-
           return updatedMessages
         })
       }
-
-      // 스트림이 완료된 후 카드 선택 메시지 추가
+      // 스트림 완료 후 카드 선택 안내 메시지 추가
       setMessages((prev) => [
         ...prev,
         { sender: "bot", text: "카드를 선택해주세요.", isCardSelection: true },
@@ -113,59 +104,50 @@ export default function ChatPage() {
   }
 
   // 카드 선택 처리
-  const handleCardSelect = async (cardNumber: number) => {
+  // onCardSelect으로 전달된 카드 id는 string 타입 (예:"maj5", "cups3", "wands10" 등)을 받습니다.
+  const handleCardSelect = async (cardId: string) => {
     setShowCardSelector(false)
     setIsLoading(true)
-
+    // 카드 선택 시, 사용자 메시지에는 카드 앞면 이미지를 보여줌
     const userMessage: MessageType = {
       sender: "user",
-      text: `카드 ${cardNumber}번을 선택했습니다.`,
-      cardImage: `/basic/maj${cardNumber}.svg`,
+      text: `카드 ${cardId}를 선택했습니다.`,
+      cardImage: `/basic/${cardId}.svg`,
     }
     setMessages((prev) => [...prev, userMessage])
-
     try {
-      // 세션 ID와 카드 번호를 쿼리 파라미터로 전달
       const sessionId = "12345" // 실제 구현시 고유한 세션 ID 생성 필요
       const response = await fetch(
-        `http://localhost:8000/chat/stream?session_id=${sessionId}&user_input=majortarotcard_${cardNumber}`,
+        `http://localhost:8000/chat/stream?session_id=${sessionId}&user_input=${encodeURIComponent(cardId)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
       )
-
       if (!response.body) throw new Error("ReadableStream not supported")
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let done = false
       let botMessageText = ""
-
-      // 초기 bot 메시지를 추가 (빈 텍스트로 시작)
+      // 초기 bot 메시지 추가 (빈 텍스트로 시작)
       setMessages((prev) => [
         ...prev,
         { sender: "bot", text: "", cardImage: undefined },
       ])
-
       while (!done) {
         const { value, done: readerDone } = await reader.read()
         done = readerDone
-
         botMessageText += decoder.decode(value)
-
         setMessages((prev) => {
           const updatedMessages = [...prev]
           const lastMessage = updatedMessages[updatedMessages.length - 1]
-
           if (lastMessage && lastMessage.sender === "bot") {
             lastMessage.text = botMessageText
           }
-
           return updatedMessages
         })
       }
-
       setCurrentStep(3)
     } catch (error) {
       console.error("Error:", error)
@@ -177,53 +159,46 @@ export default function ChatPage() {
       setIsLoading(false)
     }
   }
-  
-  // 리뷰 제출 처리
+
+  // 리뷰 제출 처리 예시
   const handleReviewSubmit = async (data: { rating: number; review: string }) => {
     try {
       console.log(data)
-      await fetch(`/api/review/${Bot.id}`, {
+      await fetch(`/api/review/${"Bot.id"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
       toast.success("리뷰가 성공적으로 제출되었습니다.")
       setShowReviewOverlay(false)
-    } catch (error) {
+    } catch {
       toast.error("리뷰 제출에 실패했습니다. 다시 시도해주세요.")
     }
   }
 
-    // 요약 데이터를 찾는 함수
-    const getSummaryData = () => {
-      let cardImage = '';
-      let content = '';
-      
-      // messages 배열을 순회하며 카드 이미지와 봇의 응답을 찾습니다
-      for (const msg of messages) {
-        if (msg.cardImage) {
-          cardImage = msg.cardImage;
-        }
-        if (msg.sender === 'bot' && !msg.isCardSelection && msg.text.length > 0) {
-          content = msg.text;
-        }
+  // 요약 데이터를 찾는 함수
+  const getSummaryData = () => {
+    let cardImage = ""
+    let content = ""
+    for (const msg of messages) {
+      if (msg.cardImage) {
+        cardImage = msg.cardImage
       }
-      
-      return { cardImage, content };
-    };
+      if (msg.sender === "bot" && !msg.isCardSelection && msg.text.length > 0) {
+        content = msg.text
+      }
+    }
+    return { cardImage, content }
+  }
 
-
-  // 종료 버튼 클릭 시 대화 내용을 백엔드로 전송한 후 홈 화면으로 이동
+  // 종료 버튼 클릭 시 대화 내용을 백엔드로 전송 후 홈으로 이동
   const handleExit = () => {
     console.log(messages)
-    // 대화 내용(messages)을 백엔드 API로 전송 (비동기 파이어앤포겟)
     fetch("/api/conversation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages }),
     }).catch((error) => console.error("Conversation 저장 에러:", error))
-    
-    // 사용자 입장에서는 바로 홈 화면으로 이동
     router.push("/home")
   }
 
@@ -257,7 +232,6 @@ export default function ChatPage() {
                 />
               )}
             </div>
-
             {currentStep === 1 && msg.options && (
               <div className="flex gap-2 mt-2">
                 {msg.options.map((option) => (
@@ -272,7 +246,6 @@ export default function ChatPage() {
                 ))}
               </div>
             )}
-
             {currentStep === 2 && msg.isCardSelection && (
               <button
                 onClick={() => setShowCardSelector(true)}
@@ -284,7 +257,6 @@ export default function ChatPage() {
             )}
           </div>
         ))}
-
         {currentStep === 3 && (
           <div className="flex flex-col items-center space-y-4 mt-4">
             <p className="text-white">타로 점의 결과에 만족하시나요?</p>
@@ -301,11 +273,11 @@ export default function ChatPage() {
               리뷰 작성하기
             </button>
             <button
-            onClick={() => setShowSummaryOverlay(true)}
-            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg"
-          >
-            요약하기
-          </button>
+              onClick={() => setShowSummaryOverlay(true)}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg"
+            >
+              요약하기
+            </button>
             <button
               onClick={handleExit}
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg"
@@ -314,19 +286,18 @@ export default function ChatPage() {
             </button>
           </div>
         )}
-
         {isLoading && (
           <div className="bg-gray-700 self-start p-4 rounded-2xl rounded-tl-none">
             <p className="text-white">입력 중...</p>
           </div>
         )}
       </div>
-
       {showCardSelector && (
-        <CardSelector onCardSelect={handleCardSelect} onClose={() => setShowCardSelector(false)} />
+        <CardSelector
+          onCardSelect={handleCardSelect} // CardSelector 에서는 카드 뒷면 이미지를 보여줍니다.
+          onClose={() => setShowCardSelector(false)}
+        />
       )}
-
-      {/* 리뷰 오버레이 */}
       {showReviewOverlay && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
@@ -340,13 +311,9 @@ export default function ChatPage() {
           </div>
         </div>
       )}
-      {/* 요약 오버레이 */}
       {showSummaryOverlay && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <SummaryComponent
-            {...getSummaryData()}
-            onClose={() => setShowSummaryOverlay(false)}
-          />
+          <SummaryComponent {...getSummaryData()} onClose={() => setShowSummaryOverlay(false)} />
         </div>
       )}
     </div>

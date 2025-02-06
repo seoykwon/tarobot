@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
+import Image from "next/image";
 
 interface Fortune {
   date: string;
@@ -68,7 +69,15 @@ export default async function HomePage() {
               </CardContent>
             </Link>
           ) : (
-            <div className="text-center space-y-4">
+            <div className="flex flex-col items-center justify-center text-center space-y-4">
+              {/* 카드 뒷면 이미지는 카드 비율(2:3)에 맞춰 96×144 크기로 표시 */}
+              <Image
+                src="/card-back-celestial.svg"
+                alt="Card Back"
+                width={96}
+                height={144}
+                className="rounded-lg object-cover"
+              />
               <p>오늘의 운세를 확인해보세요!!</p>
               <Link href="/daily">
                 <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
