@@ -14,13 +14,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.ssafy.db.entity.QPost.post;
 
 /**
  * 게시글 관련 비즈니스 로직 처리를 위한 서비스 구현.
@@ -32,6 +33,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostRepositorySupport postRepositorySupport;
     private final UserRepository userRepository;
+    private final SecurityContextHolderStrategy securityContextHolderStrategy;
 
     /**
      * 게시글 생성
@@ -50,14 +52,37 @@ public class PostServiceImpl implements PostService {
         return postRepository.save(post);
     }
 
+    // currentUserId를 추출하는 메서드
+    private String extractCurrentUserId() {
+        Authentication auth = securityContextHolderStrategy.getContext().getAuthentication();
+        if (auth == null) {
+            throw new SecurityException("인증된 사용자 정보가 없습니다.");
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof SsafyUserDetails) {
+            return ((SsafyUserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            return (String) principal;
+        } else {
+            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
+        }
+    }
+
     /**
      * 게시글 수정
      */
     @Override
     @Transactional
-    public Post updatePost(Long postId, String title, String image) {
+    public Post updatePost(Long postId, String title, String image, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        String currentUserId = extractCurrentUserId();
+
+        if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
+            throw new SecurityException("수정 권한이 없습니다.");
+        }
+
         if (title != null && !title.isEmpty()) {
             post.setTitle(title);
         }
@@ -77,19 +102,9 @@ public class PostServiceImpl implements PostService {
     public void deactivatePost(Long postId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new SecurityException("인증된 사용자 정보가 없습니다.");
-        }
-        Object principal = auth.getPrincipal();
-        String currentUserId;
-        if (principal instanceof SsafyUserDetails) {
-            currentUserId = ((SsafyUserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            currentUserId = (String) principal;
-        } else {
-            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
-        }
+
+        String currentUserId = extractCurrentUserId();
+
         if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
             throw new SecurityException("비활성화 권한이 없습니다.");
         }

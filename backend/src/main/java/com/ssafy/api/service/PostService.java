@@ -12,7 +12,7 @@ import java.util.List;
 public interface PostService {
     // 게시글 생성/수정/삭제
     Post createPost(PostRegisterReq request);
-    Post updatePost(Long postId, String title, String image);
+    Post updatePost(Long postId, String title, String image, User currentUser);
     void deactivatePost(Long postId, User currentUser);
     void deletePostPermanently(Long postId, User currentUser);
 

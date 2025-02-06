@@ -42,13 +42,12 @@ public class PostController {
     }
 
     // ---------------------------------------
-    // 게시글 목록 조회 + 통합 검색 (제목+내용, keyword가 없으면 전체 조회)
+    // 게시글 목록 조회 (통합 검색 로직 제거)
     // ---------------------------------------
     @GetMapping
-    @Operation(summary = "모든 게시글 조회 및 통합 검색",
-            description = "활성화된 게시글을 페이지네이션과 정렬 조건(sort)에 따라 조회합니다.\n" +
-                    "기본 정렬은 최신순(createdAt 내림차순)이며, sort 파라미터로 \"like\", \"view\", \"comment\" 값을 전달하면 해당 기준의 내림차순 정렬을 적용합니다.\n" +
-                    "또한, query 파라미터 'keyword'를 전달하면 게시글 제목과 내용을 모두 대상으로 통합 검색을 수행합니다.")
+    @Operation(summary = "모든 게시글 조회",
+            description = "활성화된 게시글을 페이지네이션 및 정렬 조건(sort)에 따라 조회합니다.\n" +
+                    "기본 정렬은 최신순(createdAt 내림차순)이며, sort 파라미터에 \"like\", \"view\", \"comment\" 값을 전달하면 해당 기준 내림차순 정렬을 적용합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
@@ -56,16 +55,8 @@ public class PostController {
     public ResponseEntity<List<PostRes>> getAllPosts(
             @RequestParam(defaultValue = "0") @Parameter(description = "페이지 번호 (0부터 시작)", required = false) int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "페이지 크기", required = false) int size,
-            @RequestParam(required = false, defaultValue = "new") @Parameter(description = "정렬 기준 (new: 최신순, like: 좋아요순, view: 조회수순, comment: 댓글순)", required = false) String sort,
-            @RequestParam(required = false) @Parameter(description = "통합 검색 키워드 (제목과 내용 모두 대상)", required = false) String keyword) {
-        List<PostRes> posts;
-        if (keyword == null || keyword.trim().isEmpty()) {
-            posts = postService.getAllPosts(page, size, sort);
-        } else {
-            // 통합 검색 로직 (제목과 내용을 모두 대상으로 함)
-            // 내부적으로 PostServiceImpl에서 제목 및 내용 검색을 통합 처리한다고 가정합니다.
-            posts = postService.getPostsByTitle(keyword); // 예시로 제목 검색 메서드를 호출
-        }
+            @RequestParam(required = false, defaultValue = "new") @Parameter(description = "정렬 기준 (new: 최신순, like: 좋아요순, view: 조회수순, comment: 댓글순)", required = false) String sort) {
+        List<PostRes> posts = postService.getAllPosts(page, size, sort);
         return ResponseEntity.ok(posts);
     }
 
@@ -103,7 +94,8 @@ public class PostController {
     // 게시글 상세 조회
     // ---------------------------------------
     @GetMapping("/{postId}")
-    @Operation(summary = "게시글 상세 조회", description = "게시글 ID를 통해 특정 게시글의 상세 정보를 조회합니다.")
+    @Operation(summary = "게시글 상세 조회",
+            description = "게시글 ID를 통해 특정 게시글의 상세 정보를 조회합니다. 조회 시 자동으로 조회수가 증가됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음"),
@@ -111,16 +103,34 @@ public class PostController {
     })
     public ResponseEntity<PostRes> getPostById(
             @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
+        postService.increaseViewCount(postId);  // 상세 조회 시 조회수 증가
         PostRes postRes = postService.getPostById(postId);
         return ResponseEntity.ok(postRes);
     }
 
+    // ---------------------------------------
+    // 게시글 좋아요 증가 (좋아요 API)
+    // ---------------------------------------
+    @PostMapping("/{postId}/like")
+    @Operation(summary = "좋아요 증가", description = "게시글 ID를 통해 해당 게시글의 좋아요 수를 증가시킵니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<Void> increaseLike(
+            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
+        postService.increaseLikeCount(postId);
+        return ResponseEntity.ok().build();
+    }
 
     // ---------------------------------------
     // 게시글 수정 (제목 및 이미지)
     // ---------------------------------------
     @PutMapping("/{postId}")
-    @Operation(summary = "게시글 수정", description = "게시글 ID를 통해 특정 게시글의 제목과 이미지를 수정합니다.")
+    @Operation(summary = "게시글 수정",
+            description = "게시글 ID를 통해 특정 게시글의 제목과 이미지를 수정합니다.\n" +
+                    "수정 시 JWT 토큰에 포함된 인증 정보를 통해 작성자와 요청자 권한을 비교하여 수정 권한을 확인합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음"),
@@ -129,8 +139,9 @@ public class PostController {
     public ResponseEntity<PostRes> updatePost(
             @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId,
             @RequestParam(required = false) @Parameter(description = "새로운 제목", required = false) String title,
-            @RequestParam(required = false) @Parameter(description = "새로운 이미지 URL", required = false) String imageUrl) {
-        Post updatedPost = postService.updatePost(postId, title, imageUrl);
+            @RequestParam(required = false) @Parameter(description = "새로운 이미지 URL", required = false) String imageUrl,
+            @Parameter(hidden = true) User currentUser) {
+        Post updatedPost = postService.updatePost(postId, title, imageUrl, currentUser);
         return ResponseEntity.ok(PostRes.of(updatedPost));
     }
 
@@ -138,7 +149,8 @@ public class PostController {
     // 게시글 삭제 (비활성화 처리)
     // ---------------------------------------
     @DeleteMapping("/{postId}")
-    @Operation(summary = "게시글 삭제 (비활성화)", description = "일반 사용자는 게시글을 비활성화 처리합니다. 비활성화된 게시글은 일반 검색 결과에서 노출되지 않습니다.")
+    @Operation(summary = "게시글 삭제 (비활성화)", description = "일반 사용자는 게시글을 비활성화 처리합니다. 비활성화된 게시글은 일반 검색 결과에서 노출되지 않습니다.\n" +
+            "삭제 시 JWT 토큰을 통해 요청자와 작성자(또는 관리자)를 확인합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "성공"),
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음"),
@@ -167,6 +179,8 @@ public class PostController {
         postService.deletePostPermanently(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
+
+
 
     // ---------------------------------------
     // 미사용 검색/정렬 엔드포인트
@@ -213,5 +227,4 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
     */
-
 }
