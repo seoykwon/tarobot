@@ -1,36 +1,84 @@
 .starryBackground {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
-  }
-  
-  .star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: white;
-    border-radius: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+  overflow: hidden;
+  z-index: -1;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle 5s infinite;
+}
+
+@keyframes twinkle {
+  0% {
     opacity: 0;
-    animation: twinkle 5s infinite;
+    transform: scale(0.5);
   }
-  
-  @keyframes twinkle {
-    0% {
-      opacity: 0;
-      transform: scale(0.5);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(0.5);
-    }
+  50% {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+.shootingStar {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  animation: shoot 3.5s linear;
+  opacity: 0;
+}
+
+.shootingStar::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 15px;
+  height: 15px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.shootingStar::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+  transform: translateY(-50%);
+}
+
+@keyframes shoot {
+  0% {
+    transform: translate(0, 0) rotate(-45deg) scale(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    transform: translate(-100vw, 100vh) rotate(-45deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-100vw, 100vh) rotate(-45deg) scale(1);
+    opacity: 0;
+  }
+}
+

@@ -43,19 +43,21 @@ export default function BottomNav({ currentPath }: { currentPath: string }) {
       <nav className="flex h-16 items-center justify-around px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = currentPath === item.href;
+
           return (
             <Button
               key={item.href}
               variant="ghost"
               className={cn(
                 "relative flex h-full w-full flex-col items-center justify-center gap-1 p-0 font-normal",
-                currentPath === item.href && "text-[var(--text-color)] font-medium"
+                isActive && "text-[var(--text-color)] font-medium"
               )}
               asChild
             >
               <Link href={item.href} className="relative px-2 py-1 rounded-lg">
-                <Icon className="h-5 w-5" />
-                <span className="text-xs">{item.name}</span>
+                <Icon className={cn("h-5 w-5", isActive && "text-[var(--text-color)]")} />
+                <span className="text-[var(--text-color)] text-xs">{item.name}</span>
               </Link>
             </Button>
           );
