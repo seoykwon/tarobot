@@ -4,24 +4,23 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "./card-selector";
 import Image from "next/image";
+import html2canvas from "html2canvas";
 
 // 토큰 유효성 검증 및 리프레시 함수
 async function validateAndRefresh() {
   try {
-    // access_token 검증 요청
     const validateResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/validate`, {
       method: "GET",
-      credentials: "include", // 쿠키 포함
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    // access_token이 유효하지 않은 경우 refresh 요청
     if (!validateResponse.ok) {
       const refreshResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/refresh`, {
         method: "POST",
-        credentials: "include", // 쿠키 포함
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -32,29 +31,109 @@ async function validateAndRefresh() {
       }
     }
 
-    return true; // 토큰이 유효하거나 새로 발급된 경우
+    return true;
   } catch (error) {
     console.error("Error during token validation or refresh:", error);
-    return false; // 유효하지 않은 경우
+    return false;
   }
 }
+
+interface SummaryProps {
+  cardImage?: string;
+  content: string;
+  onClose: () => void;
+}
+
+const SummaryComponent = ({ cardImage, content, onClose }: SummaryProps) => {
+  return (
+    <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+      <div className="flex flex-col items-center space-y-4">
+        {cardImage && (
+          <div className="w-48 h-64 relative">
+            <Image
+              src={cardImage}
+              alt="Selected tarot card"
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
+        )}
+        <div className="text-white whitespace-pre-wrap">{content}</div>
+        <button
+          onClick={onClose}
+          className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+        >
+          닫기
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default function FirstVisitPage() {
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 추가
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const isValid = await validateAndRefresh(); // 토큰 검증 및 갱신 호출
-      setIsLoggedIn(isValid); // 로그인 상태 업데이트
+      const isValid = await validateAndRefresh();
+      setIsLoggedIn(isValid);
     };
 
     checkLoginStatus();
   }, []);
+
+  const handleDirectSave = async () => {
+    if (!selectedCard || !result) return;
+
+    const virtualElement = document.createElement('div');
+    virtualElement.style.position = 'absolute';
+    virtualElement.style.left = '-9999px';
+    virtualElement.innerHTML = `
+      <div style="
+        background-color: rgb(31, 41, 55);
+        padding: 24px;
+        border-radius: 8px;
+        width: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      ">
+        <div style="width: 192px; height: 256px; position: relative; margin-bottom: 16px;">
+          <img src="/basic/maj${selectedCard}.svg" alt="Tarot card" style="width: 100%; height: 100%; object-fit: contain;" />
+        </div>
+        <div style="color: white; white-space: pre-wrap; text-align: center; font-size: 16px;">
+          ${result}
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(virtualElement);
+
+    try {
+      const canvas = await html2canvas(virtualElement, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#1F2937",
+        scale: 2,
+      });
+
+      const image = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "tarot-summary.png";
+      link.click();
+    } catch (error) {
+      console.error("스크린샷 저장 중 오류 발생:", error);
+    } finally {
+      document.body.removeChild(virtualElement);
+    }
+  };
 
   const handleCardSelect = async (cardNumber: number) => {
     setShowCardSelector(false);
@@ -80,14 +159,11 @@ export default function FirstVisitPage() {
       while (!done) {
         const { value, done: readerDone } = await reader.read();
         done = readerDone;
-
         botMessageText += decoder.decode(value);
       }
 
       setResult(botMessageText);
 
-      // 결과를 백엔드로 전송하여 DB에 저장
-      // 지금은 없는 주소라서 제대로 작동하지 않음음
       const userId = document.cookie
         .split("; ")
         .find((row) => row.startsWith("user_id="))
@@ -99,7 +175,7 @@ export default function FirstVisitPage() {
         body: JSON.stringify({
           cardNumber,
           result: botMessageText,
-          userId: userId || null, // 로그인한 사용자 ID 또는 null
+          userId: userId || null,
         }),
       });
     } catch (error) {
@@ -141,21 +217,30 @@ export default function FirstVisitPage() {
           )}
           <p className="text-lg mt-4">{result}</p>
 
-          {isLoggedIn ? (
+          <div className="flex flex-col gap-2 mt-6">
             <button
-              onClick={() => router.push("/home")}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg mt-6"
+              onClick={handleDirectSave}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg"
             >
-              홈으로 이동
+              결과 저장하기
             </button>
-          ) : (
-            <button
-              onClick={() => router.push("/auth/login")}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg mt-6"
-            >
-              로그인
-            </button>
-          )}
+
+            {isLoggedIn ? (
+              <button
+                onClick={() => router.push("/home")}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg"
+              >
+                홈으로 이동
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push("/auth/login")}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg"
+              >
+                로그인
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -170,6 +255,16 @@ export default function FirstVisitPage() {
           onCardSelect={handleCardSelect}
           onClose={() => setShowCardSelector(false)}
         />
+      )}
+
+      {showSummary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <SummaryComponent
+            cardImage={selectedCard ? `/basic/maj${selectedCard}.svg` : undefined}
+            content={result || ""}
+            onClose={() => setShowSummary(false)}
+          />
+        </div>
       )}
     </div>
   );

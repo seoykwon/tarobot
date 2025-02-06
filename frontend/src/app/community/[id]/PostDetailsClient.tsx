@@ -1,3 +1,4 @@
+//community/[id]/PostDetailsClient.tsx
 "use client";
 
 import { useState } from "react";
@@ -54,7 +55,7 @@ export default function PostDetailsClient({ post }: { post: PostDetails }) {
         setComments((prev) => [...prev, addedComment]); // 새로운 댓글 추가
         setNewComment(""); // 입력 필드 초기화
       }
-    } catch (error) {
+    } catch {
       alert("댓글 작성 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);

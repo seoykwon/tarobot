@@ -1,3 +1,4 @@
+// community/[id]/page.tsx
 import { notFound } from "next/navigation";
 import PostDetailsClient from "./PostDetailsClient";
 
