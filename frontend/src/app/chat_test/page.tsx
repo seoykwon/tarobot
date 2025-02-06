@@ -24,9 +24,6 @@ export default function ChatPage() {
   const [showCardSelector, setShowCardSelector] = useState(false)
   const [showReviewOverlay, setShowReviewOverlay] = useState(false)
   const [showSummaryOverlay, setShowSummaryOverlay] = useState(false)
-  // 선택한 카드 id (예: "maj5", "cups3" 등)를 string으로 관리
-  const [selectedCard, setSelectedCard] = useState<string | null>(null)
-
   const chatContainerRef = useRef<HTMLDivElement>(null)
 
   // 초기 채팅 시작
@@ -111,8 +108,6 @@ export default function ChatPage() {
   const handleCardSelect = async (cardId: string) => {
     setShowCardSelector(false)
     setIsLoading(true)
-    // 저장: 선택한 카드의 id를 state에 보관 (추후 다른 곳에서 사용 가능)
-    setSelectedCard(cardId)
     // 카드 선택 시, 사용자 메시지에는 카드 앞면 이미지를 보여줌
     const userMessage: MessageType = {
       sender: "user",
