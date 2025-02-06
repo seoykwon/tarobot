@@ -21,6 +21,8 @@ async def save_message(session_id: str, role: str, message):
 
     message_data = json.dumps({"role": role, "message": message})
 
+    print(f"✅ Redis에 {role}의 메시지 저장 완료")
+
     redis = await get_redis_connection()
     async with redis.client() as conn:
         await conn.rpush(key, message_data)

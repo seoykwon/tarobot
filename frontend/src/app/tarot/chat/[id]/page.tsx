@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import CardSelector from "@/app/chat_test/card-selector";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -10,6 +11,11 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
+
+  const [chatTag, setChatTag] = useState("none"); // 대화 태그 상태 추가
+  const [showTarotButton, setShowTarotButton] = useState(false); // 버튼 표시 여부
+  const [showCardSelector, setShowCardSelector] = useState(false); // 카드 선택창 표시
+
   const chatContainerRef = useRef<HTMLDivElement>(null); // 스크롤 컨트롤을 위한 Ref
 
   const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
@@ -22,6 +28,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true); // 로딩 상태 활성화
+    setShowTarotButton(false); // 인풋이 들어가면 타로 보기 버튼 비활성화
 
     try {
       // fetch를 사용하여 POST 요청
@@ -41,9 +48,31 @@ export default function ChatPage() {
 
       // 챗봇 쪽을 바꿔야 할 거 같긴 한데, 일단 테스트 용으로 query로 보내기
       // 쿼리 스트링으로 session_id와 user_input을 포함
+
+      /*
+        현재 수정 사항
+
+        요청의 쿼리에 chatTag 속성 추가
+          - string, 기본값 ""
+          - "tarot" 일 경우 FastAPI에서 로직을 바꿔 처리하도록 설정하기
+
+        응답 받은 chatTag가 tarot일 경우
+          - showTarotButton을 활성화 해 버튼 표시
+            - 일반 챗 입력 시 버튼 비활성화
+          - 버튼 클릭 시 showCardSelector를 활성화 해 카드 선택
+            - 카드 선택 시 뽑은 카드 정보와 함께 sendMessage 함수 재시작
+
+        FastAPI 측 수정 사항
+          - /chat/close API 추가 ( 종료 신호 수신 )
+            - API 만 추가하고 기능은 딱히 없음
+          - /chat API에 chatTag를 반환하도록 함
+            - chatTag을 tarot으로 설정하는 로직 추가
+      */
+
       const queryParams = new URLSearchParams({
         session_id: sessionId,
         user_input: input,
+        chat_tag: chatTag,
       }).toString();
 
       const response = await fetch(`http://127.0.0.1:8000/chat?${queryParams}`, {
@@ -55,9 +84,20 @@ export default function ChatPage() {
 
       const data = await response.json();
       console.log(data);
-      const botMessage = { sender: "bot", text: data.answer };
 
+      // 챗봇 응답 추가
+      const botMessage = { sender: "bot", text: data.answer };
       setMessages((prev) => [...prev, botMessage]);
+      console.log(data.chatTag)
+      
+      // 🔹 타로 추천이 있는 경우 버튼을 활성화
+      if (data.chatTag === "tarot") {
+        setChatTag("tarot");
+        setShowTarotButton(true);
+      } else {
+        setShowTarotButton(false);
+      }
+
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
@@ -69,10 +109,23 @@ export default function ChatPage() {
     }
   };
 
+  // 🔹 타로 점 보기 버튼 클릭 핸들러
+  const handleShowCardSelector = () => {
+    setShowTarotButton(false);
+    setShowCardSelector(true);
+  };
+
+  // 🔹 카드 선택 핸들러
+  const handleCardSelect = (cardNumber: number) => {
+    setShowCardSelector(false);
+    setMessages((prev) => [...prev, { sender: "bot", text: `"${cardNumber}" 카드를 선택했어!` }]);
+    sendMessage();
+  };
+
   // 상담 종료하기 버튼 클릭 핸들러
   const handleEndChat = async () => {
     try {
-      const response = await fetch(`/main/chat/${sessionId}/close`, {
+      const response = await fetch(`http://127.0.0.1:8000/chat/close`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,6 +182,25 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      {/* 🔹 타로 점 보기 버튼 */}
+      {showTarotButton && (
+        <div className="flex flex-col items-center my-4">
+          <button
+            onClick={handleShowCardSelector}
+            className="p-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white"
+          >
+            타로 점 보러가기 🔮
+          </button>
+        </div>
+      )}
+
+      {/* 🔹 카드 선택 UI */}
+      {showCardSelector && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <CardSelector onCardSelect={handleCardSelect} onClose={() => setShowCardSelector(false)} />
+        </div>
+      )}
 
       {/* 입력 필드 */}
       <div className="fixed bottom-4 left-0 right-0 px-4 z-50">

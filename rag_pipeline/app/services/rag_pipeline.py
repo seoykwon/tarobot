@@ -6,7 +6,7 @@ import json
 from app.services.redis_utils import save_message, get_summary_history, save_summary_history
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.utils.fo_mini_api import call_4o_mini
-from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner
+from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tag
 from app.utils.response_utils import response_generator  # ✅ Streaming 분리
 
 # 🔥 [개발용] 임시 사용자 데이터 (백엔드 연동 전)
@@ -29,13 +29,22 @@ async def process_user_input(session_id: str, user_input: str):
         print("🟢 process_user_input 시작")  # ✅ 로그 추가
         user_id = dummy_user_profile["user_id"]
 
-        recent_history = await get_summary_history(session_id)
-        await save_summary_history(session_id, user_input)
-        save_task = asyncio.create_task(save_message(session_id, "user", user_input))
+        ### 선행되어야 하는 Tag, Keyword 추출 작업 먼저 실행
+        # 유저 인풋으로 부터 타로 점을 보고 싶은 지 분석하는 함수로, 결과에 따라 다른 로직 실행
+        chat_tag_task = asyncio.create_task(call_4o_mini(make_prompt_tag(user_input), max_tokens=10))
 
+        # NER 키워드 추출 => 선행되어야 pinecone 검색 가능
         ner_prompt = make_prompt_ner(user_input)
-        keywords_str = await call_4o_mini(ner_prompt, max_tokens=300)
+        keywords_str_task = asyncio.create_task(call_4o_mini(ner_prompt, max_tokens=300))
 
+        # 2가지 작업 완료 후 값 할당
+        chat_tag, keywords_str = await asyncio.gather(chat_tag_task, keywords_str_task)
+
+        # 채팅 태그 작업
+        if (chat_tag == "tarot"):
+            print("tarot 코드 실행")
+
+        # 키워드 작업
         try:
             keywords_dict = json.loads(keywords_str)
             keywords = keywords_dict.get("keywords", [])
@@ -44,16 +53,31 @@ async def process_user_input(session_id: str, user_input: str):
 
         print(f'📌 after_parsing: {keywords}')  # ✅ 로그 추가
 
+        ### context 생성 관련 작업 수행
+        # 요약 불러오기
+        recent_history_task = asyncio.create_task(get_summary_history(session_id))
+        
+        # Pinecone RAG 검색
         retrieve_task = asyncio.create_task(retrieve_documents(user_id, user_input, keywords, top_k=3))
 
-        pine_results = await retrieve_task
+        # 2가지 비동기 task 완료 대기 후 값 할당
+        recent_history, pine_results = await asyncio.gather(recent_history_task ,retrieve_task)
+
         print(f"📌 Pinecone 검색 결과: {pine_results}")  # ✅ 로그 추가
 
+        # context 합치기
         context = prepare_context(recent_history, pine_results, keywords)
-        await asyncio.gather(save_task)
+
+        ### 저장 관련 작업 수행
+        # 요약 갱신
+        save_summary_task = asyncio.create_task(save_summary_history(session_id, user_input))
+        # Redis에 인풋 저장
+        save_task = asyncio.create_task(save_message(session_id, "user", user_input))
+
+        # asyncio.gather(save_task, save_summary_task) # 저장 작업 완료 대기. 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
 
         print("🟣 process_user_input 완료")  # ✅ 로그 추가
-        return context, keywords, user_id
+        return context, keywords, user_id, chat_tag
 
     except Exception as e:
         print(f"❌ process_user_input 실패: {e}")  # ✅ 예외 출력
@@ -77,15 +101,15 @@ def prepare_context(recent_history, pine_results, keywords):
 
     # ✅ 최적화된 컨텍스트 구성
     context = f"""
-            [최근 대화 기록]:
-            {recent_history}
+[최근 대화 기록]:
+{recent_history}
 
-            [Pinecone 검색 요약]: 
-            {pine_content_text}
+[Pinecone 검색 요약]: 
+{pine_content_text}
 
-            [NER 정보]:
-            {keywords}
-            """
+[NER 정보]:
+{keywords}
+"""
 
     return context.strip()  # ✅ 불필요한 공백 제거
 
@@ -95,7 +119,7 @@ async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
     """
     print("🟢 rag_pipeline 시작")  # ✅ 로그 추가
     # 업서트를 위해 keywords와 user_id도 리턴 받기
-    context, keywords, user_id = await process_user_input(session_id, user_input)
+    context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input)
 
     if stream:
         print("🟡 Streaming 모드로 실행")  # ✅ 로그 추가
@@ -124,7 +148,9 @@ async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
     save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
     
     # 🔥 필수 비동기 작업 완료 보장
-    await asyncio.gather(save_response_task, upsert_task)
-    print("🎯 모든 비동기 작업 완료")  # ✅ 로그 추가
+    # await asyncio.gather(save_response_task, upsert_task) # 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
+    # print("🎯 모든 비동기 작업 완료")  # ✅ 로그 추가
 
-    return llm_answer
+    print("분석 된 태그 :", chat_tag)
+
+    return llm_answer, chat_tag

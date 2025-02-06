@@ -60,3 +60,17 @@ def make_prompt_timestamp(user_query: str) -> str:
 
 def make_prompt_chat(context: str, user_input: str) -> str:
     return f"[Context]\n{context}\n\nUser input: {user_input}\n\n위 정보를 바탕으로 친절하고 정확한 답변을 해주세요."
+
+def make_prompt_tag(text: str) -> str:
+    return f"""
+다음 유저의 입력을 분석해 사용자가 타로 점을 보고 싶은 지 분석해주세요.
+유저의 입력: {text}
+
+대답은 짧은 태그 형태로 반환해 주세요.
+ex) 사용자가 타로 점을 보고 싶어하는 경우 응답:
+tarot
+사용자가 사주를 보고 싶어하는 경우 응답:
+saju
+그 외의 경우
+none
+"""
