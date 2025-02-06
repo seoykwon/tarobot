@@ -1,4 +1,3 @@
-// community/[id]/page.tsx
 import { notFound } from "next/navigation";
 import PostDetailsClient from "./PostDetailsClient";
 
@@ -7,6 +6,8 @@ interface Comment {
   author: string;
   content: string;
   createdAt: string;
+  likes: number;      // 댓글 좋아요 수
+  isLiked: boolean;   // 내가 댓글에 좋아요를 눌렀는지 여부
 }
 
 interface PostDetails {
@@ -15,6 +16,8 @@ interface PostDetails {
   content: string;
   author: string;
   date: string;
+  likes: number;      // 게시글 좋아요 수
+  isLiked: boolean;   // 내가 게시글에 좋아요를 눌렀는지 여부
   comments: Comment[];
 }
 
@@ -30,7 +33,7 @@ async function fetchPostDetails(id: string): Promise<PostDetails | null> {
     return res.json();
   } catch (error) {
     console.error("Error fetching post details:", error);
-    return null; // 에러 발생 시 null 반환
+    return null;
   }
 }
 
@@ -38,9 +41,8 @@ export default async function PostDetailsPage({ params }: { params: { id: string
   const post = await fetchPostDetails(params.id);
 
   if (!post) {
-    notFound(); // 데이터가 없으면 Next.js의 기본 404 페이지로 이동
+    notFound(); // 데이터가 없으면 404 페이지로 이동
   }
 
-  // 데이터를 클라이언트 컴포넌트에 전달
   return <PostDetailsClient post={post} />;
 }
