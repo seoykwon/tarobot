@@ -2,11 +2,8 @@
 import json
 import logging
 from datetime import datetime
-import pytz
 from app.utils.fo_mini_api import call_4o_mini
 from app.utils.prompt_generation import make_prompt_timestamp
-
-KST = pytz.timezone("Asia/Seoul")
 
 async def generate_timestamp_filter(user_query: str) -> dict:
     """
@@ -14,6 +11,7 @@ async def generate_timestamp_filter(user_query: str) -> dict:
     """
     timestamp_prompt = make_prompt_timestamp(user_query)
     timestamp_response = await call_4o_mini(timestamp_prompt, max_tokens=100)
+    print(f' generate_timestamp: {timestamp_response}')
 
     try:
         timestamp_data = json.loads(timestamp_response)
@@ -30,7 +28,7 @@ async def generate_timestamp_filter(user_query: str) -> dict:
 
 def convert_date_to_timestamp(timestamp_data: dict) -> dict:
     """
-    YYYY-MM-DD 형식의 날짜를 Unix timestamp(KST -> UTC)로 변환.
+    YYYY-MM-DD 형식의 날짜를 Unix timestamp로 변환 (KST 유지).
     """
     start_date_str = timestamp_data.get("start_date")
     end_date_str = timestamp_data.get("end_date")
@@ -38,11 +36,11 @@ def convert_date_to_timestamp(timestamp_data: dict) -> dict:
 
     try:
         if start_date_str:
-            start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").replace(hour=0, minute=0, second=0, tzinfo=KST)
+            start_dt = datetime.strptime(start_date_str, "%Y-%m-%d").replace(hour=0, minute=0, second=0)
             filter_query["created_at"] = {"$gte": int(start_dt.timestamp())}
 
         if end_date_str:
-            end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=KST)
+            end_dt = datetime.strptime(end_date_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
             if "created_at" in filter_query:
                 filter_query["created_at"]["$lte"] = int(end_dt.timestamp())
             else:

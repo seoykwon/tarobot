@@ -12,12 +12,12 @@ import { useRouter } from "next/navigation";
 interface Post {
   id: number;
   title: string;
-  description: string;
-  comments: number;
-  likes: number;
-  timeAgo: string;
-  author: string;
-  thumbnail: string;
+  content: string;  // ✅ 수정
+  commentCount: number; // ✅ commentCount로 변경
+  likeCount: number; // ✅ likeCount로 변경
+  createdAt: string; // ✅ createdAt 추가
+  userId: string;  // ✅ API에서는 "userId"가 실제 작성자 정보임
+  imageUrl: string; // ✅ API 응답 필드에 맞게 수정
 }
 
 // 공지사항 데이터 타입 정의
@@ -56,25 +56,36 @@ export default function CommunityClient({
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/community/articles?filter=${filter}&page=${pageNum}&pageSize=10`,
-        { cache: "no-store" }
+        `http://localhost:8080/api/v1/posts?page=${pageNum-1}&size=10`,
+        {
+          method: "GET", // HTTP 메서드는 문자열로 지정해야 합니다.
+          credentials: "include", // 쿠키 포함 설정
+          cache: "no-store", // 캐싱 방지 설정
+          headers: {
+            "Content-Type": "application/json", // 요청 헤더 설정
+          },
+        }
       );
+
       if (!response.ok) {
         console.error("Failed to fetch posts");
+        setHasMore(false); // ✅ API 응답이 실패하면 더 이상 요청하지 않도록 설정
         return;
       }
+
       const data = await response.json();
-      if (data.articles.length === 0) {
+      if (!data || data.length === 0) { // ✅ 여기서 바로 배열 체크
         setHasMore(false);
       } else {
         setPosts((prevPosts) =>
-          pageNum === 1 ? data.articles : [...prevPosts, ...data.articles]
+          pageNum === 1 ? [...data] : [...prevPosts, ...data] // ✅ data.articles → data 로 변경
         );
       }
     } catch (error) {
       console.error("Error fetching posts:", error);
+      setHasMore(false); // ✅ 에러 발생 시 더 이상 요청하지 않도록 설정
     } finally {
-      setLoading(false);
+      setLoading(false); // 로딩 상태 해제
     }
   };
 
@@ -91,7 +102,7 @@ export default function CommunityClient({
   // 초기 데이터 로드
   useEffect(() => {
     fetchPosts(selectedFilter, page);
-  }, []);
+  });
 
   // 필터 변경 시 초기화 및 데이터 호출
   useEffect(() => {
@@ -224,21 +235,21 @@ export default function CommunityClient({
                   <div className="flex-1 min-w-0">
                     <h2 className="font-tarobot-title">{post.title}</h2>
                     <p className="font-tarobot-description mb-2 line-clamp-2">
-                      {post.description}
+                      {post.content} {/* ✅ description → content 변경 */}
                     </p>
                     <div className="flex items-center gap-4 text-muted-foreground text-sm">
                       <MessageSquare className="w-4 h-4" />
-                      <span>{post.comments}</span>
+                      <span>{post.commentCount}</span> {/* ✅ comments → commentCount */}
                       <Heart className="w-4 h-4" />
-                      <span>{post.likes}</span>
+                      <span>{post.likeCount}</span> {/* ✅ likes → likeCount */}
                       <Clock className="w-4 h-4" />
-                      <span>{post.timeAgo}</span>
-                      <span>by {post.author}</span>
+                      <span>{new Date(post.createdAt).toISOString().replace("T", " ").split(".")[0]}</span> {/* ✅ createdAt 추가 */}
+                      <span>by {post.userId}</span> {/* ✅ userId를 표시 */}
                     </div>
                   </div>
                   {/* 썸네일 이미지 */}
                   <Image
-                    src={post.thumbnail || "/placeholder.jpg"}
+                    src={post.imageUrl || "/images/dummy1.png"}
                     alt={post.title}
                     width={80}
                     height={80}

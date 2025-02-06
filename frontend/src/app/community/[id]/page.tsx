@@ -21,10 +21,11 @@ interface PostDetails {
   comments: Comment[];
 }
 
+
 // 게시글 상세 정보 API 호출 함수
 async function fetchPostDetails(id: string): Promise<PostDetails | null> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${id}`, {
+    const res = await fetch(`http://localhost:8080/api/v1/posts/${id}`, {
       cache: "no-store",
     });
 

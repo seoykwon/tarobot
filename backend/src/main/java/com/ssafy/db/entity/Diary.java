@@ -1,6 +1,7 @@
 package com.ssafy.db.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
@@ -15,6 +16,7 @@ public class Diary extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(nullable = false)
@@ -29,6 +31,5 @@ public class Diary extends BaseEntity {
     @Lob
     private String summary; // 상담 요약
 
-    @URL
     private String cardImageUrl; // 타로 카드 이미지 URL
 }

@@ -9,6 +9,8 @@ __pycache__/
 *.pyd
 *.pyc
 
+.idea
+
 # 가상 환경(Virtual Environment)
 venv/
 .venv/
