@@ -18,8 +18,6 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const theme = cookies().get("theme")?.value || "light"
-  const isLoggedIn = cookies().get("access_token") !== undefined
-
   let currentPath = "/"
   const referer = headers().get("referer")
 
@@ -35,7 +33,7 @@ export default async function RootLayout({
   return (
     <html lang="ko" className={theme === "dark" ? "dark" : ""}>
       <body className="bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
-        {theme === "dark" ? <StarryBackground isLoggedIn={isLoggedIn} /> : <CherryBlossomBackground />}
+        {theme === "dark" ? <StarryBackground /> : <CherryBlossomBackground />}
         <header className="p-4 relative flex items-center bg-accent-color">
           <h1 className="absolute left-1/2 transform -translate-x-1/2 text-lg font-login-title">🌟 Tarot AI</h1>
           <div className="ml-auto">
