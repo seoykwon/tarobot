@@ -73,16 +73,48 @@ const VideoChat = () => {
   const startLocalStream = async () => {
     if (!peerConnection) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-      stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+      const sessionResponse = await fetch("http://localhost:8000/openvidu/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+      const sessionData = await sessionResponse.json()
+      const sessionId = sessionData.id
+
+      await fetch("http://localhost:8000/openvidu/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custom_session_id: sessionId })
+      })
+
+      const tokenResponse = await fetch("http://localhost:8000/openvidu/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId })
+      })
+      const tokenData = await tokenResponse.json()
+      const token = tokenData.token
+
+      const OV = new OpenVidu()
+      const session = OV.initSession()
+
+      session.on("streamCreated", (event) => {
+        session.subscribe(event.stream, videoContainerRef.current)
+      })
+
+      await session.connect(token, { clientData: "UserNickname" })
+
+      const publisher = OV.initPublisher(videoContainerRef.current, {
+        audioSource: undefined,
+        videoSource: undefined,
+        publishAudio: true,
+        publishVideo: true
+      })
+      await session.publish(publisher)
+
+      setSession(session)
+      setPublisher(publisher)
     } catch (error) {
-      console.error("Error accessing media devices.", error);
+      console.error("Error starting video:", error)
     }
   };
 
@@ -139,7 +171,5 @@ const VideoChat = () => {
         </form>
       </div>
     </div>
-  );
-};
-
-export default VideoChat;
+  )
+}

@@ -26,15 +26,14 @@ plugins {
     id 'org.springframework.boot' version "${springBootVer}"
     id "org.sonarqube" version "3.5.0.2730"
 }
-
-sonarqube {
-    properties {
-        property "sonar.projectKey", "S12P11A107"
-        property "sonar.host.url", "https://sonarqube.ssafy.com"
-        property "sonar.login", "sqp_0d6a0c9de84c811fb4f7e1d70f8a3899a4a7672c"
-        property "sonar.sources", "src"
+    sonarqube {
+        properties {
+            property "sonar.projectKey", "S12P11A107"
+            property "sonar.host.url", "https://sonarqube.ssafy.com"
+            property "sonar.login", "sqp_0d6a0c9de84c811fb4f7e1d70f8a3899a4a7672c"
+            property "sonar.sources", "src"
+        }
     }
-}
 
 
 //tasks.withType(JavaCompile).configureEach {
@@ -49,22 +48,22 @@ sonarqube {
 //     }
 // }
 
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'eclipse'
-apply plugin: 'com.github.node-gradle.node'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'eclipse'
+    apply plugin: 'com.github.node-gradle.node'
 
-repositories {
-    mavenCentral()
-    maven { url 'https://repo.spring.io/snapshot' }
-    maven { url 'https://repo.spring.io/milestone' }
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.spring.io/snapshot' }
+        maven { url 'https://repo.spring.io/milestone' }
 //    maven { url "https://repo.spring.io/libs-release" }
 //    maven { url "https://repo.maven.apache.org/maven2" }
 //    maven { url "https://build.shibboleth.net/nexus/content/repositories/releases" }
-}
+    }
 
-group 'com.ssafy'
-version '1.0-SNAPSHOT'
-sourceCompatibility = '17'
+    group 'com.ssafy'
+    version '1.0-SNAPSHOT'
+    sourceCompatibility = "17"
 
 // node {
 //     download = true
@@ -73,9 +72,9 @@ sourceCompatibility = '17'
 //     nodeModulesDir = file("${project.projectDir}/../frontend")
 // }
 
-configurations {
-    providedRuntime
-}
+    configurations {
+        providedRuntime
+    }
 
 /* task npmInstall(type: NpmTask, overwrite: true) {
     args = ['install']
@@ -89,30 +88,30 @@ configurations {
 // processResources.dependsOn 'webpack'
 
 // set build time and inject value to application.properties
-def buildTime() {
-    def date = new Date()
-    def formattedDate = date.format('yyyyMMdd_HHmm')
-    return formattedDate
-}
-
-project.ext.set("build.date", buildTime())
-
-import org.apache.tools.ant.filters.ReplaceTokens
-
-processResources {
-    from("src/main/resources") {
-        include "**/*.properties"
-        include "**/*.yml"
-        include "**/*.yaml"
-
-        // 프로젝트 속성을 문자열로 변환하여 ReplaceTokens에 전달
-        filter(ReplaceTokens, tokens: project.properties.findAll { key, value ->
-            value != null && value instanceof String
-        }.collectEntries { key, value ->
-            [(key): String.valueOf(value)]
-        })
+    def buildTime() {
+        def date = new Date()
+        def formattedDate = date.format('yyyyMMdd_HHmm')
+        return formattedDate
     }
-}
+
+    project.ext.set("build.date", buildTime())
+
+    import org.apache.tools.ant.filters.ReplaceTokens
+
+    processResources {
+        from("src/main/resources") {
+            include "**/*.properties"
+            include "**/*.yml"
+            include "**/*.yaml"
+
+            // 프로젝트 속성을 문자열로 변환하여 ReplaceTokens에 전달
+            filter(ReplaceTokens, tokens: project.properties.findAll { key, value ->
+                value != null && value instanceof String
+            }.collectEntries { key, value ->
+                [(key): String.valueOf(value)]
+            })
+        }
+    }
 //processResources {
 //    with copySpec {
 //        from "src/main/resources"
@@ -131,50 +130,50 @@ processResources {
 // }
 
 
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-websocket")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
+    dependencies {
+        implementation("org.springframework.boot:spring-boot-starter-web")
+        implementation("org.springframework.boot:spring-boot-starter-websocket")
+        implementation("org.springframework.boot:spring-boot-starter-security")
+        implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    runtimeOnly("com.mysql:mysql-connector-j") // MySQL 드라이버 최신 버전
-    runtimeOnly("org.springframework.boot:spring-boot-properties-migrator") // 설정 속성의 변경 사항을 확인, 사용 중단된 속성을 감지
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
+        runtimeOnly("com.mysql:mysql-connector-j") // MySQL 드라이버 최신 버전
+        runtimeOnly("org.springframework.boot:spring-boot-properties-migrator") // 설정 속성의 변경 사항을 확인, 사용 중단된 속성을 감지
+        developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-    implementation('commons-io:commons-io:2.11.0') // commons-io 최신 버전
-    implementation("org.apache.commons:commons-lang3:3.12.0") // commons-lang3 최신 버전
+        implementation('commons-io:commons-io:2.11.0') // commons-io 최신 버전
+        implementation("org.apache.commons:commons-lang3:3.12.0") // commons-lang3 최신 버전
 
-    implementation("com.querydsl:querydsl-jpa:${querydslVer}:jakarta")
-    annotationProcessor("com.querydsl:querydsl-apt:${querydslVer}:jakarta")
+        implementation("com.querydsl:querydsl-jpa:${querydslVer}:jakarta")
+        annotationProcessor("com.querydsl:querydsl-apt:${querydslVer}:jakarta")
 
-    implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
-    annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
-    annotationProcessor "jakarta.annotation:jakarta.annotation-api" // Jakarta 어노테이션 추가
+        implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+        annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
+        annotationProcessor "jakarta.annotation:jakarta.annotation-api" // Jakarta 어노테이션 추가
 
-    implementation("org.projectlombok:lombok:${lombokVer}")
-    annotationProcessor("org.projectlombok:lombok:${lombokVer}")
+        implementation("org.projectlombok:lombok:${lombokVer}")
+        annotationProcessor("org.projectlombok:lombok:${lombokVer}")
 
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
+        testImplementation('org.springframework.boot:spring-boot-starter-test')
 
-    implementation("com.google.guava:guava:31.1-jre") // Guava 추가
+        implementation("com.google.guava:guava:31.1-jre") // Guava 추가
 
-    implementation "com.auth0:java-jwt:3.19.2"
+        implementation "com.auth0:java-jwt:3.19.2"
 
 
-    // Swagger (Springfox)
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+        // Swagger (Springfox)
+        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
 //  implementation("io.springfox:springfox-swagger2:3.0.0")
 //  implementation("io.springfox:springfox-swagger-ui:3.0.0")
 //  implementation("io.springfox:springfox-data-rest:3.0.0")
 //  implementation("io.springfox:springfox-bean-validators:3.0.0")
-    // oauth2
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-}
+        // oauth2
+        implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    }
 
 //sourceSets {
 //    main {
@@ -192,13 +191,18 @@ dependencies {
 //    ]
 //}
 
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs += ["-Aquerydsl.generatedAnnotationClass=jakarta.annotation.Generated"]
+    }
+
 // 중복 처리 전략
-tasks.processResources {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
+    tasks.processResources {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
 
 // JUnit5 테스트 플랫폼 명시
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
 
     }
+targetCompatibility = JavaVersion.VERSION_17

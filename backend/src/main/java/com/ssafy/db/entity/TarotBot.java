@@ -1,6 +1,7 @@
 package com.ssafy.db.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +38,7 @@ public class TarotBot extends BaseEntity {
     private List<String> expertise = new ArrayList<>();
 
     @OneToMany(mappedBy = "tarotBot", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("tarotBot")  // Review의 JSON에서 tarotBot을 무시하도록 설정
     private List<Review> reviews = new ArrayList<>();
 
     @CreationTimestamp

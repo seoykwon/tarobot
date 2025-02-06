@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+// 댓글 인터페이스
 interface Comment {
   commentId: number;
   author: string;
@@ -11,6 +12,7 @@ interface Comment {
   isLiked: boolean;   // 내가 댓글에 좋아요를 눌렀는지 여부
 }
 
+// 게시글 세부 정보 인터페이스
 interface PostDetails {
   id: string;
   title: string;

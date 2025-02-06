@@ -77,8 +77,8 @@ public class UserProfileController {
 	@PatchMapping("/{userId}")
 	@Operation(summary="유저 프로필 수정", description="유저 프로필 정보를 수정합니다.")
 	public ResponseEntity<UserProfileRes> updateUserProfile(
-			@PathVariable String userId,
-			@RequestBody UserProfileUpdateReq updateReq) {
+			@PathVariable @Parameter(description="유저 이메일 아이디", required=true) String userId,
+			@RequestBody @Parameter(description="유저 프로필 업데이트 정보", required=true) UserProfileUpdateReq updateReq) {
 		UserProfile updatedUserProfile = userProfileService.updateUserProfile(userId, updateReq);
 		return ResponseEntity.ok(UserProfileRes.of(updatedUserProfile));
 	}

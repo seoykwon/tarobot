@@ -13,9 +13,10 @@ interface DayInfo {
 }
 
 interface TarotSummary {
+  tag: string;
   title: string;
   summary: string;
-  tarot_card_image: string;
+  cardImageUrl: string;
 }
 
 export default function CalendarPage() {
@@ -55,7 +56,11 @@ export default function CalendarPage() {
   const fetchTarotData = async (date: Date) => {
     try {
       setIsLoading(true);
-      const formattedDate = date.toISOString().split("T")[0]; // Format date as YYYY-MM-DD
+      // const formattedDate = date.toISOString().split("T")[0]; // Format date as YYYY-MM-DD
+      // UTC 시간대 문제로 인해 수정
+      const localDate = new Date(date.getTime() + 9 * 60 * 60 * 1000); // UTC+9 보정
+      const formattedDate = localDate.toISOString().split("T")[0];
+
 
       const response = await fetch(`http://localhost:8080/api/v1/diary/${formattedDate}`, {
         method: "GET",
@@ -67,7 +72,13 @@ export default function CalendarPage() {
       }
 
       const data: TarotSummary | null = await response.json();
-      setTarotData(data); // Update tarot data
+      // setTarotData(data); // Update tarot data
+       // 🔹 API 응답이 배열이므로 첫 번째 요소를 가져오기
+      if (Array.isArray(data) && data.length > 0) {
+        setTarotData(data[0]); // 첫 번째 아이템 사용
+      } else {
+        setTarotData(null); // 데이터가 없을 경우 처리
+      }
     } catch (error) {
       console.error("Error fetching tarot data:", error);
       setTarotData(null); // No data available
@@ -196,7 +207,7 @@ export default function CalendarPage() {
         {/* Fortune Summary */}
         <div className="space-y-4">
           <h2 className="font-page-title">Your Fortune Summary</h2>
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="font-tarobot-title">
                 {isLoading ? "Loading..." : tarotData?.title || "오늘의 타로 결과를 확인하세요"}
@@ -207,9 +218,42 @@ export default function CalendarPage() {
                 <>
                   <p className="font-tarobot-description text-muted-foreground mb-4">{tarotData.summary}</p>
                   <img
-                    src={tarotData.tarot_card_image}
+                    src={tarotData.cardImageUrl}
                     alt={tarotData.title}
-                    className="w-full h-auto rounded-md"
+                    // className="w-full h-auto rounded-md"
+                    className="w-[150px] h-[225px] object-cover rounded-lg mx-auto"
+                  />
+                </>
+              ) : (
+                !isLoading && (
+                  <p className="font-tarobot-description text-muted-foreground">
+                    선택한 날짜에 대한 데이터가 없습니다. 오늘의 타로 결과를 확인하세요.
+                  </p>
+                )
+              )}
+            </CardContent>
+          </Card> */}
+          <Card className="p-1"> {/* Card의 패딩을 최소화 */}
+            <CardHeader>
+              <CardTitle className="font-tarobot-title">
+                {isLoading ? "Loading..." : tarotData?.title || "오늘의 타로 결과를 확인하세요"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-between items-start gap-4"> {/* gap 조정 */}
+            {tarotData ? (
+                <>
+                  {/* 좌측: 제목 + 내용 */}
+                  <div className="flex-1 text-left">
+                    <p className="font-tarobot-description text-muted-foreground">
+                      {tarotData.summary}
+                    </p>
+                  </div>
+
+                  {/* 우측: 카드 이미지 */}
+                  <img
+                    src={tarotData.cardImageUrl}
+                    alt={tarotData.title}
+                    className="w-[140px] h-[210px] object-cover rounded-lg shadow-md"
                   />
                 </>
               ) : (
@@ -221,6 +265,7 @@ export default function CalendarPage() {
               )}
             </CardContent>
           </Card>
+          {/* 여기까지 수정됨*/}
         </div>
       </div>
     </main>

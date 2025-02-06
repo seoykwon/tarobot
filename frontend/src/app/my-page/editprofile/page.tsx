@@ -26,6 +26,8 @@ export default function UpdateProfilePage() {
 
     try {
       // API 호출
+      // 임시로 민경훈 프로필 사용 => 인자로 받아서 사용하거나, JWT로 인증 받아 사용하자
+      const userId = "mgh123rg@gmail.com";
       const response = await fetch(`http://localhost:8080/api/v1/user-profiles/${userId}`, {
         method: "PATCH",
         credentials: "include", // 쿠키 포함
@@ -41,7 +43,7 @@ export default function UpdateProfilePage() {
       alert("프로필이 성공적으로 업데이트되었습니다!");
 
       // mypage로 이동
-      router.push("/mypage");
+      router.push("/my-page");
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("프로필 업데이트 중 오류가 발생했습니다.");

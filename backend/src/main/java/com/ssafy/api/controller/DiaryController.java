@@ -3,6 +3,7 @@ package com.ssafy.api.controller;
 import com.ssafy.api.request.DiaryCreateReq;
 import com.ssafy.api.request.DiaryUpdateReq;
 import com.ssafy.api.service.DiaryService;
+import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.db.entity.Diary;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,8 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "Diary", description = "다이어리 API")
@@ -49,18 +52,18 @@ public class DiaryController {
         return ResponseEntity.ok(diaries);
     }
 
-    @GetMapping("/{diaryId}")
-    @Operation(summary = "다이어리 단건 조회", description = "특정 다이어리 ID로 다이어리를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "404", description = "다이어리를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    public ResponseEntity<Diary> getDiaryById(
-            @PathVariable @Parameter(description = "다이어리 ID", required = true) Long diaryId) {
-        Diary diary = diaryService.getDiaryById(diaryId);
-        return ResponseEntity.ok(diary);
-    }
+//    @GetMapping("/{diaryId}")
+//    @Operation(summary = "다이어리 단건 조회", description = "특정 다이어리 ID로 다이어리를 조회합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "성공"),
+//            @ApiResponse(responseCode = "404", description = "다이어리를 찾을 수 없음"),
+//            @ApiResponse(responseCode = "500", description = "서버 오류")
+//    })
+//    public ResponseEntity<Diary> getDiaryById(
+//            @PathVariable @Parameter(description = "다이어리 ID", required = true) Long diaryId) {
+//        Diary diary = diaryService.getDiaryById(diaryId);
+//        return ResponseEntity.ok(diary);
+//    }
 
     @PutMapping("/{diaryId}")
     @Operation(summary = "다이어리 수정", description = "특정 다이어리 ID의 내용을 수정합니다.")
@@ -87,5 +90,26 @@ public class DiaryController {
             @PathVariable @Parameter(description = "다이어리 ID", required = true) Long diaryId) {
         diaryService.deleteDiary(diaryId);
         return ResponseEntity.noContent().build();
+    }
+
+    // ✅ consultDate 기반 조회 API 추가
+    @GetMapping("/{consultDate}")
+    @Operation(summary = "상담 일자로 다이어리 조회", description = "지정된 상담 날짜에 해당하는 다이어리를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "해당 날짜의 다이어리를 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<List<Diary>> getDiariesByConsultDate(Authentication authentication,
+            @PathVariable @Parameter(description = "상담 일자 (YYYY-MM-DD)", required = true) String consultDate) {
+        SsafyUserDetails userDetails = (SsafyUserDetails) authentication.getDetails();
+        String userId = userDetails.getUsername();
+        LocalDate date = LocalDate.parse(consultDate);
+        List<Diary> diaries = diaryService.getDiariesByConsultDate(date, userId);
+
+        if (diaries.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(diaries);
     }
 }
