@@ -11,9 +11,9 @@ import lombok.Setter;
 @Setter
 @Schema(description = "유저 로그인 요청 모델")
 public class UserLoginPostReq {
-	@Schema(description = "유저 ID", example = "ssafy_web", required = true)
+	@Schema(description = "유저 ID", example = "ssafy_web", requiredMode = Schema.RequiredMode.REQUIRED)
 	String id;
 
-	@Schema(description = "유저 Password", example = "your_password", required = true)
+	@Schema(description = "유저 Password", example = "your_password", requiredMode = Schema.RequiredMode.REQUIRED)
 	String password;
 }
