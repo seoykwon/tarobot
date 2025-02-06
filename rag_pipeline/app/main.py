@@ -14,7 +14,6 @@ from app.core.openvidu_api import create_openvidu_session, create_openvidu_conne
 
 app = FastAPI()
 
-
 # Redis 연결
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
@@ -110,7 +109,7 @@ def create_session(custom_session_id: str = None):
 class TokenRequest(BaseModel):
     session_id: str
 
-    class ChatResponse(BaseModel):
+class ChatResponse(BaseModel):
     answer: str
 
 @app.post("/openvidu/connections")
