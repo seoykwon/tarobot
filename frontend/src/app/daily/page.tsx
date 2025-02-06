@@ -73,6 +73,8 @@ const SummaryComponent = ({ cardImage, content, onClose }: SummaryProps) => {
 export default function FirstVisitPage() {
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  // 기존에는 selectedCard가 number 타입이었으나, 이미지 경로를 지정할 때는
+  // 향후 카드 선택 로직에 따라 문자열(id)를 사용하거나 number를 문자열화하여 사용합니다.
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -91,9 +93,9 @@ export default function FirstVisitPage() {
   const handleDirectSave = async () => {
     if (!selectedCard || !result) return;
 
-    const virtualElement = document.createElement('div');
-    virtualElement.style.position = 'absolute';
-    virtualElement.style.left = '-9999px';
+    const virtualElement = document.createElement("div");
+    virtualElement.style.position = "absolute";
+    virtualElement.style.left = "-9999px";
     virtualElement.innerHTML = `
       <div style="
         background-color: rgb(31, 41, 55);
@@ -227,18 +229,23 @@ export default function FirstVisitPage() {
 
             {isLoggedIn ? (
               <button
-                onClick={() => router.push("/home")}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg"
+                onClick={handleExit}
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg"
               >
-                홈으로 이동
+                종료하기
               </button>
             ) : (
-              <button
-                onClick={() => router.push("/auth/login")}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg"
-              >
-                로그인
-              </button>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm text-white">
+                  로그인하고 더 많은 점을 봐보세요!
+                </span>
+                <button
+                  onClick={() => router.push("/auth/login")}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg"
+                >
+                  로그인
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -268,4 +275,11 @@ export default function FirstVisitPage() {
       )}
     </div>
   );
+}
+
+// 종료 버튼 핸들러 (예시)
+function handleExit() {
+  // 대화 내용을 서버에 저장 등 필요한 처리를 하고
+  // 홈으로 이동 또는 다른 종료 동작을 수행합니다.
+  console.log("종료하기 처리");
 }
