@@ -6,6 +6,7 @@ import Image from "next/image"
 import ReviewComponent from "./review-component"
 import CardSelector from "./card-selector"
 import { toast } from "sonner"
+import SummaryComponent from "./summary-component"
 
 type MessageType = {
   sender: "bot" | "user"
@@ -23,6 +24,7 @@ export default function ChatPage() {
   const [showCardSelector, setShowCardSelector] = useState(false)
   const [showReviewOverlay, setShowReviewOverlay] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const [showSummaryOverlay, setShowSummaryOverlay] = useState(false);
 
   // 초기 채팅 시작
   useEffect(() => {
@@ -180,7 +182,7 @@ export default function ChatPage() {
   const handleReviewSubmit = async (data: { rating: number; review: string }) => {
     try {
       console.log(data)
-      await fetch("/api/reviews", {
+      await fetch(`/api/review/${Bot.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -191,6 +193,25 @@ export default function ChatPage() {
       toast.error("리뷰 제출에 실패했습니다. 다시 시도해주세요.")
     }
   }
+
+    // 요약 데이터를 찾는 함수
+    const getSummaryData = () => {
+      let cardImage = '';
+      let content = '';
+      
+      // messages 배열을 순회하며 카드 이미지와 봇의 응답을 찾습니다
+      for (const msg of messages) {
+        if (msg.cardImage) {
+          cardImage = msg.cardImage;
+        }
+        if (msg.sender === 'bot' && !msg.isCardSelection && msg.text.length > 0) {
+          content = msg.text;
+        }
+      }
+      
+      return { cardImage, content };
+    };
+
 
   // 종료 버튼 클릭 시 대화 내용을 백엔드로 전송한 후 홈 화면으로 이동
   const handleExit = () => {
@@ -280,6 +301,12 @@ export default function ChatPage() {
               리뷰 작성하기
             </button>
             <button
+            onClick={() => setShowSummaryOverlay(true)}
+            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg"
+          >
+            요약하기
+          </button>
+            <button
               onClick={handleExit}
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg"
             >
@@ -311,6 +338,15 @@ export default function ChatPage() {
               닫기
             </button>
           </div>
+        </div>
+      )}
+      {/* 요약 오버레이 */}
+      {showSummaryOverlay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <SummaryComponent
+            {...getSummaryData()}
+            onClose={() => setShowSummaryOverlay(false)}
+          />
         </div>
       )}
     </div>
