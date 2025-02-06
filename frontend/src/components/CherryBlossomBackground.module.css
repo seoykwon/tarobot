@@ -16,19 +16,22 @@
     background: rgba(255, 245, 245, 0.8);
     border-radius: 150% 0 150% 0;
     animation: falling linear infinite;
-    --falling-angle: calc(360deg * var(--random-angle)); /* Add random angle variable */
+    animation-duration: 10s;
   }
   
   @keyframes falling {
     0% {
-      transform: translate(0, 0) rotate(0deg);
+      transform: translate(0, -10px) rotate(0deg);
       opacity: 0;
     }
     10% {
       opacity: 1;
     }
+    90% {
+      opacity: 1;
+    }
     100% {
-      transform: translate(calc(-100vh * tan(var(--falling-angle))), 100vh) rotate(360deg);
+      transform: translate(-200px, 100vh) rotate(360deg);
       opacity: 0;
     }
   }
