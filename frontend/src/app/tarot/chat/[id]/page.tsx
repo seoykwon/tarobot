@@ -3,16 +3,25 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "@/app/chat_test/card-selector";
+import { majorTarotCards } from "@/utils/tarotCards";
+import Image from "next/image";
 
 export default function ChatPage() {
   const router = useRouter();
-  const [messages, setMessages] = useState([
+
+  type MessageType = {
+    sender: string;
+    text?: string;  // ✅ 텍스트 메시지는 선택적(optional) 속성
+    content?: JSX.Element;  // ✅ 이미지나 기타 JSX 요소를 허용
+  };
+  const [messages, setMessages] = useState<MessageType[]>([
     { sender: "bot", text: "안녕하세요! 무엇을 도와드릴까요?" },
   ]);
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
 
-  const [chatTag, setChatTag] = useState("none"); // 대화 태그 상태 추가
+  const [chatType, setChatType] = useState("none"); // 대화 타입 상태 추가
   const [showTarotButton, setShowTarotButton] = useState(false); // 버튼 표시 여부
   const [showCardSelector, setShowCardSelector] = useState(false); // 카드 선택창 표시
 
@@ -21,11 +30,18 @@ export default function ChatPage() {
   const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
   const userId = 123; // 예시 사용자 ID (실제 사용자 ID를 받아와야 함)
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+  const sendMessage = async (card?: string | React.MouseEvent) => {
+    let message = ""
+    if (typeof card === "string") {
+      message = card;
+    }
+    else {
+      if (!input.trim()) return;
+      message = input;
+      const userMessage = { sender: "user", text: message };
+      setMessages((prev) => [...prev, userMessage]);
+    }
 
-    const userMessage = { sender: "user", text: input };
-    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true); // 로딩 상태 활성화
     setShowTarotButton(false); // 인풋이 들어가면 타로 보기 버튼 비활성화
@@ -71,8 +87,8 @@ export default function ChatPage() {
 
       const queryParams = new URLSearchParams({
         session_id: sessionId,
-        user_input: input,
-        chat_tag: chatTag,
+        user_input: message,
+        type: chatType,
       }).toString();
 
       const response = await fetch(`http://127.0.0.1:8000/chat?${queryParams}`, {
@@ -88,11 +104,10 @@ export default function ChatPage() {
       // 챗봇 응답 추가
       const botMessage = { sender: "bot", text: data.answer };
       setMessages((prev) => [...prev, botMessage]);
-      console.log(data.chatTag)
+      setChatType(data.chatTag); // 응답 받은 태그를 기반으로 대화 타입을 재설정
       
       // 🔹 타로 추천이 있는 경우 버튼을 활성화
       if (data.chatTag === "tarot") {
-        setChatTag("tarot");
         setShowTarotButton(true);
       } else {
         setShowTarotButton(false);
@@ -117,9 +132,25 @@ export default function ChatPage() {
 
   // 🔹 카드 선택 핸들러
   const handleCardSelect = (cardNumber: number) => {
-    setShowCardSelector(false);
-    setMessages((prev) => [...prev, { sender: "bot", text: `"${cardNumber}" 카드를 선택했어!` }]);
-    sendMessage();
+    setShowCardSelector(false); // 카드 선택 창 종료
+    const selectedCard = majorTarotCards[cardNumber];
+    setMessages((prev) => [...prev, { sender: "bot", text: `"${selectedCard}" 카드를 선택했어!` },
+      {
+        sender: "bot",
+        content: (
+          <Image
+            src={`/basic/maj${cardNumber}.svg`}
+            alt={`Selected tarot card ${selectedCard}`}
+            width={96}
+            height={134}
+            className="mt-2 mx-auto"
+          />
+        ),
+      },
+    ]);
+    // 뽑은 카드 이미지가 보이도록 수정
+    
+    sendMessage(selectedCard); // 뽑은 카드 정보를 담아 요청
   };
 
   // 상담 종료하기 버튼 클릭 핸들러
@@ -171,7 +202,8 @@ export default function ChatPage() {
               msg.sender === "user" ? "bg-gray-700 self-end" : "bg-purple-600 self-start"
             }`}
           >
-            {msg.text}
+            {msg.text && <p>{msg.text}</p>} {/* ✅ 텍스트 메시지 출력 */}
+            {msg.content && msg.content} {/* ✅ 이미지 메시지 출력 */}
           </div>
         ))}
 

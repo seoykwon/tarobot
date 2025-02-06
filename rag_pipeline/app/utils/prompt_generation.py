@@ -74,3 +74,14 @@ saju
 그 외의 경우
 none
 """
+
+def make_prompt_tarot(context: str, user_input: str) -> str:
+    return f"""
+[Context]
+{context}
+
+사용자가 뽑은 카드: {user_input}
+
+위 정보를 바탕으로 친절하고 정확한 타로 점을 봐주세요.
+결과를 200자 이내로 요약해서 대답해주세요.
+"""

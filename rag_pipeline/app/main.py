@@ -34,10 +34,10 @@ async def read_root():
     """Check if the API is running."""
     return {"message": "Hello, RAG MVP with Redis!"}
 
-# 임시로 chat_tag를 쿼리 파라미터에 추가하고, 응답에 항상 chatTag로 tarot을 반환하도록 설정
+# type을 쿼리 파라미터에 추가하고, 응답에 chatTag를 반환하도록 설정
 @app.post("/chat")
-async def chat(session_id: str, user_input: str, chat_tag: str):
-    result, tag = await rag_pipeline(session_id, user_input, stream=False)
+async def chat(session_id: str, user_input: str, type: str = ""):
+    result, tag = await rag_pipeline(session_id, user_input, type, stream=False)
     return {"answer": result, "chatTag": tag}
 
 # 상담 종료 신호 수신
@@ -46,11 +46,11 @@ async def chat(request: CloseChatRequest):
     return {"message": f"userId: {request.userId}의 상담이 종료되었습니다."}
 
 @app.post("/chat/stream")
-async def chat_stream(session_id: str, user_input: str):
+async def chat_stream(session_id: str, user_input: str, type: str =""):
     """
     OpenAI API의 Streaming 응답을 제공하는 엔드포인트
     """
-    context = await process_user_input(session_id, user_input)
+    context = await process_user_input(session_id, user_input, type)
 
     try:
         return StreamingResponse(response_generator(session_id, user_input, context), media_type="text/plain")

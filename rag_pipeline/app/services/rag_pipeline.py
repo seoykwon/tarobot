@@ -6,7 +6,7 @@ import json
 from app.services.redis_utils import save_message, get_summary_history, save_summary_history
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.utils.fo_mini_api import call_4o_mini
-from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tag
+from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tag, make_prompt_tarot
 from app.utils.response_utils import response_generator  # ✅ Streaming 분리
 
 # 🔥 [개발용] 임시 사용자 데이터 (백엔드 연동 전)
@@ -21,7 +21,7 @@ dummy_user_profile = {
     }
 }
 
-async def process_user_input(session_id: str, user_input: str):
+async def process_user_input(session_id: str, user_input: str, type: str):
     """
     사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
     """
@@ -30,28 +30,29 @@ async def process_user_input(session_id: str, user_input: str):
         user_id = dummy_user_profile["user_id"]
 
         ### 선행되어야 하는 Tag, Keyword 추출 작업 먼저 실행
-        # 유저 인풋으로 부터 타로 점을 보고 싶은 지 분석하는 함수로, 결과에 따라 다른 로직 실행
-        chat_tag_task = asyncio.create_task(call_4o_mini(make_prompt_tag(user_input), max_tokens=10))
+        # tarot 의 경우 태그와 키워드 고정
+        if (type=="tarot"):
+            chat_tag = "tarot result"
+            keywords = ["타로 점 결과", user_input]
+        else:
+            # 유저 인풋으로 부터 타로 점을 보고 싶은 지 분석하는 함수로, 결과에 따라 다른 로직 실행
+            chat_tag_task = asyncio.create_task(call_4o_mini(make_prompt_tag(user_input), max_tokens=10))
 
-        # NER 키워드 추출 => 선행되어야 pinecone 검색 가능
-        ner_prompt = make_prompt_ner(user_input)
-        keywords_str_task = asyncio.create_task(call_4o_mini(ner_prompt, max_tokens=300))
+            # NER 키워드 추출 => 선행되어야 pinecone 검색 가능
+            ner_prompt = make_prompt_ner(user_input)
+            keywords_str_task = asyncio.create_task(call_4o_mini(ner_prompt, max_tokens=300))
 
-        # 2가지 작업 완료 후 값 할당
-        chat_tag, keywords_str = await asyncio.gather(chat_tag_task, keywords_str_task)
+            # 2가지 작업 완료 후 값 할당
+            chat_tag, keywords_str = await asyncio.gather(chat_tag_task, keywords_str_task)
 
-        # 채팅 태그 작업
-        if (chat_tag == "tarot"):
-            print("tarot 코드 실행")
+            # 키워드 파싱 작업
+            try:
+                keywords_dict = json.loads(keywords_str)
+                keywords = keywords_dict.get("keywords", [])
+            except json.JSONDecodeError:
+                keywords = []
 
-        # 키워드 작업
-        try:
-            keywords_dict = json.loads(keywords_str)
-            keywords = keywords_dict.get("keywords", [])
-        except json.JSONDecodeError:
-            keywords = []
-
-        print(f'📌 after_parsing: {keywords}')  # ✅ 로그 추가
+            print(f'📌 after_parsing: {keywords}')  # ✅ 로그 추가
 
         ### context 생성 관련 작업 수행
         # 요약 불러오기
@@ -68,7 +69,7 @@ async def process_user_input(session_id: str, user_input: str):
         # context 합치기
         context = prepare_context(recent_history, pine_results, keywords)
 
-        ### 저장 관련 작업 수행
+        ### 저장 관련 작업 백그라운드 수행
         # 요약 갱신
         save_summary_task = asyncio.create_task(save_summary_history(session_id, user_input))
         # Redis에 인풋 저장
@@ -81,7 +82,7 @@ async def process_user_input(session_id: str, user_input: str):
 
     except Exception as e:
         print(f"❌ process_user_input 실패: {e}")  # ✅ 예외 출력
-        return None, None, None  # 예외 발생 시 None 반환
+        return None, None, None, None  # 예외 발생 시 None 반환
 
 def prepare_context(recent_history, pine_results, keywords):
     """
@@ -113,19 +114,31 @@ def prepare_context(recent_history, pine_results, keywords):
 
     return context.strip()  # ✅ 불필요한 공백 제거
 
-async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
+async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream: bool = False):
     """
     비동기 최적화된 RAG 기반 챗봇 파이프라인 (Streaming 지원)
     """
     print("🟢 rag_pipeline 시작")  # ✅ 로그 추가
     # 업서트를 위해 keywords와 user_id도 리턴 받기
-    context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input)
+    context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input, type)
+    
+    # type에 따라 input과 chat_prompt 템플릿 분리
+    if type == "tarot":
+        chat_prompt = make_prompt_tarot(context, user_input)
+    else:
+        chat_prompt = make_prompt_chat(context, user_input)
+        # 챗 태그가 tarot이면 바로 결과를 내지 말고, 사용자가 타로를 보고 싶다고 하길 유도하라
+        if chat_tag == "tarot":
+            chat_prompt += """
+사용자가 타로 점을 보고 싶어하는 것 같습니다.
+이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
+"""
+
 
     if stream:
         print("🟡 Streaming 모드로 실행")  # ✅ 로그 추가
         return response_generator(session_id, user_input, context)
 
-    chat_prompt = make_prompt_chat(context, user_input)
     print(f"📌 생성된 Chat Prompt: {chat_prompt}")  # ✅ 로그 추가
     llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, stream=False)
     print(f"🟣 LLM 응답 생성 완료: {llm_answer}")  # ✅ 로그 추가
@@ -146,10 +159,6 @@ async def rag_pipeline(session_id: str, user_input: str, stream: bool = False):
     print(f"✅ Pinecone 업서트 결과: {upsert_task}")
     # redis 저장
     save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
-    
-    # 🔥 필수 비동기 작업 완료 보장
-    # await asyncio.gather(save_response_task, upsert_task) # 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
-    # print("🎯 모든 비동기 작업 완료")  # ✅ 로그 추가
 
     print("분석 된 태그 :", chat_tag)
 
