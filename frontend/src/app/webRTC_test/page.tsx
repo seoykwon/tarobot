@@ -1,77 +1,55 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState, FormEvent } from "react";
-import io, { Socket } from "socket.io-client";
+import { useEffect, useState, useRef } from 'react'
+import { io, Socket } from 'socket.io-client'
+import { OpenVidu } from 'openvidu-browser'
 
-interface ChatMessage {
-  sender: string;
-  text: string;
-}
-
-const VideoChat = () => {
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState("");
+export default function ChatAndVideoPage() {
+  const [socket, setSocket] = useState<Socket | null>(null)
+  const [roomId, setRoomId] = useState('test-room')
+  const [message, setMessage] = useState('')
+  const [chatLog, setChatLog] = useState<string[]>([])
+  const [session, setSession] = useState<any>(null)
+  const [publisher, setPublisher] = useState<any>(null)
+  const videoContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8080"); // Spring Boot WebSocket 서버 주소
-    setSocket(newSocket);
-
-    // RTCPeerConnection 설정
-    const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    });
-    setPeerConnection(pc);
-
-    // ICE candidate 이벤트
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        newSocket.emit("ice-candidate", event.candidate);
-      }
-    };
-
-    // 원격 스트림 수신 이벤트
-    pc.ontrack = (event) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
-      }
-    };
-
-    newSocket.on("offer", async (offer) => {
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      newSocket.emit("answer", answer);
-    });
-    
-    newSocket.on("answer", async (answer) => {
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-    });
-
-    newSocket.on("ice-candidate", async (candidate) => {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (error) {
-        console.error("Error adding received ICE candidate", error);
-      }
-    });
-
-    // 채팅 메시지 이벤트 처리: 서버에서 받은 메시지를 채팅방에 추가
-    newSocket.on("chat-message", (data: ChatMessage) => {
-      setMessages((prev) => [...prev, data]);
-    });
+    const newSocket = io("http://127.0.0.1:8000", { path: "/socket.io/", transports: ["websocket", "polling"] })
+    setSocket(newSocket)
 
     return () => {
-      newSocket.disconnect();
-      pc.close();
-    };
-  }, []);
+      newSocket.disconnect()
+    }
+  }, [])
 
-  const startLocalStream = async () => {
-    if (!peerConnection) return;
+  useEffect(() => {
+    if (socket) {
+      socket.on("room_joined", (data) => {
+        setChatLog(prev => [...prev, `Joined room: ${data.room_id}`])
+      })
+      socket.on("chat_message", (data) => {
+        setChatLog(prev => [...prev, `[USER] ${data.message}`])
+      })
+      socket.on("chatbot_message", (data) => {
+        setChatLog(prev => [...prev, `[BOT] ${data.message}`])
+      })
+    }
+  }, [socket])
+
+  const joinRoom = () => {
+    if (socket) {
+      socket.emit("join_room", { room_id: roomId })
+    }
+  }
+
+  const sendMessage = () => {
+    if (socket && message) {
+      socket.emit("chat_message", { room_id: roomId, message })
+      setMessage('')
+    }
+  }
+
+  const startVideo = async () => {
     try {
       const sessionResponse = await fetch("http://localhost:8000/openvidu/sessions", {
         method: "POST",
@@ -116,60 +94,40 @@ const VideoChat = () => {
     } catch (error) {
       console.error("Error starting video:", error)
     }
-  };
-
-  const createOffer = async () => {
-    if (!peerConnection || !socket) return;
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit("offer", offer);
-  };
-
-  const sendChatMessage = (e: FormEvent) => {
-    e.preventDefault();
-    if (chatInput.trim() && socket) {
-      const messageData: ChatMessage = { sender: "나", text: chatInput };
-      setMessages((prev) => [...prev, messageData]);
-      socket.emit("chat-message", messageData);
-      setChatInput("");
-    }
-  };
+  }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* 비디오 영역 */}
-      <div>
-        <video ref={localVideoRef} autoPlay muted style={{ width: "300px", marginRight: "10px" }} />
-        <video ref={remoteVideoRef} autoPlay style={{ width: "300px" }} />
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">1) Real-time Chat (Socket.IO)</h1>
+      <div className="mb-4">
+        <input
+          type="text"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+          placeholder="Room ID"
+          className="border p-2 mr-2"
+        />
+        <button onClick={joinRoom} className="bg-blue-500 text-white p-2 rounded">Join Room</button>
       </div>
-      <div style={{ margin: "10px" }}>
-        <button onClick={startLocalStream}>Start Local Stream</button>
-        {/* 소켓과 피어 연결이 준비되지 않은 경우 disabled 처리 */}
-        <button onClick={createOffer} disabled={!socket || !peerConnection}>
-          Call
-        </button>
+      <div className="mb-4">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Message"
+          className="border p-2 mr-2"
+        />
+        <button onClick={sendMessage} className="bg-green-500 text-white p-2 rounded">Send</button>
       </div>
-      
-      {/* 채팅방 영역 */}
-      <div style={{ width: "100%", maxWidth: "500px", marginTop: "20px" }}>
-        <h3>채팅방</h3>
-        <ul style={{ border: "1px solid #ccc", padding: "10px", height: "200px", overflowY: "auto" }}>
-          {messages.map((msg, index) => (
-            <li key={index}>
-              <strong>{msg.sender === "나" ? "나" : "상대방"}:</strong> {msg.text}
-            </li>
-          ))}
-        </ul>
-        <form onSubmit={sendChatMessage} style={{ display: "flex", marginTop: "10px" }}>
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            style={{ flex: 1, marginRight: "5px" }}
-          />
-          <button type="submit">전송</button>
-        </form>
+      <div className="border p-2 h-64 overflow-y-auto mb-8">
+        {chatLog.map((msg, index) => (
+          <p key={index}>{msg}</p>
+        ))}
       </div>
+
+      <h1 className="text-2xl font-bold mb-4">2) Video/Audio (OpenVidu)</h1>
+      <button onClick={startVideo} className="bg-red-500 text-white p-2 rounded mb-4">Start Video</button>
+      <div ref={videoContainerRef} className="border w-full h-96"></div>
     </div>
   )
 }
