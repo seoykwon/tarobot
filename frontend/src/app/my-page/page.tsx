@@ -86,7 +86,7 @@ export default function MyPage() {
     <main className="min-h-screen pb-16">
       <div className="p-4">
         {/* Profile Section */}
-        <div className="flex flex-col items-center gap-6 mb-8 p-4 bg-white shadow-md rounded-lg max-w-md mx-auto">
+        <div className="flex flex-col items-center gap-6 mb-8 p-4 bg-card shadow-md rounded-lg max-w-md mx-auto">
           {/* 프로필 이미지 */}
           <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shadow-sm">
             <Image
