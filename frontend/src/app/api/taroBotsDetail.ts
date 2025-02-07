@@ -21,7 +21,7 @@ export interface Review {
   // Spring Boot API에서 챗봇 상세 정보 가져오기
   export const fetchTarobotDetails = async (id: number): Promise<tarobotDetails | null> => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/tarot-bots/${id}`, {
+      const response = await fetch(`http://127.0.0.1:8080/api/v1/tarot-bots/${id}`, {
         cache: "no-store", // 매 요청마다 최신 데이터 가져오기
         headers: {
           "Content-Type": "application/json",

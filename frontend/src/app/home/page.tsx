@@ -41,7 +41,7 @@ async function fetchData<T>(url: string): Promise<T | null> {
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
   const fortune = await fetchData<Fortune>("http://localhost:8080/api/main/fortune");
-  const tarotbots = (await fetchData<Tarotbot[]>("http://localhost:8080/api/v1/tarot-bots")) ?? [];
+  const tarotbots = (await fetchData<Tarotbot[]>("http://127.0.0.1:8080/api/v1/tarot-bots")) ?? [];
   const miniGames = (await fetchData<MiniGame[]>("http://localhost:8080/api/main/minigames")) ?? [];
 
   return (
