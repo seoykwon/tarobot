@@ -6,7 +6,7 @@ from typing import AsyncGenerator
 import pytz
 from app.utils.fo_mini_api import call_4o_mini_str
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_tarot
-from app.utils.chatbot_concept import concept
+from app.utils.chatbot_concept import names, concepts
 from app.services.pinecone_integration import upsert_documents
 from app.services.redis_utils import get_recent_history, save_message
 
@@ -33,7 +33,7 @@ async def response_generator(session_id: str, user_input: str, context: str, key
 
         llm_answer = ""  # ✅ 모든 chunk를 저장할 변수
 
-        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concept["Lacu"], stream=True):  
+        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concepts["온달"], stream=True):  
             if not chunk:  
                 break
             llm_answer += chunk  

@@ -8,7 +8,7 @@ from app.services.pinecone_integration import upsert_documents, retrieve_documen
 from app.utils.fo_mini_api import call_4o_mini
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tarot
 from app.utils.response_utils import response_generator  # ✅ Streaming 분리
-from app.utils.chatbot_concept import concept
+from app.utils.chatbot_concept import names, concepts
 from app.utils.sys_prompt_dict import sys_prompt
 
 # 🔥 [개발용] 임시 사용자 데이터 (백엔드 연동 전)
@@ -164,7 +164,7 @@ async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream:
 
     print(f"📌 생성된 Chat Prompt: {chat_prompt}")  # ✅ 로그 추가
     # 캐릭터 컨셉을 시스템 프롬프트로 추가
-    llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, system_prompt=concept["Lacu"], stream=False)
+    llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, system_prompt=concepts["온달"], stream=False)
     print(f"🟣 LLM 응답 생성 완료: {llm_answer}")  # ✅ 로그 추가
 
     # ✅ Pinecone에 업서트할 metadata 구성
