@@ -1,8 +1,10 @@
 package com.ssafy.api.service;
 
 import com.ssafy.api.request.PostRegisterReq;
+import com.ssafy.api.request.PostUpdateReq;
 import com.ssafy.api.response.PostRes;
 import com.ssafy.common.auth.SsafyUserDetails;
+import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.PostRepository;
@@ -13,15 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.ssafy.db.entity.QPost.post;
 
 /**
  * 게시글 관련 비즈니스 로직 처리를 위한 서비스 구현.
@@ -33,39 +31,23 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostRepositorySupport postRepositorySupport;
     private final UserRepository userRepository;
-    private final SecurityContextHolderStrategy securityContextHolderStrategy;
+    private final SecurityUtil securityUtil;
 
     /**
      * 게시글 생성
      */
     @Override
     @Transactional
-    public Post createPost(PostRegisterReq request) {
-        User author = userRepository.findByUserId(request.getUserId())
+    public Post createPost(PostRegisterReq req) {
+        User author = userRepository.findByUserId(req.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
         Post post = new Post();
-        post.setTitle(request.getTitle());
-        post.setContent(request.getContent());
-        post.setImageUrl(request.getImageUrl());
+        post.setTitle(req.getTitle());
+        post.setContent(req.getContent());
+        post.setImageUrl(req.getImageUrl());
         post.setAuthor(author);
         post.setActive(true); // 기본값: 활성화
         return postRepository.save(post);
-    }
-
-    // currentUserId를 추출하는 메서드
-    private String extractCurrentUserId() {
-        Authentication auth = securityContextHolderStrategy.getContext().getAuthentication();
-        if (auth == null) {
-            throw new SecurityException("인증된 사용자 정보가 없습니다.");
-        }
-        Object principal = auth.getPrincipal();
-        if (principal instanceof SsafyUserDetails) {
-            return ((SsafyUserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            return (String) principal;
-        } else {
-            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
-        }
     }
 
     /**
@@ -73,39 +55,36 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     @Transactional
-    public Post updatePost(Long postId, String title, String image, User currentUser) {
+    public Post updatePost(Long postId, PostUpdateReq req) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
-        String currentUserId = extractCurrentUserId();
-
-        if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
+        User currentUser = securityUtil.getCurrentUser();
+        if (!post.getAuthor().getUserId().equals(currentUser.getUserId()) && !currentUser.isAdmin()) {
             throw new SecurityException("수정 권한이 없습니다.");
         }
 
-        if (title != null && !title.isEmpty()) {
-            post.setTitle(title);
+        if (req.getTitle() != null && !req.getTitle().isEmpty()) {
+            post.setTitle(req.getTitle());
         }
-        if (image != null && !image.isEmpty()) {
-            post.setImageUrl(image);
+        if (req.getContent() != null && !req.getContent().isEmpty()) {
+            post.setContent(req.getContent());
+        }
+        if (req.getImageUrl() != null && !req.getImageUrl().isEmpty()) {
+            post.setImageUrl(req.getImageUrl());
         }
         return postRepository.save(post);
     }
 
     /**
      * 일반 사용자: 게시글 비활성화 처리
-     * - SecurityContext에서 JWT 인증 정보를 가져와 요청자와 게시글 작성자(또는 관리자)를 비교한 후,
-     *   게시글의 활성 상태(active)를 false로 변경합니다.
      */
     @Override
     @Transactional
-    public void deactivatePost(Long postId, User currentUser) {
+    public void deactivatePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-
-        String currentUserId = extractCurrentUserId();
-
-        if (!post.getAuthor().getUserId().equals(currentUserId) && !currentUser.isAdmin()) {
+        User currentUser = securityUtil.getCurrentUser();
+        if (!post.getAuthor().getUserId().equals(currentUser.getUserId()) && !currentUser.isAdmin()) {
             throw new SecurityException("비활성화 권한이 없습니다.");
         }
         post.setActive(false);
@@ -117,7 +96,8 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     @Transactional
-    public void deletePostPermanently(Long postId, User currentUser) {
+    public void deletePostPermanently(Long postId) {
+        User currentUser = securityUtil.getCurrentUser();
         if (!currentUser.isAdmin()) {
             throw new SecurityException("관리자 권한이 필요합니다.");
         }
@@ -129,6 +109,7 @@ public class PostServiceImpl implements PostService {
             throw new IllegalStateException("비활성화되지 않은 게시글은 삭제할 수 없습니다.");
         }
     }
+
 
     //============================== 조회/정렬/페이지네이션 및 검색 ==============================
 
@@ -156,6 +137,15 @@ public class PostServiceImpl implements PostService {
         return postPage.getContent().stream()
                 .map(PostRes::of)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 게시글 엔티티 반환
+     */
+    @Override
+    public Post getPostEntityById(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
     }
 
     /**
@@ -195,6 +185,8 @@ public class PostServiceImpl implements PostService {
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
+
+
 
 //    /**
 //     * 작성자 기반 검색
@@ -256,23 +248,5 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void increaseViewCount(Long postId) {
         increaseCount(postId, CountType.VIEW);
-    }
-
-    /**
-     * 좋아요 수 증가 처리
-     */
-    @Override
-    @Transactional
-    public void increaseLikeCount(Long postId) {
-        increaseCount(postId, CountType.LIKE);
-    }
-
-    /**
-     * 댓글 수 증가 처리
-     */
-    @Override
-    @Transactional
-    public void increaseCommentCount(Long postId) {
-        increaseCount(postId, CountType.COMMENT);
     }
 }

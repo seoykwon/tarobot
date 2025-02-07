@@ -1,10 +1,11 @@
 package com.ssafy.api.controller;
 
 import com.ssafy.api.request.PostRegisterReq;
+import com.ssafy.api.request.PostUpdateReq;
 import com.ssafy.api.response.PostRes;
+import com.ssafy.api.service.PostLikeService;
 import com.ssafy.api.service.PostService;
 import com.ssafy.db.entity.Post;
-import com.ssafy.db.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,7 +25,8 @@ public class PostController {
 
     @Autowired
     private PostService postService;
-
+    @Autowired
+    private PostLikeService postLikeService;
     // ---------------------------------------
     // 게시글 생성
     // ---------------------------------------
@@ -36,8 +38,8 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<PostRes> createPost(
-            @RequestBody @Valid @Parameter(description = "게시글 생성 정보", required = true) PostRegisterReq request) {
-        Post createdPost = postService.createPost(request);
+            @RequestBody @Valid @Parameter(description = "게시글 생성 정보", required = true) PostRegisterReq req) {
+        Post createdPost = postService.createPost(req);
         return ResponseEntity.ok(PostRes.of(createdPost));
     }
 
@@ -109,7 +111,7 @@ public class PostController {
     }
 
     // ---------------------------------------
-    // 게시글 좋아요 증가 (좋아요 API)
+    // 게시글 좋아요 증가
     // ---------------------------------------
     @PostMapping("/{postId}/like")
     @Operation(summary = "좋아요 증가", description = "게시글 ID를 통해 해당 게시글의 좋아요 수를 증가시킵니다.")
@@ -120,7 +122,23 @@ public class PostController {
     })
     public ResponseEntity<Void> increaseLike(
             @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
-        postService.increaseLikeCount(postId);
+        postLikeService.likePost(postId);
+        return ResponseEntity.ok().build();
+    }
+
+    // ---------------------------------------
+    // 게시글 좋아요 취소
+    // ---------------------------------------
+    @DeleteMapping("/{postId}/like")
+    @Operation(summary = "게시글 좋아요 취소", description = "게시글 ID를 통해 현재 로그인한 사용자의 좋아요를 취소합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<Void> unlikePost(
+            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
+        postLikeService.unlikePost(postId);
         return ResponseEntity.ok().build();
     }
 
@@ -138,11 +156,25 @@ public class PostController {
     })
     public ResponseEntity<PostRes> updatePost(
             @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId,
-            @RequestParam(required = false) @Parameter(description = "새로운 제목", required = false) String title,
-            @RequestParam(required = false) @Parameter(description = "새로운 이미지 URL", required = false) String imageUrl,
-            @Parameter(hidden = true) User currentUser) {
-        Post updatedPost = postService.updatePost(postId, title, imageUrl, currentUser);
+            @RequestBody @Valid @Parameter(description = "게시글 수정 정보", required = true) PostUpdateReq req) {
+        Post updatedPost = postService.updatePost(postId, req);
         return ResponseEntity.ok(PostRes.of(updatedPost));
+    }
+
+    // ---------------------------------------
+    // 게시글 수정용 데이터 조회
+    // ---------------------------------------
+    @GetMapping("/{postId}/edit")
+    @Operation(summary = "게시글 수정용 데이터 조회",
+            description = "게시글 ID를 통해 기존 게시글 데이터를 조회하여 수정 폼에 미리 원래 내용을 채워줍니다.")
+    public ResponseEntity<PostUpdateReq> getPostForEdit(
+            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
+        Post post = postService.getPostEntityById(postId);
+        PostUpdateReq updateReq = new PostUpdateReq();
+        updateReq.setTitle(post.getTitle());
+        updateReq.setContent(post.getContent());
+        updateReq.setImageUrl(post.getImageUrl());
+        return ResponseEntity.ok(updateReq);
     }
 
     // ---------------------------------------
@@ -157,9 +189,8 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<Void> deactivatePost(
-            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId,
-            @Parameter(hidden = true) User currentUser) {
-        postService.deactivatePost(postId, currentUser);
+            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
+        postService.deactivatePost(postId);
         return ResponseEntity.noContent().build();
     }
 
@@ -174,13 +205,10 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ResponseEntity<Void> deletePostPermanently(
-            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId,
-            @Parameter(hidden = true) User currentUser) {
-        postService.deletePostPermanently(postId, currentUser);
+            @PathVariable @Parameter(description = "게시글 ID", required = true) Long postId) {
+        postService.deletePostPermanently(postId);
         return ResponseEntity.noContent().build();
     }
-
-
 
     // ---------------------------------------
     // 미사용 검색/정렬 엔드포인트
