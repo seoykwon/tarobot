@@ -154,7 +154,7 @@ async def chat_stream(session_id: str, user_input: str, type: str =""):
         return StreamingResponse(
             response_generator(session_id, user_input, context, keywords, user_id),
             media_type="text/plain",
-            headers={"X-ChatTag": chat_tag}  # ✅ chatTag를 헤더에 포함
+            headers={"chat_tag": chat_tag}  # ✅ chatTag를 헤더에 포함
         )
 
     except Exception as e:

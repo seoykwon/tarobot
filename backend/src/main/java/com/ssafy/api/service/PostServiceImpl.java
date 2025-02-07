@@ -52,22 +52,6 @@ public class PostServiceImpl implements PostService {
         return postRepository.save(post);
     }
 
-    // currentUserId를 추출하는 메서드
-    private String extractCurrentUserId() {
-        Authentication auth = securityContextHolderStrategy.getContext().getAuthentication();
-        if (auth == null) {
-            throw new SecurityException("인증된 사용자 정보가 없습니다.");
-        }
-        Object principal = auth.getPrincipal();
-        if (principal instanceof SsafyUserDetails) {
-            return ((SsafyUserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            return (String) principal;
-        } else {
-            throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다.");
-        }
-    }
-
     /**
      * 게시글 수정
      */

@@ -41,17 +41,15 @@ export default function ChatPage() {
     } else {
       if (!input.trim()) return;
       message = input;
-      const userMessage = { sender: "user", text: message };
-      setMessages((prev) => [...prev, userMessage]);
-      setChatType("none"); // 타로 버튼을 클릭하지 않았다면 타입을 되돌리자
+      setMessages((prev) => [...prev, { sender: "user", text: message }]);
+      setChatType("none");
     }
   
     setInput("");
     setIsLoading(true);
-    setShowTarotButton(false); // 인풋이 들어가면 타로 보기 버튼 비활성화
+    setShowTarotButton(false);
   
     try {
-      // ✅ Streaming API 요청
       const queryParams = new URLSearchParams({
         session_id: sessionId,
         user_input: message,
@@ -60,55 +58,51 @@ export default function ChatPage() {
   
       const response = await fetch(`http://127.0.0.1:8000/chat/stream?${queryParams}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
   
-      // ✅ chatTag를 응답 헤더에서 가져옴
-      const chatTag = response.headers.get("X-ChatTag") || "none";
+      const chatTag = response.headers.get("chat_tag") || "none";
       setChatType(chatTag);
   
-      // ✅ 스트리밍 응답을 읽어올 Reader 생성
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       const botMessage = { sender: "bot", text: "" };
   
       if (!reader) throw new Error("Stream reader is not available");
   
-      // ✅ 스트리밍 데이터를 읽어오면서 메시지를 업데이트
+      // ✅ 새로운 `bot` 메시지를 따로 추가
+      setMessages((prev) => [...prev, botMessage]);
+  
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
   
-        botMessage.text += decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, { stream: true });
   
-        // ✅ 최신 메시지로 업데이트 (실시간으로 렌더링)
-        setMessages((prev) => [...prev.slice(0, -1), botMessage]);
-      }
+        if (chunk.includes("[END]")) break;
   
-      // ✅ 최종 메시지 업데이트 완료
-      setMessages((prev) => [...prev.slice(0, -1), botMessage]);
+        setMessages((prev) => {
+          const updatedMessages = [...prev];
   
-      // 🔹 타로 추천이 있는 경우 버튼을 활성화
-      if (chatTag === "tarot") {
-        setShowTarotButton(true);
-      } else {
-        setShowTarotButton(false);
+          // ✅ 최신 `bot` 메시지를 찾기 위해 `findLastIndex()` 사용
+        const lastBotIndex = updatedMessages.length - 1; 
+
+        if (updatedMessages[lastBotIndex].sender === "bot") {
+          updatedMessages[lastBotIndex].text += chunk;  // ✅ 가장 최근 봇 메시지만 업데이트
+        }
+  
+          return updatedMessages;
+        });
       }
   
     } catch (error) {
       console.error("Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "Error occurred while fetching response." },
-      ]);
+      setMessages((prev) => [...prev, { sender: "bot", text: "Error occurred while fetching response." }]);
     } finally {
       setIsLoading(false);
     }
   };
   
-
   // 🔹 타로 점 보기 버튼 클릭 핸들러
   const handleShowCardSelector = () => {
     setShowTarotButton(false);
@@ -171,6 +165,16 @@ export default function ChatPage() {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    console.log("chatType 변경 감지:", chatType); // ✅ 디버깅 로그 추가
+  
+    if (chatType === "tarot") {
+      setShowTarotButton(true);
+    } else {
+      setShowTarotButton(false);
+    }
+  }, [chatType]);  
 
   return (
     /* 채팅 필드 */
