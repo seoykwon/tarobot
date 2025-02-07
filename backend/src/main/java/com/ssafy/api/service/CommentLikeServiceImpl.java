@@ -1,39 +1,44 @@
 package com.ssafy.api.service;
 
+import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.db.entity.Comment;
 import com.ssafy.db.entity.CommentLike;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.CommentLikeRepository;
 import com.ssafy.db.repository.CommentRepository;
+import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
-/**
- * 댓글 좋아요 관련 비즈니스 로직 처리를 위한 서비스 구현 정의.
- */
 @Service
 @RequiredArgsConstructor
 public class CommentLikeServiceImpl implements CommentLikeService {
 
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final UserRepository userRepository;
+    private final SecurityContextHolderStrategy securityContextHolderStrategy;
 
     private User extractCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = securityContextHolderStrategy.getContext().getAuthentication();
         if (auth == null) {
             throw new SecurityException("인증된 사용자 정보가 없습니다.");
         }
         Object principal = auth.getPrincipal();
-        if (principal instanceof User) {
-            return (User) principal;
+        String userId;
+        if (principal instanceof SsafyUserDetails) {
+            userId = ((SsafyUserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            userId = (String) principal;
         } else {
-            throw new IllegalStateException("인증 정보 형식이 올바르지 않습니다: " + principal.getClass());
+            throw new SecurityException("인증 정보 형식이 올바르지 않습니다: " + principal.getClass().getName());
         }
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
     @Override
@@ -63,4 +68,3 @@ public class CommentLikeServiceImpl implements CommentLikeService {
         likeOpt.ifPresent(commentLikeRepository::delete);
     }
 }
-

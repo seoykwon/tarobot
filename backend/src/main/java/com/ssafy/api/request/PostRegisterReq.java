@@ -2,6 +2,7 @@ package com.ssafy.api.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,7 @@ public class PostRegisterReq {
     @Schema(description = "이미지 URL", example = "https://example.com/image.png")
     private String imageUrl;
 
-    @Schema(description = "작성자 ID", example = "ssafy_web", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    @Schema(description = "작성자 ID", example = "ssafy_web")
     private String userId;
 }

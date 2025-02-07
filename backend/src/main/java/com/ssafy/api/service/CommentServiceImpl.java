@@ -1,8 +1,7 @@
-package com.ssafy.api.service.impl;
+package com.ssafy.api.service;
 
 import com.ssafy.api.request.CommentRegisterReq;
 import com.ssafy.api.request.CommentUpdateReq;
-import com.ssafy.api.service.CommentService;
 import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.db.entity.Comment;
 import com.ssafy.db.entity.Post;
@@ -26,46 +25,53 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
 
-    // currentUserId를 추출하는 메서드 (Post와 동일한 방식)
-    private String extractCurrentUserId() {
+    // currentUser를 추출하는 메서드
+    private User extractCurrentUser() {
         Authentication auth = securityContextHolderStrategy.getContext().getAuthentication();
         if (auth == null) {
             throw new SecurityException("인증된 사용자 정보가 없습니다.");
         }
+
         Object principal = auth.getPrincipal();
+        String userId;
+
         if (principal instanceof SsafyUserDetails) {
-            return ((SsafyUserDetails) principal).getUsername();
+            userId = ((SsafyUserDetails) principal).getUsername();
         } else if (principal instanceof String) {
-            return (String) principal;
+            userId = (String) principal;
         } else {
             throw new SecurityException("인증된 사용자 정보 형식이 올바르지 않습니다: " + principal.getClass());
         }
+
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+
+    /**
+     댓글 작성
+     */
     @Override
     @Transactional
     public Comment createComment(CommentRegisterReq req) {
         Post post = postRepository.findById(req.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        String currentUserId = extractCurrentUserId();
-        // Post와 동일하게, 사용자 ID 기반으로 실제 User 엔티티 조회
-        User user = userRepository.findByUserId(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+        User user = extractCurrentUser();
 
         Comment comment = new Comment();
         comment.setContent(req.getContent());
         comment.setPost(post);
-        comment.setAuthor(user);  // User 객체를 설정
-        comment.setActive(true);  // 기본 활성화
+        comment.setAuthor(user);
+        comment.setActive(true);
 
         Comment savedComment = commentRepository.save(comment);
 
-        // 댓글 등록 후 게시글의 댓글 수 증가 처리
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
 
         return savedComment;
     }
+
 
     @Override
     public List<Comment> getCommentsByPost(Long postId) {
@@ -73,17 +79,17 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findByPost_IdAndIsActiveTrueOrderByCreatedAtAsc(postId);
     }
 
+    /**
+     댓글 수정
+     */
     @Override
     @Transactional
     public Comment updateComment(Long commentId, CommentUpdateReq req) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        String currentUserId = extractCurrentUserId();
-        User user = userRepository.findByUserId(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+        User user = extractCurrentUser();
 
-        // 작성자와 현재 사용자의 userId 비교
-        if (!comment.getAuthor().getUserId().equals(user.getUserId())) {
+        if (!comment.getAuthor().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
             throw new SecurityException("댓글 수정 권한이 없습니다.");
         }
 
@@ -91,20 +97,20 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.save(comment);
     }
 
+    /**
+     댓글 삭제
+     */
     @Override
     @Transactional
     public void deleteComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        String currentUserId = extractCurrentUserId();
-        User user = userRepository.findByUserId(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+        User user = extractCurrentUser();
 
-        if (!comment.getAuthor().getUserId().equals(user.getUserId())) {
+        if (!comment.getAuthor().getUserId().equals(user.getUserId()) && !user.isAdmin()) {
             throw new SecurityException("댓글 삭제 권한이 없습니다.");
         }
 
-        // 비활성화 처리 (User 엔티티의 setter는 setActive() 생성)
         comment.setActive(false);
         commentRepository.save(comment);
 
@@ -113,16 +119,19 @@ public class CommentServiceImpl implements CommentService {
         postRepository.save(post);
     }
 
+    /**
+     * 관리자: 실제 삭제 처리 (비활성화된 댓글만 삭제 가능)
+     */
     @Override
     @Transactional
     public void deleteCommentPermanently(Long commentId) {
-        String currentUserId = extractCurrentUserId();
-        User user = userRepository.findByUserId(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
-        // 관리자 권한 검사 (User에 isAdmin 플래그 필요)
+        User user = extractCurrentUser();
+        System.out.println("현재 사용자 ID: " + user.getUserId());
+        System.out.println("현재 사용자 isAdmin: " + user.isAdmin());
         if (!user.isAdmin()) {
             throw new SecurityException("영구 삭제는 관리자만 할 수 있습니다.");
         }
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
         if (comment.isActive()) {
