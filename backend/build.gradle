@@ -63,7 +63,7 @@ plugins {
 
     group 'com.ssafy'
     version '1.0-SNAPSHOT'
-    sourceCompatibility = "17"
+    sourceCompatibility = '17'
 
 // node {
 //     download = true
@@ -205,4 +205,3 @@ plugins {
         useJUnitPlatform()
 
     }
-targetCompatibility = JavaVersion.VERSION_17

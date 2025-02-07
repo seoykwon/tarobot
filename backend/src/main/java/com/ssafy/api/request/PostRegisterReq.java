@@ -14,16 +14,16 @@ import lombok.Setter;
 public class PostRegisterReq {
 
     @NotBlank(message = "게시글 제목은 필수 입력 항목입니다.")
-    @Schema(description = "게시글 제목", example = "오늘의 일상", required = true)
+    @Schema(description = "게시글 제목", example = "오늘의 일상")
     private String title;
 
     @NotBlank(message = "게시글 내용은 필수 입력 항목입니다.")
-    @Schema(description = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!", required = true)
+    @Schema(description = "게시글 내용", example = "오늘은 정말 즐거운 하루였어요!")
     private String content;
 
     @Schema(description = "이미지 URL", example = "https://example.com/image.png")
     private String imageUrl;
 
-    @Schema(description = "작성자 ID", example = "ssafy_web", required = true)
+    @Schema(description = "작성자 ID", example = "ssafy_web", requiredMode = Schema.RequiredMode.REQUIRED)
     private String userId;
 }

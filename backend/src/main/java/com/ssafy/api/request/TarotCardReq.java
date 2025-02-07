@@ -1,7 +1,10 @@
 package com.ssafy.api.request;
 
-import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
 import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -15,14 +18,17 @@ import jakarta.validation.constraints.Min;
 
 public class TarotCardReq {
 
-    @Schema(description = "세트 번호", example = "1", required = true)
+    @NotNull(message = "세트 번호는 필수 입력 항목입니다.")
+    @Schema(description = "세트 번호", example = "1")
     private Integer setNumber; // 세트 번호
 
-    @Schema(description = "카드 번호", example = "1", required = true)
+    @NotNull(message = "카드 번호는 필수 입력 항목입니다.")
+    @Schema(description = "카드 번호", example = "1")
     @Min(value = 0, message = "카드 번호는 0 이상이어야 합니다.")
     @Max(value = 78, message = "카드 번호는 78을 초과할 수 없습니다.")
     private Integer cardNumber; // 카드 번호
 
-    @Schema(description = "카드 이미지 URL", example = "https://example.com/card1.jpg", required = true)
+    @NotBlank(message = "카드 이미지 URL은 필수 입력 항목입니다.")
+    @Schema(description = "카드 이미지 URL", example = "https://example.com/card1.jpg")
     private String cardImage; // 카드 이미지 URL
 }
