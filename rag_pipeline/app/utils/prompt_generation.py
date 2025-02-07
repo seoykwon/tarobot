@@ -6,21 +6,6 @@ from datetime import datetime
 def make_prompt_summarize(text: str) -> str:
     return f"다음 한국어 텍스트를 간단히 요약해 주세요:\n{text}"
 
-def make_prompt_ner(text: str) -> str:
-    
-    return f"""
-    다음 문장에서 주요 개체명을 추출하고 `JSON` 형식으로 반환하세요.
-    용언을 keyword로 추출할 때는 원형으로 입력할 것.
-    각 항목이 없으면 빈 배열 `[]`을 반환하세요.
-
-    [출력 예시]
-    문장: "홍길동은 서울에서 열린 연말 회식에 참석했다."
-    출력: {{ "keywords": ["홍길동", "서울", "연말 회식", "회식", "참석"] }}
-    
-    문장: "{text}"
-    출력:
-    """
-
 def make_prompt_timestamp(user_query: str) -> str:
     """
     사용자의 입력에서 날짜 정보를 YYYY-MM-DD 형식으로 추출하되,  
@@ -61,19 +46,6 @@ def make_prompt_timestamp(user_query: str) -> str:
 def make_prompt_chat(context: str, user_input: str) -> str:
     return f"[Context]\n{context}\n\nUser input: {user_input}\n\n위 정보를 바탕으로 친절하고 정확한 답변을 해주세요."
 
-def make_prompt_tag(text: str) -> str:
-    return f"""
-다음 유저의 입력을 분석해 사용자가 타로 점을 보고 싶은 지 분석해주세요.
-유저의 입력: {text}
-
-대답은 짧은 태그 형태로 반환해 주세요.
-ex) 사용자가 타로 점을 보고 싶어하는 경우 응답:
-tarot
-사용자가 사주를 보고 싶어하는 경우 응답:
-saju
-그 외의 경우
-none
-"""
 
 def make_prompt_tarot(context: str, user_input: str) -> str:
     return f"""
@@ -87,3 +59,33 @@ def make_prompt_tarot(context: str, user_input: str) -> str:
 타로 카드를 활용해 그 고민에 대한 해설을 해주세요.
 결과를 200자 이내로 요약해서 대답해주세요.
 """
+
+def make_prompt_ner(text: str) -> str:
+    
+    return f"""
+    다음 문장에서 주요 개체명을 추출하고 `JSON` 형식으로 반환하세요.
+    용언을 keyword로 추출할 때는 원형으로 입력할 것.
+    각 항목이 없으면 빈 배열 `[]`을 반환하세요.
+
+    [출력 예시]
+    문장: "홍길동은 서울에서 열린 연말 회식에 참석했다."
+    출력: {{ "keywords": ["홍길동", "서울", "연말 회식", "회식", "참석"] }}
+    
+    문장: "{text}"
+    출력:
+    """
+
+### sys_prompt로 대체 된 프롬프트 함수들
+# def make_prompt_tag(text: str) -> str:
+#     return f"""
+# 다음 유저의 입력을 분석해 사용자가 타로 점을 보고 싶은 지 분석해주세요.
+# 유저의 입력: {text}
+
+# 대답은 짧은 태그 형태로 반환해 주세요.
+# ex) 사용자가 타로 점을 보고 싶어하는 경우 응답:
+# tarot
+# 사용자가 사주를 보고 싶어하는 경우 응답:
+# saju
+# 그 외의 경우
+# none
+# """

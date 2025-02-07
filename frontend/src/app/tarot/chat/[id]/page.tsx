@@ -33,14 +33,17 @@ export default function ChatPage() {
 
   const sendMessage = async (card?: string | React.MouseEvent) => {
     let message = ""
+    let gotype = "none"
     if (typeof card === "string") {
       message = card;
+      gotype = chatType;
     }
     else {
       if (!input.trim()) return;
       message = input;
       const userMessage = { sender: "user", text: message };
       setMessages((prev) => [...prev, userMessage]);
+      setChatType("none"); // 타로 버튼을 클릭하지 않았다면 타입을 되돌리자
     }
 
     setInput("");
@@ -89,7 +92,7 @@ export default function ChatPage() {
       const queryParams = new URLSearchParams({
         session_id: sessionId,
         user_input: message,
-        type: chatType,
+        type: gotype,
       }).toString();
 
       const response = await fetch(`http://127.0.0.1:8000/chat?${queryParams}`, {

@@ -6,8 +6,10 @@ import json
 from app.services.redis_utils import save_message, get_summary_history, save_summary_history, get_recent_history
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.utils.fo_mini_api import call_4o_mini
-from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tag, make_prompt_tarot
+from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tarot
 from app.utils.response_utils import response_generator  # ✅ Streaming 분리
+from app.utils.chatbot_concept import concept
+from app.utils.sys_prompt_dict import sys_prompt
 
 # 🔥 [개발용] 임시 사용자 데이터 (백엔드 연동 전)
 dummy_user_profile = {
@@ -37,11 +39,16 @@ async def process_user_input(session_id: str, user_input: str, type: str):
             keywords = ["타로 점 결과", user_input]
         else:
             # 유저 인풋으로 부터 타로 점을 보고 싶은 지 분석하는 함수로, 결과에 따라 다른 로직 실행
-            chat_tag_task = asyncio.create_task(call_4o_mini(make_prompt_tag(user_input), max_tokens=10))
+            # chat_tag_task = asyncio.create_task(call_4o_mini(make_prompt_tag(user_input), max_tokens=10))
+            chat_tag_task = asyncio.create_task(call_4o_mini(user_input, max_tokens=10, system_prompt=sys_prompt["gettag"]))
 
             # NER 키워드 추출 => 선행되어야 pinecone 검색 가능
             ner_prompt = make_prompt_ner(user_input)
             keywords_str_task = asyncio.create_task(call_4o_mini(ner_prompt, max_tokens=300))
+            
+            # NER은 대체 해보니 성능이 안나옴..! 꼭 대체한다고 다 좋은 건 아닌듯.
+            # 너무 긴 템플릿은 적용해서 뽑아내고, 짧은 템플릿은 그냥 기존 방식을 쓰는게 좋아보임.
+            # keywords_str_task = asyncio.create_task(call_4o_mini(user_input, max_tokens=300, system_prompt=sys_prompt["ner"]))
 
             # 2가지 작업 완료 후 값 할당
             chat_tag, keywords_str = await asyncio.gather(chat_tag_task, keywords_str_task)
@@ -136,7 +143,7 @@ async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream:
     # type에 따라 input과 chat_prompt 템플릿 분리
     if type == "tarot":
         chat_prompt = make_prompt_tarot(context, user_input)
-        lastconv = await get_recent_history(session_id, 1) # 직전 대화 기록 불러오기
+        lastconv = await get_recent_history(session_id, 3) # 직전 대화 기록 불러오기
         print(lastconv)
         if lastconv:
             chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
@@ -155,7 +162,8 @@ async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream:
         return response_generator(session_id, user_input, context)
 
     print(f"📌 생성된 Chat Prompt: {chat_prompt}")  # ✅ 로그 추가
-    llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, stream=False)
+    # 캐릭터 컨셉을 시스템 프롬프트로 추가
+    llm_answer = await call_4o_mini(chat_prompt, max_tokens=256, system_prompt=concept["Lacu"], stream=False)
     print(f"🟣 LLM 응답 생성 완료: {llm_answer}")  # ✅ 로그 추가
 
     # ✅ Pinecone에 업서트할 metadata 구성
