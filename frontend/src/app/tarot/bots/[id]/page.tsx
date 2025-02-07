@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { fetchTarobotDetails } from "@/app/api/taroBotsDetail";
+import FriendChatOverlay from "../../FriendChatOverlay";
 
 interface TarobotDetailsPageProps {
   params: { id: number };
@@ -82,17 +83,28 @@ export default async function TarobotDetailsPage({ params }: TarobotDetailsPageP
         )}
       </section>
 
-      {/* 소통하기 버튼 */}
-      <section className="">
-        <Link href={`/tarot/chat/${tarobotDetails.id}`}>
-          <Button
-            size="lg"
-            className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
-          >
-            Start Consultation
-          </Button>
-        </Link>
-      </section>
+      {/* 소통하기 버튼 섹션 수정 */}
+    <section className="grid grid-cols-3 gap-4">
+      <Link href="/chat_test">
+        <Button
+          size="lg"
+          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
+        >
+          선택지 상담
+        </Button>
+      </Link>
+      
+      <Link href={`/tarot/chat/${tarobotDetails.id}`}>
+        <Button
+          size="lg"
+          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
+        >
+          대화 상담
+        </Button>
+      </Link>
+      
+      <FriendChatOverlay />
+    </section>
     </main>
   );
 }

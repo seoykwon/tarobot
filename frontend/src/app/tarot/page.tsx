@@ -73,7 +73,7 @@ const dummyBots: TarotBot[] = [
     description: "An ancient tarot master who sees the unseen.",
     mbti: "INFJ",
     concept: "임시",
-    profileImage: "임시",
+    profileImage: "/target.svg",
   },
   {
     id: 2,
@@ -81,7 +81,7 @@ const dummyBots: TarotBot[] = [
     description: "A cosmic seer who reads the fate through the constellations.",
     mbti: "ENFP",
     concept: "임시",
-    profileImage: "임시",
+    profileImage: "/target.svg",
   },
   {
     id: 3,
@@ -89,7 +89,7 @@ const dummyBots: TarotBot[] = [
     description: "A mysterious fortune teller who uncovers hidden truths.",
     mbti: "INTP",
     concept: "임시",
-    profileImage: "임시",
+    profileImage: "/target.svg",
   },
 ];
 
