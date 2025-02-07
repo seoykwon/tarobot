@@ -1,0 +1,52 @@
+.summerBackground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #4a90e2, #87ceeb);
+    overflow: hidden;
+    z-index: -1;
+  }
+  
+  .cloud {
+    position: absolute;
+    width: 200px;
+    height: 60px;
+    background-color: #fff;
+    border-radius: 200px;
+    animation: moveCloud linear infinite;
+  }
+  
+  .cloud:before,
+  .cloud:after {
+    content: "";
+    position: absolute;
+    background-color: #fff;
+    border-radius: 50%;
+  }
+  
+  .cloud:before {
+    width: 80px;
+    height: 80px;
+    top: -40px;
+    left: 10px;
+  }
+  
+  .cloud:after {
+    width: 100px;
+    height: 100px;
+    top: -50px;
+    right: 10px;
+  }
+  
+  @keyframes moveCloud {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  
+  
