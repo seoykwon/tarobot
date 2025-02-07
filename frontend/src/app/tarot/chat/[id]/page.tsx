@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "@/app/chat_test/card-selector";
-import { majorTarotCards } from "@/utils/tarotCards";
 import Image from "next/image";
+import { tarotCards } from "@/utils/tarotCards";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -27,7 +27,8 @@ export default function ChatPage() {
 
   const chatContainerRef = useRef<HTMLDivElement>(null); // 스크롤 컨트롤을 위한 Ref
 
-  const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
+  // const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
+  const sessionId = "lacu207"; // 테스트용 세션 id
   const userId = 123; // 예시 사용자 ID (실제 사용자 ID를 받아와야 함)
 
   const sendMessage = async (card?: string | React.MouseEvent) => {
@@ -131,15 +132,15 @@ export default function ChatPage() {
   };
 
   // 🔹 카드 선택 핸들러
-  const handleCardSelect = (cardNumber: number) => {
+  const handleCardSelect = (cardId: string) => {
     setShowCardSelector(false); // 카드 선택 창 종료
-    const selectedCard = majorTarotCards[cardNumber];
+    const selectedCard = tarotCards[cardId];
     setMessages((prev) => [...prev, { sender: "bot", text: `"${selectedCard}" 카드를 선택했어!` },
       {
         sender: "bot",
         content: (
           <Image
-            src={`/basic/maj${cardNumber}.svg`}
+            src={`/basic/${cardId}.svg`}
             alt={`Selected tarot card ${selectedCard}`}
             width={96}
             height={134}

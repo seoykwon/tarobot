@@ -93,8 +93,8 @@ async function validateAndRefresh(req: NextRequest) {
 export const config = {
   matcher: [
     "/tarot/chat/:path*", // 동적 채팅 경로
-    // "/my-page/:path*", // 마이페이지 관련 모든 경로
+    "/my-page/:path*", // 마이페이지 관련 모든 경로
     "/community/write", // 글 작성 페이지
-    // "/diary/:path*", // 다이어리 관련 모든 경로
+    "/diary/:path*", // 다이어리 관련 모든 경로
   ],
 };

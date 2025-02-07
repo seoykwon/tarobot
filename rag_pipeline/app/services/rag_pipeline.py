@@ -3,7 +3,7 @@ import asyncio
 import datetime
 import pytz
 import json
-from app.services.redis_utils import save_message, get_summary_history, save_summary_history
+from app.services.redis_utils import save_message, get_summary_history, save_summary_history, get_recent_history
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.utils.fo_mini_api import call_4o_mini
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tag, make_prompt_tarot
@@ -27,7 +27,8 @@ async def process_user_input(session_id: str, user_input: str, type: str):
     """
     try:
         print("🟢 process_user_input 시작")  # ✅ 로그 추가
-        user_id = dummy_user_profile["user_id"]
+        # user_id = dummy_user_profile["user_id"] # user_id 바꿔가며 테스트
+        user_id = "test_user_207"
 
         ### 선행되어야 하는 Tag, Keyword 추출 작업 먼저 실행
         # tarot 의 경우 태그와 키워드 고정
@@ -74,6 +75,16 @@ async def process_user_input(session_id: str, user_input: str, type: str):
         save_summary_task = asyncio.create_task(save_summary_history(session_id, user_input))
         # Redis에 인풋 저장
         save_task = asyncio.create_task(save_message(session_id, "user", user_input))
+
+        if (type=="tarot"):
+            try:
+                await asyncio.gather(
+                    save_summary_task,
+                    save_task,
+                    return_exceptions=True  # ✅ 하나의 태스크가 실패해도 나머지 태스크 실행 유지
+                )
+            except Exception as e:
+                print(f"⚠️ 비동기 작업 실행 중 오류 발생: {e}") # tarot의 경우 직전 대화를 불러오는 과정이 있어서 경쟁 접근 방지
 
         # asyncio.gather(save_task, save_summary_task) # 저장 작업 완료 대기. 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
 
@@ -125,6 +136,10 @@ async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream:
     # type에 따라 input과 chat_prompt 템플릿 분리
     if type == "tarot":
         chat_prompt = make_prompt_tarot(context, user_input)
+        lastconv = await get_recent_history(session_id, 1) # 직전 대화 기록 불러오기
+        print(lastconv)
+        if lastconv:
+            chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
     else:
         chat_prompt = make_prompt_chat(context, user_input)
         # 챗 태그가 tarot이면 바로 결과를 내지 말고, 사용자가 타로를 보고 싶다고 하길 유도하라

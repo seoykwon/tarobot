@@ -2,6 +2,7 @@
 import openai
 from typing import AsyncGenerator
 from app.core.settings import settings
+from app.utils.chatbot_concept import concept
 
 # OpenAI API 설정
 FO_MINI_MODEL = "gpt-4o-mini"
@@ -14,7 +15,10 @@ async def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, stream=Fals
         client = openai.AsyncOpenAI(api_key=settings.openai_api_key)  # ✅ 비동기 클라이언트 사용
         response = await client.chat.completions.create(
             model=FO_MINI_MODEL,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": concept[0]}, # 시스템 프롬프트로 컨셉 전달
+                {"role": "user", "content": prompt}
+                ],
             max_tokens=max_tokens,
             temperature=temperature,
             stream=stream
