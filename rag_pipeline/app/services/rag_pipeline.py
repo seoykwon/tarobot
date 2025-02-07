@@ -132,6 +132,7 @@ def prepare_context(recent_history, pine_results, keywords):
 
     return context.strip()  # ✅ 불필요한 공백 제거
 
+# 이 함수는 스트리밍을 지원하지 않습니다. 스트리밍 기능이 추가된 함수는 response_utils.py의 함수를 찾아가세요.
 async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream: bool = False):
     """
     비동기 최적화된 RAG 기반 챗봇 파이프라인 (Streaming 지원)

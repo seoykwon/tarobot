@@ -146,10 +146,17 @@ async def chat_stream(session_id: str, user_input: str, type: str =""):
     """
     OpenAI API의 Streaming 응답을 제공하는 엔드포인트
     """
-    context = await process_user_input(session_id, user_input, type)
-
     try:
-        return StreamingResponse(response_generator(session_id, user_input, context), media_type="text/plain")
+        # ✅ 기존 비동기 입력 처리 로직 활용
+        context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input, type)
+
+        # ✅ StreamingResponse로 실시간 응답 제공
+        return StreamingResponse(
+            response_generator(session_id, user_input, context, keywords, user_id),
+            media_type="text/plain",
+            headers={"X-ChatTag": chat_tag}  # ✅ chatTag를 헤더에 포함
+        )
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Streaming API 오류: {str(e)}")
 

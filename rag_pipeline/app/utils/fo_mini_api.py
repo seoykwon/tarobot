@@ -1,4 +1,5 @@
 # fo_mini_api.py
+import asyncio
 import openai
 from typing import AsyncGenerator
 from app.core.settings import settings
@@ -6,7 +7,7 @@ from app.core.settings import settings
 # OpenAI API 설정
 FO_MINI_MODEL = "gpt-4o-mini"
 
-async def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, system_prompt: str=None, stream=False):
+async def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, system_prompt: str=None, stream=False) -> AsyncGenerator[str, None]:
     """
     OpenAI API를 호출하는 비동기 함수 (Streaming 지원)
     """
@@ -15,7 +16,7 @@ async def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, system_prom
 
         messages = []
         if system_prompt:
-            messages.append({"role": "system", "content": system_prompt}) # 시스템 프롬프트로 컨셉 전달
+            messages.append({"role": "system", "content": system_prompt})  # ✅ 시스템 프롬프트로 컨셉 전달
         messages.append({"role": "user", "content": prompt})
 
         response = await client.chat.completions.create(
@@ -26,10 +27,19 @@ async def call_4o_mini(prompt: str, max_tokens=256, temperature=0.7, system_prom
             stream=stream
         )
 
-        if stream:
-            return response  # ✅ `async for`을 위한 비동기 응답 반환
+        if not stream:
+            return response.choices[0].message.content  # ✅ 일반 응답 반환
 
-        return response.choices[0].message.content  # ✅ 일반 응답 반환
+        # ✅ 스트리밍 모드 처리 (비동기 제너레이터 반환)
+        async def stream_generator():
+            async for chunk in response:  # ✅ 응답을 한 줄씩 가져오기
+                content = chunk.choices[0].delta.get("content", "")  # ✅ LLM이 생성한 내용 가져오기
+                if content:
+                    yield content  # ✅ 프론트엔드로 한 조각씩 전송
+                await asyncio.sleep(0.1)  # ✅ 부드러운 스트리밍 효과 추가
+            yield "[END]"  # ✅ 종료 신호 추가
+
+        return stream_generator()  # ✅ 비동기 제너레이터 반환
 
     except openai.OpenAIError as e:
         print(f"[Error] OpenAI API 호출 실패: {str(e)}")
