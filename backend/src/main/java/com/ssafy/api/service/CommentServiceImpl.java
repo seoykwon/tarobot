@@ -1,4 +1,4 @@
-package com.ssafy.api.service.impl;
+package com.ssafy.api.service;
 
 import com.ssafy.api.request.CommentRegisterReq;
 import com.ssafy.api.request.CommentUpdateReq;
