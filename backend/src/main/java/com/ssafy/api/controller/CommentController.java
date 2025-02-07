@@ -49,6 +49,16 @@ public class CommentController {
         return ResponseEntity.ok(CommentRes.of(updatedComment));
     }
 
+    @Operation(summary = "댓글 수정용 데이터 조회",
+            description = "댓글 ID를 통해 기존 댓글 데이터를 조회하여 수정 폼에 원래 내용을 채워줍니다.")
+    @GetMapping("/{commentId}/edit")
+    public ResponseEntity<CommentUpdateReq> getCommentForEdit(@PathVariable Long commentId) {
+        Comment comment = commentService.getCommentEntityById(commentId);
+        CommentUpdateReq updateReq = new CommentUpdateReq();
+        updateReq.setContent(comment.getContent());
+        return ResponseEntity.ok(updateReq);
+    }
+
     @Operation(summary = "댓글 삭제 (비활성화 처리)", description = "일반 사용자는 댓글을 삭제 요청하면 비활성화합니다.")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {

@@ -12,6 +12,9 @@ public interface CommentService {
     // 특정 게시글의 활성 댓글 조회
     List<Comment> getCommentsByPost(Long postId);
 
+    // 댓글 엔티티 반환
+    Comment getCommentEntityById(Long commentId);
+
     // 댓글 수정
     Comment updateComment(Long commentId, CommentUpdateReq req);
 

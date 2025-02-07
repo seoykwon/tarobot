@@ -1,9 +1,9 @@
 package com.ssafy.api.service;
 
 import com.ssafy.api.request.PostRegisterReq;
+import com.ssafy.api.request.PostUpdateReq;
 import com.ssafy.api.response.PostRes;
 import com.ssafy.db.entity.Post;
-import com.ssafy.db.entity.User;
 import java.util.List;
 
 /**
@@ -11,19 +11,18 @@ import java.util.List;
  */
 public interface PostService {
     // 게시글 생성/수정/삭제
-    Post createPost(PostRegisterReq request);
-    Post updatePost(Long postId, String title, String image, User currentUser);
-    void deactivatePost(Long postId, User currentUser);
-    void deletePostPermanently(Long postId, User currentUser);
+    Post createPost(PostRegisterReq req);
+    Post updatePost(Long postId, PostUpdateReq req);
+    void deactivatePost(Long postId);
+    void deletePostPermanently(Long postId);
 
     // 조회/정렬/페이지네이션
     List<PostRes> getAllPosts(int page, int size, String sort);
     PostRes getPostById(Long postId);
+    Post getPostEntityById(Long postId);
 
     // 조회수/좋아요/댓글 증가
     void increaseViewCount(Long postId);
-    void increaseLikeCount(Long postId);
-    void increaseCommentCount(Long postId);
 
     // 검색 기능 - 게시글 제목 및 내용 검색
     List<PostRes> getPostsByTitle(String title);

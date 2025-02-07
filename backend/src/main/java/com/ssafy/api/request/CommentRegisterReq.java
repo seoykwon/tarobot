@@ -21,8 +21,4 @@ public class CommentRegisterReq {
     @NotNull(message = "게시글 ID는 필수 입력 항목입니다.")
     @Schema(description = "댓글이 달릴 게시글 ID", example = "1")
     private Long postId;
-//
-//    @NotBlank(message = "작성자 ID는 필수 입력 항목입니다.")
-//    @Schema(description = "댓글 작성자 ID", example = "ssafy_web")
-//    private String userId;
 }
