@@ -61,7 +61,7 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
       });
   
-      const chatTag = response.headers.get("chat_tag") || "none";
+      const chatTag = response.headers.get("ChatTag") || "none";
       setChatType(chatTag);
   
       const reader = response.body?.getReader();

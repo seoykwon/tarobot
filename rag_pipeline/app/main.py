@@ -23,6 +23,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],   # GET, POST, PUT, DELETE 등
     allow_headers=["*"],   # Authorization, Content-Type 등
+    expose_headers=["ChatTag"],  # 클라이언트에서 접근할 수 있도록 명시
 )
 
 # FastAPI + Socket.IO 설정
@@ -148,13 +149,14 @@ async def chat_stream(session_id: str, user_input: str, type: str =""):
     """
     try:
         # ✅ 기존 비동기 입력 처리 로직 활용
+        # chat_tag를 여기서 받아서 리턴해야해서 여기서 전처리를 실행함
         context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input, type)
 
         # ✅ StreamingResponse로 실시간 응답 제공
         return StreamingResponse(
-            response_generator(session_id, user_input, context, keywords, user_id),
+            response_generator(session_id, user_input, context, keywords=keywords, user_id=user_id, type=type, chat_tag=chat_tag),
             media_type="text/plain",
-            headers={"chat_tag": chat_tag}  # ✅ chatTag를 헤더에 포함
+            headers={"ChatTag": chat_tag}  # ✅ chatTag를 헤더에 포함
         )
 
     except Exception as e:

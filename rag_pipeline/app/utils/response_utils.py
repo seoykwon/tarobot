@@ -5,17 +5,32 @@ from typing import AsyncGenerator
 
 import pytz
 from app.utils.fo_mini_api import call_4o_mini_str
-from app.utils.prompt_generation import make_prompt_chat
+from app.utils.prompt_generation import make_prompt_chat, make_prompt_tarot
 from app.utils.chatbot_concept import concept
 from app.services.pinecone_integration import upsert_documents
-from app.services.redis_utils import save_message
+from app.services.redis_utils import get_recent_history, save_message
 
-async def response_generator(session_id: str, user_input: str, context: str, keywords: list[str], user_id: str) -> AsyncGenerator[str, None]:
+async def response_generator(session_id: str, user_input: str, context: str, keywords: list[str], user_id: str, type: str, chat_tag: str) -> AsyncGenerator[str, None]:
     """
     OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터
     """
     try:
-        chat_prompt = make_prompt_chat(context, user_input)
+        # type에 따라 input과 chat_prompt 템플릿 분리
+        if type == "tarot":
+            chat_prompt = make_prompt_tarot(context, user_input)
+            lastconv = await get_recent_history(session_id, 3) # 직전 대화 기록 불러오기
+            print(lastconv)
+            if lastconv:
+                chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
+        else:
+            chat_prompt = make_prompt_chat(context, user_input)
+            # 챗 태그가 tarot이면 바로 결과를 내지 말고, 사용자가 타로를 보고 싶다고 하길 유도하라
+            if chat_tag == "tarot":
+                chat_prompt += """
+사용자가 타로 점을 보고 싶어하는 것 같습니다.
+이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
+"""
+
         llm_answer = ""  # ✅ 모든 chunk를 저장할 변수
 
         async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concept["Lacu"], stream=True):  
