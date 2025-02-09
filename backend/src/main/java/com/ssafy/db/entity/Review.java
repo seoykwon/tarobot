@@ -18,8 +18,10 @@ public class Review extends BaseEntity {
     @JsonIgnore
     private TarotBot tarotBot;
 
-    @Column(nullable = false, length = 50)
-    private String author;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false) // User 테이블의 ID를 FK로 참조
+    @JsonIgnore
+    private User author; // 작성자
 
     @Column(nullable = false)
     private int rating; // 별점 (1~5)

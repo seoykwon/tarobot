@@ -1,9 +1,13 @@
 package com.ssafy.api.controller;
 
 import com.ssafy.api.request.ReviewCreateReq;
+import com.ssafy.api.response.ReviewRes;
+import com.ssafy.api.service.ReviewService;
+import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.db.entity.Review;
 import com.ssafy.db.entity.TarotBot;
+import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.ReviewRepository;
 import com.ssafy.db.repository.TarotBotRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,8 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -22,12 +29,13 @@ import java.util.Optional;
 
 @Tag(name = "Review", description = "리뷰 API")
 @RestController
-@RequestMapping("/api/review")
+@RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewRepository reviewRepository;
     private final TarotBotRepository tarotBotRepository;
+    private final ReviewService reviewService;
 
     @PostMapping("/{tarotBotId}")
     @Operation(summary = "리뷰 생성", description = "타로봇 ID와 리뷰 정보를 기반으로 리뷰를 생성합니다.")
@@ -127,6 +135,24 @@ public class ReviewController {
 
         reviewRepository.deleteById(reviewId);
         return ResponseEntity.ok("Review deleted successfully");
+    }
+
+    // ✅ 내가 작성한 리뷰 조회 API
+    @GetMapping("/me")
+    @Operation(summary = "내가 작성한 리뷰 조회", description = "현재 로그인한 사용자가 작성한 리뷰 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<List<ReviewRes>> getMyReviews(Authentication authentication, Pageable pageable) {
+        SsafyUserDetails userDetails = (SsafyUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getId();
+
+        List<Review> reviews = reviewService.getReviewsByUserId(userId, pageable);
+        List<ReviewRes> response = reviews.stream().map(ReviewRes::of).toList();
+
+        return ResponseEntity.ok(response);
     }
 }
 
