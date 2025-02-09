@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import CardSelector from "./card-selector";
 import Image from "next/image";
 import html2canvas from "html2canvas";
+import { API_URLS } from "@/config/api";
 
 // 토큰 유효성 검증 및 리프레시 함수
 async function validateAndRefresh() {
   try {
-    const validateResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/validate`, {
+    const validateResponse = await fetch(API_URLS.TOKEN_VALIDATE, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -18,7 +19,7 @@ async function validateAndRefresh() {
     });
 
     if (!validateResponse.ok) {
-      const refreshResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/refresh`, {
+      const refreshResponse = await fetch(API_URLS.TOKEN_REFRESH, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -143,9 +144,7 @@ export default function FirstVisitPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/chat/stream?session_id=12345&user_input=majortarotcard_${cardNumber}`,
-        {
+      const response = await fetch(API_URLS.CHAT_STREAM("12345", `majortarotcard_${cardNumber}`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
@@ -171,7 +170,7 @@ export default function FirstVisitPage() {
         .find((row) => row.startsWith("user_id="))
         ?.split("=")[1];
 
-      await fetch("/api/save-result", {
+      await fetch(API_URLS.SAVE_RESULT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

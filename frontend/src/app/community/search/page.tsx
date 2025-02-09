@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { API_URLS } from "@/config/api";
 
 interface Post {
   id: number;
@@ -38,12 +39,9 @@ export default function SearchPage() {
   const fetchSearchResults = async (pageNum = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/v1/posts/search/${searchType}?q=${encodeURIComponent(
-          query || ""
-        )}&page=${pageNum}&pageSize=10`,
-        { cache: "no-store" }
-      );
+      const response = await fetch(API_URLS.SEARCH_POSTS(searchType, query || "", pageNum), {
+        cache: "no-store",
+      });
       if (!response.ok) {
         console.error("Failed to fetch search results");
         setHasMore(false);

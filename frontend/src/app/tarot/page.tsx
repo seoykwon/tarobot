@@ -54,6 +54,7 @@
 //   );
 // }
 import { TarotGame } from "@/components/TarotGame";
+import { API_URLS } from "@/config/api";
 
 interface TarotBot {
   // id: string;
@@ -95,7 +96,7 @@ const dummyBots: TarotBot[] = [
 
 async function fetchTarotBots(): Promise<TarotBot[]> {
   try {
-    const response = await fetch("http://localhost:8080/api/v1/tarot-bots", {
+    const response = await fetch(API_URLS.TAROBOTS.LIST, {
       cache: "no-store", // 최신 데이터를 가져오기 위해 캐싱 비활성화
     });
 

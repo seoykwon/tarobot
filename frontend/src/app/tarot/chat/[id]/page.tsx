@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import CardSelector from "@/app/chat_test/card-selector";
 import { majorTarotCards } from "@/utils/tarotCards";
 import Image from "next/image";
+import { API_URLS } from "@/config/api";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -91,11 +92,9 @@ export default function ChatPage() {
         type: chatType,
       }).toString();
 
-      const response = await fetch(`http://127.0.0.1:8000/chat?${queryParams}`, {
-        method: "POST",  // FastAPI가 GET이 아니라 POST를 사용하고 있으므로 유지
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch(`${API_URLS.CHAT.STREAM(sessionId, message, chatType)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
 
       const data = await response.json();
@@ -156,14 +155,12 @@ export default function ChatPage() {
   // 상담 종료하기 버튼 클릭 핸들러
   const handleEndChat = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/chat/close`, {
+      const response = await fetch(API_URLS.CHAT.CLOSE, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }), // 사용자 ID 전송
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
       });
-
+    
       if (!response.ok) {
         throw new Error("Failed to close chat session");
       }

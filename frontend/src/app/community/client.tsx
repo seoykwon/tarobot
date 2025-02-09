@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { API_URLS } from "@/config/api";
 
 // 게시글 데이터 타입 정의
 interface Post {
@@ -58,9 +59,7 @@ export default function CommunityClient({
 const fetchPosts = async (filter: string, pageNum = 1) => {
   setLoading(true);
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/v1/posts?page=${pageNum - 1}&size=10&sort=${filter}`,
-      {
+    const response = await fetch(API_URLS.FETCH_POSTS(filter, pageNum), {
         method: "GET",
         credentials: "include",
         cache: "no-store",

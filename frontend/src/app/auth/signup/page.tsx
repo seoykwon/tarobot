@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { API_URLS } from "@/config/api";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import InputField from "@/components/InputField";
@@ -31,7 +32,7 @@ export default function SignupPage() {
   // 폼 제출 처리
   const onSubmit = async (data: SignupFormData) => {
     try {
-      const response = await fetch("http://localhost:8080/api/v1/users", {
+      const response = await fetch(API_URLS.AUTH.SIGNUP, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

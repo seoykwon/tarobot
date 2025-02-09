@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import PostDetailsClient from "./PostDetailsClient";
+import { API_URLS } from "@/config/api";
 
 interface Comment {
   commentId: number;
@@ -25,7 +26,7 @@ interface PostDetails {
 // 게시글 상세 정보 API 호출 함수
 async function fetchPostDetails(id: string): Promise<PostDetails | null> {
   try {
-    const res = await fetch(`http://localhost:8080/api/v1/posts/${id}`, {
+    const res = await fetch(API_URLS.POST_DETAILS(id), {
       cache: "no-store",
     });
 

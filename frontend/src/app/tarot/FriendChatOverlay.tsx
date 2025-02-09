@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { API_URLS } from "@/config/api";
 
 export default function FriendChatOverlay() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function FriendChatOverlay() {
   const handleCreateRoom = () => {
     const sessionId = generateRandomSessionId();
     setShowOverlay(false);
-    router.push(`/webRTC_test/${sessionId}`);
+    router.push(API_URLS.WEBRTC.ROOM(sessionId));
   };
 
   // 방 참여하기 폼 제출 시: 입력한 세션 번호로 이동
@@ -25,7 +26,7 @@ export default function FriendChatOverlay() {
     e.preventDefault();
     if (joinSessionId.trim()) {
       setShowOverlay(false);
-      router.push(`/webRTC_test/${joinSessionId.trim()}`);
+      router.push(API_URLS.WEBRTC.ROOM(joinSessionId.trim()));
     }
   };
 

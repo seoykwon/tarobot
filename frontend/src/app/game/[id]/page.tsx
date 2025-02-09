@@ -3,6 +3,7 @@ import { Star } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { API_URLS } from "@/config/api";
 
 interface GameDetails {
   id: string;
@@ -16,7 +17,7 @@ interface GameDetails {
 // Spring Boot API에서 게임 상세 정보 가져오기
 async function fetchGameDetails(id: string): Promise<GameDetails | null> {
   try {
-    const response = await fetch(`http://localhost:8080/minigames/${id}`, {
+    const response = await fetch(API_URLS.GAME_DETAILS(id), {
       cache: "no-store", // 최신 데이터를 가져오기 위해 캐싱 비활성화
     });
 

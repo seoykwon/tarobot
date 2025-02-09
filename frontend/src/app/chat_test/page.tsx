@@ -7,6 +7,7 @@ import ReviewComponent from "./review-component"
 import CardSelector from "./card-selector"
 import { toast } from "sonner"
 import SummaryComponent from "./summary-component"
+import { API_URLS } from "@/config/api"
 
 type MessageType = {
   sender: "bot" | "user"
@@ -57,9 +58,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage])
     try {
       const sessionId = "12345" // 실제 구현시 고유한 세션 ID 생성 필요
-      const response = await fetch(
-        `http://localhost:8000/chat/stream?session_id=${sessionId}&user_input=${encodeURIComponent(option)}`,
-        {
+      const response = await fetch(API_URLS.CHAT_STREAM(sessionId, option), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
@@ -117,9 +116,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage])
     try {
       const sessionId = "12345" // 실제 구현시 고유한 세션 ID 생성 필요
-      const response = await fetch(
-        `http://localhost:8000/chat/stream?session_id=${sessionId}&user_input=${encodeURIComponent(cardId)}`,
-        {
+      const response = await fetch(API_URLS.CHAT_STREAM(sessionId, cardId), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
@@ -164,7 +161,7 @@ export default function ChatPage() {
   const handleReviewSubmit = async (data: { rating: number; review: string }) => {
     try {
       console.log(data)
-      await fetch(`/api/review/${"Bot.id"}`, {
+      await fetch(API_URLS.REVIEW("Bot.id"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -194,7 +191,7 @@ export default function ChatPage() {
   // 종료 버튼 클릭 시 대화 내용을 백엔드로 전송 후 홈으로 이동
   const handleExit = () => {
     console.log(messages)
-    fetch("/api/conversation", {
+    fetch(API_URLS.CONVERSATION, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages }),

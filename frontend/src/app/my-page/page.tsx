@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/Loading";
 import { Settings, LogOut, Star } from "lucide-react";
 import Image from "next/image";
+import { fetchUserProfile, logoutUser } from "@/api/user";
 
 interface TarotRecord {
   id: number;
@@ -30,51 +31,26 @@ export default function MyPage() {
   const [tarotRecords, setTarotRecords] = useState<TarotRecord[]>([]);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // 백엔드로 요청
-        const response = await fetch("http://localhost:8080/api/v1/user-profiles/me", {
-          method: "GET",
-          credentials: "include", // 쿠키 자동 포함
-        });
+    const loadUserData = async () => {
+      setIsLoading(true);
+      const data = await fetchUserProfile();
 
-        if (response.ok) {
-          const data = await response.json();
-          setUserInfo(data);
-          setTarotRecords(data.tarotRecords || []);
-        } else {
-          console.error("Failed to fetch user data");
-          // if (response.status === 401 || response.status === 403) {
-          //   router.push("/login"); // 인증 실패 시 로그인 페이지로 이동
-          // }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setIsLoading(false);
+      if (data) {
+        setUserInfo(data);
+        setTarotRecords(data.tarotRecords || []);
       }
+
+      setIsLoading(false);
     };
 
-    fetchUserData();
-  }, [router]);
+    loadUserData();
+  }, []);
 
   const handleLogout = async () => {
-    try {
-      // 백엔드로 로그아웃 요청
-      const response = await fetch("http://localhost:8080/api/v1/auth/logout", {
-        method: "POST",
-        credentials: "include", // 쿠키 포함
-      });
-
-      if (response.ok) {
-        // 로그아웃 성공 시 로그인 페이지로 이동
-        router.push("/auth/login");
-        window.location.reload(); // 새로고침하여 상태 반영
-      } else {
-        console.error("Failed to log out");
-      }
-    } catch (error) {
-      console.error("Error logging out:", error);
+    const success = await logoutUser();
+    if (success) {
+      router.push("/auth/login");
+      window.location.reload();
     }
   };
 
@@ -90,11 +66,11 @@ export default function MyPage() {
           {/* 프로필 이미지 */}
           <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shadow-sm">
             <Image
-              src={userInfo?.profileImage || "/star.svg"} // 프로필 이미지 또는 기본 이미지
+              src={userInfo?.profileImage || "/star.svg"} 
               alt="Profile"
-              width={96} // 이미지의 고정 너비 (24px * 4)
-              height={96} // 이미지의 고정 높이 (24px * 4)
-              className="rounded-full object-cover" // Tailwind 스타일
+              width={96} 
+              height={96} 
+              className="rounded-full object-cover" 
             />
           </div>
 

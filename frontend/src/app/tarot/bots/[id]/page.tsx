@@ -3,7 +3,7 @@ import { Star } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { fetchTarobotDetails } from "@/app/api/taroBotsDetail";
+import { fetchTarobotDetails } from "@/api/taroBotsDetail";
 import FriendChatOverlay from "../../FriendChatOverlay";
 
 interface TarobotDetailsPageProps {

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { API_URLS } from "@/config/api";
 
 interface FormData {
   title: string;
@@ -47,7 +48,7 @@ export default function WritePage() {
         imageUrl: imageUrl,
       };
 
-      const response = await fetch("http://localhost:8080/api/v1/posts", {
+      const response = await fetch(API_URLS.CREATE_POST, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(postData),

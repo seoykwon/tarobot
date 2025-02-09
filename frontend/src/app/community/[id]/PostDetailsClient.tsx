@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { API_URLS } from "@/config/api";
 
 // 댓글 인터페이스
 interface Comment {
@@ -27,7 +28,7 @@ interface PostDetails {
 // 댓글 작성 API 호출 함수
 async function postComment(articleId: string, commentContent: string): Promise<Comment | null> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${articleId}/comments`, {
+    const res = await fetch(API_URLS.COMMENT(articleId), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +48,7 @@ async function postComment(articleId: string, commentContent: string): Promise<C
 // 게시글 좋아요 토글 API 호출 함수
 async function togglePostLike(articleId: string, liked: boolean): Promise<{ isLiked: boolean, likes: number } | null> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${articleId}/like`, {
+    const res = await fetch(API_URLS.POST_LIKE(articleId), {
       method: liked ? "DELETE" : "POST",
     });
     if (!res.ok) throw new Error("Failed to toggle post like");
@@ -62,7 +63,7 @@ async function togglePostLike(articleId: string, liked: boolean): Promise<{ isLi
 // 댓글 좋아요 토글 API 호출 함수
 async function toggleCommentLike(articleId: string, commentId: number, liked: boolean): Promise<{ isLiked: boolean, likes: number } | null> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${articleId}/comments/${commentId}/like`, {
+    const res = await fetch(API_URLS.COMMENT_LIKE(articleId, commentId), {
       method: liked ? "DELETE" : "POST",
     });
     if (!res.ok) throw new Error("Failed to toggle comment like");

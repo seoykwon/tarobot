@@ -1,4 +1,5 @@
-import CommunityClient from "./client"; // 기본 가져오기로 변경
+import CommunityClient from "./client";
+import { API_URLS } from "@/config/api";
 
 // 공지사항 데이터 타입 정의
 interface Announcement {
@@ -11,7 +12,7 @@ interface Announcement {
 // 공지사항 API 호출 함수
 async function fetchAnnouncements(): Promise<Announcement[]> {
   try {
-    const response = await fetch("http://localhost:8080/community/announcements", {
+    const response = await fetch(API_URLS.ANNOUNCEMENTS, {
       cache: "no-store",
     });
     if (!response.ok) {

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { API_URLS } from "@/config/api";
 
 interface ChatProps {
   sessionId: string;
@@ -20,7 +21,7 @@ export default function ChatComponent({ sessionId, userName }: ChatProps) {
 
   // Socket.IO 연결 설정
   useEffect(() => {
-    const newSocket = io('http://localhost:8000'); // 서버 주소 확인
+    const newSocket = io(API_URLS.SOCKET.BASE); // 서버 주소 확인
     newSocket.emit('join_room', { room_id: sessionId });
   
     // 사용자 메시지 수신

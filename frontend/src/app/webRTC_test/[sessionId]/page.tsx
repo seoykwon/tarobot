@@ -5,9 +5,10 @@ import { OpenVidu, Session, Publisher, Subscriber } from "openvidu-browser";
 import Draggable from "react-draggable";
 import ChatComponent from "../ChatComponent";
 import { useParams } from "next/navigation";
+import { API_URLS } from "@/config/api";
 
-const OPENVIDU_SESSIONS_URL = "http://localhost:8000/openvidu/sessions";
-const OPENVIDU_CONNECTIONS_URL = "http://localhost:8000/openvidu/connections";
+const OPENVIDU_SESSIONS_URL = API_URLS.OPENVIDU.SESSIONS;
+const OPENVIDU_CONNECTIONS_URL = API_URLS.OPENVIDU.CONNECTIONS;
 
 export default function OpenviduCallPage() {
   // 동적 라우팅으로부터 sessionId 받아오기
@@ -20,10 +21,8 @@ export default function OpenviduCallPage() {
     async function fetchUserName() {
       try {
         // 예시 URL – 실제 상황에 맞게 수정하세요.
-        const response = await fetch("http://localhost:8080/api/v1/user/me", {
-          headers: {
-            "Content-Type": "application/json",
-          },
+        const response = await fetch(API_URLS.USERNOW.PROFILE, {
+          headers: { "Content-Type": "application/json" },
         });
         if (!response.ok) {
           throw new Error("Failed to fetch user profile");
