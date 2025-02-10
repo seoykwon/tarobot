@@ -11,14 +11,18 @@ interface DayInfo {
   day: number;
   fortune: string | null;
   tarotResult: string | null;
-  luckyScore: number | null;
+  luckyScore: number | null; // 운세 점수
 }
 
 interface TarotSummary {
-  tag: string;
-  title: string;
-  summary: string;
-  cardImageUrl: string;
+  id: number; // 고유 식별자
+  createdAt: string; // 데이터 생성 시간 (ISO 8601 형식)
+  updatedAt: string; // 데이터 수정 시간 (ISO 8601 형식)
+  consultDate: string; // 해당 날짜 (yyyy-MM-dd 형식)
+  tag: string; // 카드의 태그 또는 주제
+  title: string; // 카드 제목
+  summary: string; // 카드 요약 설명
+  cardImageUrl: string; // 카드 이미지 URL
 }
 
 export default function CalendarPage() {
@@ -34,9 +38,9 @@ export default function CalendarPage() {
       setIsLoading(true);
       const response = await fetch(API_URLS.CALENDAR.MONTHLY(year, month + 1), {
         method: "GET",
-        credentials: "include",
+        credentials: "include", // HttpOnly 쿠키 포함
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch calendar data");
       }
@@ -53,9 +57,8 @@ export default function CalendarPage() {
   const fetchTarotData = useCallback(async (date: Date) => {
     try {
       setIsLoading(true);
-      const localDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+      const localDate = new Date(date.getTime() + 9 * 60 * 60 * 1000); // UTC+9 보정
       const formattedDate = localDate.toISOString().split("T")[0];
-  
       const response = await fetch(API_URLS.CALENDAR.SUMMARY(formattedDate), {
         method: "GET",
         credentials: "include",
@@ -64,9 +67,13 @@ export default function CalendarPage() {
       if (!response.ok) {
         throw new Error("Failed to fetch tarot data");
       }
-  
-      const data: TarotSummary | null = await response.json();
-      setTarotData(Array.isArray(data) && data.length > 0 ? data[0] : null);
+
+      const data: TarotSummary[] | null = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setTarotData(data[0]); // 첫 번째 아이템 사용
+      } else {
+        setTarotData(null); // 데이터가 없을 경우 처리
+      }
     } catch (error) {
       console.error("Error fetching tarot data:", error);
       setTarotData(null);
@@ -151,99 +158,84 @@ export default function CalendarPage() {
               ))}
             </div>
 
-            {/* Calendar days */}
-            <div className="grid grid-cols-7 gap-1">
-              {allCells.map((day, index) => (
-                <Button
-                  key={index}
-                  variant={day === selectedDate.getDate() ? "default" : "ghost"}
-                  className={`h-10 p-0 ${
-                    day === selectedDate.getDate()
-                      ? "bg-blue-500 text-white"
-                      : "hover:bg-accent"
-                  }`}
-                  onClick={() => {
-                    if (day) {
-                      const newSelectedDate = new Date(
-                        currentDate.getFullYear(),
-                        currentDate.getMonth(),
-                        day
-                      );
-                      setSelectedDate(newSelectedDate);
-                      fetchTarotData(newSelectedDate); // Fetch tarot data for the selected date
-                    }
-                  }}
-                >
-                  {day && (
-                    <>
-                      <span>{day}</span>
-                      {/* Show lucky score */}
-                      {daysInfo.find((d) => d.day === day)?.luckyScore && (
-                        <span className="block text-xs text-muted-foreground">
-                          {daysInfo.find((d) => d.day === day)?.luckyScore}%
-                        </span>
-                      )}
-                    </>
-                  )}
-                </Button>
-              ))}
-            </div>
+{/* Calendar days */}
+<div className="grid grid-cols-7 gap-2">
+  {allCells.map((day, index) => (
+    <Button
+      key={index}
+      variant={day === selectedDate.getDate() ? "default" : "ghost"}
+      className={`min-w-[80px] min-h-[120px] border border-gray-500 flex flex-col items-center justify-center p-0 ${
+        day === selectedDate.getDate()
+          ? "bg-blue-500 text-white"
+          : "hover:bg-accent"
+      }`}
+      onClick={() => {
+        if (day) {
+          const newSelectedDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            day
+          );
+          setSelectedDate(newSelectedDate);
+          fetchTarotData(newSelectedDate); // Fetch tarot data for the selected date
+        }
+      }}
+    >
+      {day && (
+        <>
+          {/* 날짜 */}
+          <span className="text-lg font-bold">{day}</span>
+          {/* 운세 점수 */}
+          <span className="text-sm text-red-500 mt-1">
+            {daysInfo.find((d) => d.day === day)?.luckyScore ?? "❓"}
+          </span>
+        </>
+      )}
+    </Button>
+  ))}
+</div>
+
+
+
           </CardContent>
         </Card>
 
         {/* Fortune Summary */}
         <div className="space-y-4">
           <h2 className="font-page-title">Your Fortune Summary</h2>
-          {/* <Card>
+          <Card className="p-1"> 
             <CardHeader>
               <CardTitle className="font-tarobot-title">
                 {isLoading ? "Loading..." : tarotData?.title || "오늘의 타로 결과를 확인하세요"}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex items-start gap-4"> 
               {tarotData ? (
                 <>
-                  <p className="font-tarobot-description text-muted-foreground mb-4">{tarotData.summary}</p>
-                  <img
-                    src={tarotData.cardImageUrl}
-                    alt={tarotData.title}
-                    // className="w-full h-auto rounded-md"
-                    className="w-[150px] h-[225px] object-cover rounded-lg mx-auto"
-                  />
-                </>
-              ) : (
-                !isLoading && (
-                  <p className="font-tarobot-description text-muted-foreground">
-                    선택한 날짜에 대한 데이터가 없습니다. 오늘의 타로 결과를 확인하세요.
-                  </p>
-                )
-              )}
-            </CardContent>
-          </Card> */}
-          <Card className="p-1"> {/* Card의 패딩을 최소화 */}
-            <CardHeader>
-              <CardTitle className="font-tarobot-title">
-                {isLoading ? "Loading..." : tarotData?.title || "오늘의 타로 결과를 확인하세요"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-between items-start gap-4"> {/* gap 조정 */}
-            {tarotData ? (
-                <>
-                  {/* 좌측: 제목 + 내용 */}
-                  <div className="flex-1 text-left">
-                    <p className="font-tarobot-description text-muted-foreground">
-                      {tarotData.summary}
-                    </p>
-                  </div>
-
-                  {/* 우측: 카드 이미지 */}
+                  {/* 좌측: 카드 이미지 */}
                   <Image
                     src={tarotData.cardImageUrl}
                     alt={tarotData.title}
-                    width={140}  // ✅ 반드시 명시해야 함
-                    height={210} // ✅ 반드시 명시해야 함
+                    width={140} 
+                    height={210} 
                     className="object-cover rounded-lg shadow-md"
                   />
+
+                  {/* 우측: 제목 + 내용 */}
+                  <div className="flex-1 text-left">
+                    {/* 카드 태그 추가 */}
+                    <p className="font-tarobot-tag text-sm text-muted-foreground mb-2">
+                      Tag: {tarotData.tag}
+                    </p>
+                    {/* 카드 요약 설명 */}
+                    <p className="font-tarobot-description text-muted-foreground">
+                      {tarotData.summary}
+                    </p>
+                    {/* 운세 날짜 추가 */}
+                    <p className="text-xs text-gray-500 mt-2">
+                      Date of Fortune: {tarotData.consultDate}
+                    </p>
+                  </div>
                 </>
               ) : (
                 !isLoading && (
@@ -254,8 +246,9 @@ export default function CalendarPage() {
               )}
             </CardContent>
           </Card>
-          {/* 여기까지 수정됨*/}
         </div>
+
+
       </div>
     </main>
   );
