@@ -43,8 +43,8 @@ export default async function RootLayout({
     }
   }
 
-  // const season = getCurrentSeason()
-  const season = "spring"
+  const season = getCurrentSeason()
+  // const season = "spring"
 
   const getSeasonalBackground = () => {
     if (theme === "dark") return <StarryBackground />

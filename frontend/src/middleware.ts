@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-
+import { API_URLS } from "@/config/api";
 
 // Middleware 함수
 export async function middleware(req: NextRequest) {
@@ -52,7 +51,7 @@ async function validateAndRefresh(req: NextRequest) {
   const cookie = req.headers.get("cookie") ?? "";
 
   // access_token 검증 요청 (쿠키 헤더 전달)
-  const validateResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/validate`, {
+  const validateResponse = await fetch(API_URLS.TOKEN.VALIDATE, {
     method: "GET",
     credentials: "include",
     headers: {
@@ -69,7 +68,7 @@ async function validateAndRefresh(req: NextRequest) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
     
-    const refreshResponse = await fetch(`http://127.0.0.1:8080/api/v1/token/refresh`, {
+    const refreshResponse = await fetch(API_URLS.TOKEN.REFRESH, {
       method: "POST",
       credentials: "include", // 필수!
       headers: {

@@ -3,8 +3,8 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { loginRequest } from "../api/login/route";
-import { kakaoLoginRequest } from "../api/kakao/route";
+import { loginRequest, kakaoLoginRequest } from "@/api/auth";
+import { API_URLS } from "@/config/api";
 import {
   Card,
   CardHeader,
@@ -35,9 +35,8 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await loginRequest(data.email, data.password); // 로그인 API 호출
-      // 1초 후 홈으로 이동한 뒤 새로고침
       await router.push("/home"); // 먼저 페이지 이동
-      setTimeout(async () => {
+      setTimeout(() => {
         window.location.reload(); // 이동 후 새로고침
       }, 1000);
     } catch (error: any) {
@@ -49,16 +48,14 @@ export default function LoginPage() {
   // Google 로그인 핸들러
   const handleGoogleLogin = async () => {
     try {
-      // 구글 로그인 URL을 새 창으로 오픈합니다.
-      const loginUrl = "http://localhost:8080/oauth2/authorization/google";
+      // 구글 로그인 URL을 환경변수에서 가져옵니다.
+      const loginUrl = API_URLS.AUTH.GOOGLE;
       const loginWindow = window.open(loginUrl, "_blank", "width=500,height=600");
-      
+
       // 일정 간격으로 팝업 창이 닫혔는지 확인합니다.
       const checkPopup = setInterval(() => {
         if (loginWindow && loginWindow.closed) {
           clearInterval(checkPopup);
-          // 팝업 창이 닫혔으면, 로그인 성공 여부를 판단할 수 있도록 추가 확인 로직을 넣을 수도 있습니다.
-          // 여기서는 바로 홈 화면으로 이동하고 새로고침합니다.
           router.push("/home");
           setTimeout(() => {
             window.location.reload();

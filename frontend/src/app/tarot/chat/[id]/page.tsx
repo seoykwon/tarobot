@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "@/app/chat_test/card-selector";
 import Image from "next/image";
-import { tarotCards } from "@/utils/tarotCards";
+import { API_URLS } from "@/config/api";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -95,11 +95,9 @@ export default function ChatPage() {
         type: gotype,
       }).toString();
 
-      const response = await fetch(`http://127.0.0.1:8000/chat?${queryParams}`, {
-        method: "POST",  // FastAPI가 GET이 아니라 POST를 사용하고 있으므로 유지
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch(`${API_URLS.CHAT.STREAM(sessionId, message, chatType)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
 
       const data = await response.json();
@@ -137,13 +135,13 @@ export default function ChatPage() {
   // 🔹 카드 선택 핸들러
   const handleCardSelect = (cardId: string) => {
     setShowCardSelector(false); // 카드 선택 창 종료
-    const selectedCard = tarotCards[cardId];
+    const selectedCard = majorTarotCards[Number(cardId)];
     setMessages((prev) => [...prev, { sender: "bot", text: `"${selectedCard}" 카드를 선택했어!` },
       {
         sender: "bot",
         content: (
           <Image
-            src={`/basic/${cardId}.svg`}
+            src={`/basic/maj${cardId}.svg`}
             alt={`Selected tarot card ${selectedCard}`}
             width={96}
             height={134}
@@ -160,14 +158,12 @@ export default function ChatPage() {
   // 상담 종료하기 버튼 클릭 핸들러
   const handleEndChat = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/chat/close`, {
+      const response = await fetch(API_URLS.CHAT.CLOSE, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }), // 사용자 ID 전송
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
       });
-
+    
       if (!response.ok) {
         throw new Error("Failed to close chat session");
       }

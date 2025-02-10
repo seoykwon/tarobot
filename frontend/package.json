@@ -25,6 +25,7 @@
     "openvidu-browser": "^2.31.0",
     "react": "^18",
     "react-dom": "^18",
+    "react-draggable": "^4.4.6",
     "react-hook-form": "^7.54.2",
     "socket.io-client": "^4.5.4",
     "sonner": "^1.7.4",
