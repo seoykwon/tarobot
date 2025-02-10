@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 public class TarotBot extends BaseEntity {
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "bot_name", length = 100, nullable = false)
     private String name;
 
     @Column(length = 255)
