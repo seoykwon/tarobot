@@ -191,11 +191,11 @@ export default function ChatPage() {
   // 종료 버튼 클릭 시 대화 내용을 백엔드로 전송 후 홈으로 이동
   const handleExit = () => {
     console.log(messages)
-    fetch(API_URLS.CONVERSATION, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages }),
-    }).catch((error) => console.error("Conversation 저장 에러:", error))
+    // fetch(API_URLS.CONVERSATION, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ messages }),
+    // }).catch((error) => console.error("Conversation 저장 에러:", error))
     router.push("/home")
   }
 

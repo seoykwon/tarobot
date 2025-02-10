@@ -86,11 +86,11 @@ export default function ChatPage() {
             - chatTag을 tarot으로 설정하는 로직 추가
       */
 
-      const queryParams = new URLSearchParams({
-        session_id: sessionId,
-        user_input: message,
-        type: chatType,
-      }).toString();
+      // const queryParams = new URLSearchParams({
+      //   session_id: sessionId,
+      //   user_input: message,
+      //   type: chatType,
+      // }).toString();
 
       const response = await fetch(`${API_URLS.CHAT.STREAM(sessionId, message, chatType)}`, {
         method: "POST",
@@ -143,6 +143,7 @@ export default function ChatPage() {
             width={96}
             height={134}
             className="mt-2 mx-auto"
+            priority
           />
         ),
       },

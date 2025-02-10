@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { MessageSquare, Heart, Clock, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -24,9 +24,8 @@ interface Post {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = searchParams.get("q");
+  const query = searchParams.get("q") || ""; // query가 없을 경우 빈 문자열 사용
 
-  // 검색 타입 상태: "title" 또는 "content" (기본은 "title")
   const [searchType, setSearchType] = useState<"title" | "content">("title");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -35,13 +34,16 @@ export default function SearchPage() {
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-  // 검색 결과 가져오기: API 엔드포인트는 searchType에 따라 달라짐.
-  const fetchSearchResults = async (pageNum = 1) => {
+  /** 🔥 `useCallback`에서 `query`와 `searchType`을 의존성으로 추가하여 안정적인 함수 유지 */
+  const fetchSearchResults = useCallback(async (pageNum = 1) => {
+    if (!query) return; // 빈 검색어일 경우 요청하지 않음
+
     setLoading(true);
     try {
       const response = await fetch(API_URLS.POSTS.SEARCH(searchType, query || "", pageNum), {
         cache: "no-store",
       });
+
       if (!response.ok) {
         console.error("Failed to fetch search results");
         setHasMore(false);
@@ -60,17 +62,17 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [query, searchType]); // ✅ `query`와 `searchType`을 의존성에 추가하여 변경 시 다시 실행
 
-  // query나 검색 타입이 바뀌면 페이지와 게시글 데이터를 초기화 후 다시 호출
+  /** 🔥 검색어(query) 또는 검색 타입(searchType)이 변경될 때 초기화 후 새로운 검색 실행 */
   useEffect(() => {
     setPage(1);
     setHasMore(true);
     setPosts([]);
-    if (query) fetchSearchResults(1);
-  }, [query, searchType]);
+    fetchSearchResults(1);
+  }, [query, searchType, fetchSearchResults]); // ✅ `fetchSearchResults` 추가
 
-  // 무한 스크롤 로직
+  /** 🔥 무한 스크롤 로직 */
   useEffect(() => {
     if (!hasMore || loading) return;
     const observer = new IntersectionObserver(
@@ -85,12 +87,12 @@ export default function SearchPage() {
     return () => observer.disconnect();
   }, [hasMore, loading]);
 
-  // 페이지 번호 변경 시 추가 데이터 호출
+  /** 🔥 페이지 번호가 변경되면 새로운 데이터 로드 */
   useEffect(() => {
     if (page > 1) fetchSearchResults(page);
-  }, [page]);
+  }, [page, fetchSearchResults]); // ✅ `fetchSearchResults` 추가  
 
-  // 스크롤 탑 버튼 표시
+  /** 🔥 스크롤 감지하여 "스크롤 위로" 버튼 표시 */
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 200);
@@ -107,7 +109,7 @@ export default function SearchPage() {
       {/* 검색 결과 헤더 */}
       <header className="bg-gray-800 text-white p-4 mb-6">
         <h1 className="text-xl font-bold">
-          "{query}" 에 대한 검색 결과
+          &quot;{query}&quot; 에 대한 검색 결과
         </h1>
       </header>
 
@@ -181,10 +183,7 @@ export default function SearchPage() {
             </p>
           )
         )}
-        <div
-          ref={observerRef}
-          className="h-10 flex items-center justify-center"
-        >
+        <div ref={observerRef} className="h-10 flex items-center justify-center">
           {loading && <p>Loading...</p>}
         </div>
       </section>
