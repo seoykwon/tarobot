@@ -10,6 +10,12 @@ import { useParams } from "next/navigation";
 export default function ChatPage() {
   const router = useRouter();
   const { id } = useParams();
+  const botId = id;
+
+  interface ChatSession {
+    sessionId: string;
+    userId: string;
+  }
 
   type MessageType = {
     sender: string;
@@ -34,30 +40,41 @@ export default function ChatPage() {
 
     // 페이지 입장 시 세션 생성 요청 (스프링 서버에서 세션 생성 후 sessionId, userId 반환)
     useEffect(() => {
+      const storedSessionId = localStorage.getItem("sessionId");
+      const storedUserId = localStorage.getItem("userId");
+  
+      if (storedSessionId && storedUserId) {
+        setSessionId(storedSessionId);
+        setUserId(storedUserId);
+        return; // 기존 세션이 있으면 API 호출하지 않음
+      }
+  
       const createSession = async () => {
         try {
-          const response = await fetch("http://localhost:8080/api/v1/chat/session/enter", {  // 스프링에 세션 생성 요청
+          const response = await fetch("http://localhost:8080/api/v1/chat/session/enter", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ botId: id }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ botId }),
             credentials: "include",
           });
-          if (!response.ok) {
-            throw new Error("세션 생성 실패");
-          }
-          const data = await response.json();
-          // data 객체에 sessionId와 userId가 포함되어 있다고 가정
+  
+          if (!response.ok) throw new Error("세션 생성 실패");
+  
+          const data: ChatSession = await response.json(); // ✅ API 응답 타입 적용
+  
           setSessionId(data.sessionId);
           setUserId(data.userId);
+  
+          // ✅ localStorage에 저장 (새로고침해도 유지됨)
+          localStorage.setItem("sessionId", data.sessionId);
+          localStorage.setItem("userId", data.userId);
         } catch (error) {
           console.error("세션 생성 에러:", error);
         }
       };
-      
-      setTimeout(()=>createSession(), 1000);
-    }, []); // 컴포넌트가 마운트될 때 단 한 번 실행
+  
+      createSession();
+    }, [botId]); // ✅ botId가 변경될 때만 실행
 
   const sendMessage = async (card?: string | React.MouseEvent) => {
     let message = "";
@@ -90,6 +107,8 @@ export default function ChatPage() {
             // userInput: message, // Spring
             session_id: sessionId,
             user_input: message,
+            user_id: userId,
+            bot_id: botId,
             type: gotype
         }),
         // credentials: "include", // Spring
@@ -166,6 +185,42 @@ export default function ChatPage() {
     sendMessage(selectedCard); // 뽑은 카드 정보를 담아 요청
   };
 
+  // // ✅ 세션 종료 함수 - 백엔드 경유
+  // const endSession = async () => {
+  //   if (!sessionId) return;
+
+  //   try {
+  //     await fetch("http://localhost:8080/api/v1/chat/session/exit", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ sessionId }),
+  //       credentials: "include",
+  //     });
+
+  //     // ✅ localStorage에서 삭제
+  //     localStorage.removeItem("sessionId");
+  //     localStorage.removeItem("userId");
+
+  //     setSessionId("");
+  //     setUserId("");
+  //   } catch (error) {
+  //     console.error("세션 종료 에러:", error);
+  //   }
+  // };
+
+  // // ✅ 페이지 떠날 때 세션 자동 종료
+  // useEffect(() => {
+  //   const handleBeforeUnload = () => {
+  //     // endSession(); // Spring과 연결
+  //     handleEndChat(); // FastAPI와 연결
+  //   };
+
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
+  //   return () => {
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, [sessionId]);
+
   // 상담 종료하기 버튼 클릭 핸들러
   const handleEndChat = async () => {
     try {
@@ -174,7 +229,7 @@ export default function ChatPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId }), // 사용자 ID 전송
+        body: JSON.stringify({ sessionId }), // 세션 ID 전송
       });
 
       if (!response.ok) {
@@ -184,8 +239,15 @@ export default function ChatPage() {
       const data = await response.json();
       console.log(data.message); // 성공 메시지 출력
 
+      // ✅ localStorage에서 삭제
+      localStorage.removeItem("sessionId");
+      localStorage.removeItem("userId");
+
+      setSessionId("");
+      setUserId("");
+
       // 상담 종료 후 처리 (예: 홈 화면으로 이동)
-      alert("상담이 종료되었습니다.");
+      alert("디버그:: 상담이 종료되었습니다.");
       router.push("/home"); // 홈 페이지로 리다이렉트
     } catch (error) {
       console.error("Error closing chat session:", error);

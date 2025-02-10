@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Calendar } from "lucide-react";
+import { API_URLS } from "@/config/api";
+import Image from "next/image"; // ✅ next/image 추가
 
 interface DayInfo {
   day: number;
@@ -27,71 +29,56 @@ export default function CalendarPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch calendar data for the current month
-  const fetchCalendarData = async (year: number, month: number) => {
+  const fetchCalendarData = useCallback(async (year: number, month: number) => {
     try {
       setIsLoading(true);
-
-      const response = await fetch(
-        `http://localhost:8080/api/v1/diary/calendar?year=${year}&month=${month + 1}`,
-        {
-          method: "GET",
-          credentials: "include", // HttpOnly 쿠키 포함
-        }
-      );
-
+      const response = await fetch(API_URLS.CALENDAR.MONTHLY(year, month + 1), {
+        method: "GET",
+        credentials: "include",
+      });
+  
       if (!response.ok) {
         throw new Error("Failed to fetch calendar data");
       }
-
+  
       const data = await response.json();
-      setDaysInfo(data.days); // Update days info
+      setDaysInfo(data.days);
     } catch (error) {
       console.error("Error fetching calendar data:", error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Fetch tarot data for the selected date
-  const fetchTarotData = async (date: Date) => {
+  }, []);
+  
+  const fetchTarotData = useCallback(async (date: Date) => {
     try {
       setIsLoading(true);
-      // const formattedDate = date.toISOString().split("T")[0]; // Format date as YYYY-MM-DD
-      // UTC 시간대 문제로 인해 수정
-      const localDate = new Date(date.getTime() + 9 * 60 * 60 * 1000); // UTC+9 보정
+      const localDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
       const formattedDate = localDate.toISOString().split("T")[0];
-
-
-      const response = await fetch(`http://localhost:8080/api/v1/diary/${formattedDate}`, {
+  
+      const response = await fetch(API_URLS.CALENDAR.SUMMARY(formattedDate), {
         method: "GET",
-        credentials: "include", // HttpOnly 쿠키 포함
+        credentials: "include",
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to fetch tarot data");
       }
-
+  
       const data: TarotSummary | null = await response.json();
-      // setTarotData(data); // Update tarot data
-       // 🔹 API 응답이 배열이므로 첫 번째 요소를 가져오기
-      if (Array.isArray(data) && data.length > 0) {
-        setTarotData(data[0]); // 첫 번째 아이템 사용
-      } else {
-        setTarotData(null); // 데이터가 없을 경우 처리
-      }
+      setTarotData(Array.isArray(data) && data.length > 0 ? data[0] : null);
     } catch (error) {
       console.error("Error fetching tarot data:", error);
-      setTarotData(null); // No data available
+      setTarotData(null);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Fetch calendar and tarot data on initial render or when currentDate changes
+  }, []);
+  
   useEffect(() => {
     fetchCalendarData(currentDate.getFullYear(), currentDate.getMonth());
     fetchTarotData(selectedDate);
-  }, [currentDate, selectedDate]);
+  }, [fetchCalendarData, fetchTarotData, currentDate, selectedDate]);  // ✅ 수정 완료
 
   // Get current month's days and adjust for Monday start
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -143,7 +130,7 @@ export default function CalendarPage() {
           <Button variant="ghost" onClick={handlePreviousMonth}>
             ←
           </Button>
-          <h2 className="text-lg font-bold">
+          <h2 className="font-calendar-title">
             {currentDate.toLocaleString("default", { year: "numeric" })}{" "}
             {currentDate.toLocaleString("default", { month: "long" })}
           </h2>
@@ -250,10 +237,12 @@ export default function CalendarPage() {
                   </div>
 
                   {/* 우측: 카드 이미지 */}
-                  <img
+                  <Image
                     src={tarotData.cardImageUrl}
                     alt={tarotData.title}
-                    className="w-[140px] h-[210px] object-cover rounded-lg shadow-md"
+                    width={140}  // ✅ 반드시 명시해야 함
+                    height={210} // ✅ 반드시 명시해야 함
+                    className="object-cover rounded-lg shadow-md"
                   />
                 </>
               ) : (

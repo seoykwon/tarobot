@@ -59,6 +59,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { toast } from "sonner";
+import Image from "next/image"; // ✅ next/image 추가
 
 type MemoryCard = {
   id: number;
@@ -185,11 +186,13 @@ export default function MemoryGame() {
                     exit={{ opacity: 0, rotateY: 180 }}
                     className="absolute inset-0 flex items-center justify-center backface-hidden"
                   >
-                    <img
-                      src={card.image}
-                      alt={`Card ${index}`}
-                      className="w-full h-full object-contain"
-                    />
+                  <Image
+                    src={card.image}
+                    alt={`Card ${index}`}
+                    width={100} // ✅ 반드시 지정해야 함
+                    height={100} // ✅ 반드시 지정해야 함
+                    className="w-full h-full object-contain"
+                  />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -197,9 +200,11 @@ export default function MemoryGame() {
               {/* 카드 뒷면 */}
               {!(card.isMatched || flippedIndexes.includes(index)) && (
                 <div className="absolute inset-0 flex items-center justify-center backface-hidden">
-                  <img
-                    src="/card-back-celestial.svg" // 여기에 카드 뒷면 이미지 경로를 추가
+                  <Image
+                    src="/card-back-celestial.svg"
                     alt="Card Back"
+                    width={100}
+                    height={100}
                     className="w-full h-full object-contain"
                   />
                 </div>

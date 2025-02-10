@@ -1,199 +1,211 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState } from "react"
+import { API_URLS } from "@/config/api"
+import { Card } from "@/components/ui/Card"
 
-// 댓글 인터페이스
 interface Comment {
-  commentId: number;
-  author: string;
-  content: string;
-  createdAt: string;
-  likes: number;      // 댓글 좋아요 수
-  isLiked: boolean;   // 내가 댓글에 좋아요를 눌렀는지 여부
+  id: number
+  content: string
+  postId: number
+  userId: string
+  likeCount: number
+  createdAt: string
+  updatedAt: string
 }
 
-// 게시글 세부 정보 인터페이스
 interface PostDetails {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  date: string;
-  likes: number;      // 게시글 좋아요 수
-  isLiked: boolean;   // 내가 게시글에 좋아요를 눌렀는지 여부
-  comments: Comment[];
+  id: number
+  title: string
+  content: string
+  imageUrl: string
+  userId: string
+  viewCount: number
+  commentCount: number
+  likeCount: number
+  createdAt: string
+  updatedAt: string
+  comments?: Comment[]
 }
 
-// 댓글 작성 API 호출 함수
-async function postComment(articleId: string, commentContent: string): Promise<Comment | null> {
+async function checkPostLikeStatus(postId: string): Promise<boolean> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${articleId}/comments`, {
+    const res = await fetch(API_URLS.POSTS.IS_LIKED(postId), {
+      method: "GET",
+    })
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch like status")
+    }
+
+    const { liked }: { liked: boolean } = await res.json()
+    return liked
+  } catch (error) {
+    console.error("Error checking post like status:", error)
+    return false
+  }
+}
+
+async function togglePostLike(postId: string): Promise<{ isLiked: boolean; likeCount: number } | null> {
+  try {
+    const liked = await checkPostLikeStatus(postId)
+    const res = await fetch(API_URLS.POSTS.LIKE(postId), {
+      method: liked ? "DELETE" : "POST",
+    })
+
+    if (!res.ok) {
+      throw new Error("Failed to toggle post like")
+    }
+    return await res.json()
+  } catch (error) {
+    console.error("Error toggling post like:", error)
+    return null
+  }
+}
+
+async function postComment(postId: string, commentContent: string): Promise<Comment | null> {
+  try {
+    const res = await fetch(API_URLS.COMMENTS.CREATE_COMMENT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content: commentContent }),
-    });
+      body: JSON.stringify({ content: commentContent, postId }),
+    })
 
-    if (!res.ok) throw new Error("Failed to post comment");
+    if (!res.ok) throw new Error("Failed to post comment")
 
-    return await res.json();
+    return await res.json()
   } catch (error) {
-    console.error("Error posting comment:", error);
-    return null;
+    console.error("Error posting comment:", error)
+    return null
   }
 }
 
-// 게시글 좋아요 토글 API 호출 함수
-async function togglePostLike(articleId: string, liked: boolean): Promise<{ isLiked: boolean, likes: number } | null> {
+async function checkCommentLikeStatus(commentId: string): Promise<boolean> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${articleId}/likes`, {
-      method: liked ? "DELETE" : "POST",
-    });
-    if (!res.ok) throw new Error("Failed to toggle post like");
+    const res = await fetch(API_URLS.COMMENTS.IS_LIKED(commentId), {
+      method: "GET",
+    })
 
-    return await res.json();
+    if (!res.ok) {
+      throw new Error("Failed to fetch like status")
+    }
+
+    const { liked }: { liked: boolean } = await res.json()
+    return liked
   } catch (error) {
-    console.error("Error toggling post like:", error);
-    return null;
+    console.error("Error checking comment like status:", error)
+    return false
   }
 }
 
-// 댓글 좋아요 토글 API 호출 함수
-async function toggleCommentLike(articleId: string, commentId: number, liked: boolean): Promise<{ isLiked: boolean, likes: number } | null> {
+async function toggleCommentLike(commentId: string): Promise<{ isLiked: boolean; likeCount: number } | null> {
   try {
-    const res = await fetch(`http://localhost:8080/community/articles/${articleId}/comments/${commentId}/likes`, {
+    const liked = await checkCommentLikeStatus(commentId)
+    const res = await fetch(API_URLS.COMMENTS.LIKE_COMMENT(commentId), {
       method: liked ? "DELETE" : "POST",
-    });
-    if (!res.ok) throw new Error("Failed to toggle comment like");
+    })
 
-    return await res.json();
+    if (!res.ok) {
+      throw new Error("Failed to toggle comment like")
+    }
+    return await res.json()
   } catch (error) {
-    console.error("Error toggling comment like:", error);
-    return null;
+    console.error("Error toggling comment like:", error)
+    return null
   }
 }
 
 export default function PostDetailsClient({ post }: { post: PostDetails }) {
-  const [comments, setComments] = useState<Comment[]>(post.comments);
-  const [newComment, setNewComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likeCount)
+  const [isPostLiked, setIsPostLiked] = useState(false)
+  const [comments, setComments] = useState<Comment[]>(post.comments || [])
+  const [commentLikes, setCommentLikes] = useState<Record<number, { count: number; isLiked: boolean }>>(
+    Object.fromEntries(
+      (post.comments || []).map((c) => [c.id, { count: c.likeCount, isLiked: false }]),
+    ),
+  )
+  const [newComment, setNewComment] = useState("")
 
-  const [postLikeCount, setPostLikeCount] = useState(post.likes);
-  const [isPostLiked, setIsPostLiked] = useState(post.isLiked);
-
-  const handleCommentSubmit = async () => {
-    if (!newComment.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      const addedComment = await postComment(post.id, newComment);
-      if (addedComment) {
-        setComments((prev) => [...prev, addedComment]); // 새로운 댓글 추가
-        setNewComment(""); // 입력 필드 초기화
-      }
-    } catch {
-      alert("댓글 작성 중 오류가 발생했습니다.");
-    } finally {
-      setIsSubmitting(false);
+  const handlePostLike = async () => {
+    const result = await togglePostLike(post.id.toString())
+    if (result) {
+      setLikeCount(result.likeCount)
+      setIsPostLiked(result.isLiked)
     }
-  };
+  }
 
-  // 게시글 좋아요 버튼 클릭 이벤트 처리
-  const handlePostLikeToggle = async () => {
-    const res = await togglePostLike(post.id, isPostLiked);
-    if (res) {
-      setIsPostLiked(res.isLiked);
-      setPostLikeCount(res.likes);
-    } else {
-      alert("게시글 좋아요 처리 중 오류가 발생했습니다.");
+  const handleCommentLike = async (commentId: number) => {
+    const result = await toggleCommentLike(commentId.toString())
+    if (result) {
+      setCommentLikes((prev) => ({
+        ...prev,
+        [commentId]: { count: result.likeCount, isLiked: result.isLiked },
+      }))
     }
-  };
+  }
 
-  // 댓글 좋아요 버튼 클릭 이벤트 처리
-  const handleCommentLikeToggle = async (commentId: number) => {
-    const targetComment = comments.find((c) => c.commentId === commentId);
-    if (!targetComment) return;
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return
 
-    const res = await toggleCommentLike(post.id, commentId, targetComment.isLiked);
-    if (res) {
-      setComments((prev) =>
-        prev.map((c) =>
-          c.commentId === commentId ? { ...c, isLiked: res.isLiked, likes: res.likes } : c
-        )
-      );
-    } else {
-      alert("댓글 좋아요 처리 중 오류가 발생했습니다.");
+    const result = await postComment(post.id.toString(), newComment.trim())
+    if (result) {
+      setComments((prev) => [...prev, result])
+      setNewComment("")
+      setCommentLikes((prev) => ({
+        ...prev,
+        [result.id]: { count: result.likeCount, isLiked: false },
+      }))
     }
-  };
+  }
 
   return (
-    <main className="min-h-screen bg-gray-900 p-4">
-      {/* 게시글 정보 */}
-      <section className="bg-gray-800 p-6 rounded-lg mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="font-tarobot-title text-xl">{post.title}</h1>
-            <p className="font-article-author text-sm text-muted-foreground">
-              By {post.author} • {post.date}
-            </p>
-          </div>
-          <button
-            onClick={handlePostLikeToggle}
-            className="px-4 py-2 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
-          >
-            {isPostLiked ? "좋아요 취소" : "좋아요"} ({postLikeCount})
-          </button>
+    <div className="max-w-3xl mx-auto p-4 space-y-4">
+      <Card className="p-6">
+        <h1 className="text-2xl font-bold mb-2">{post.title}</h1>
+        <div className="text-sm text-gray-500 mb-4">
+          작성자: {post.userId} | 작성일: {new Date(post.createdAt).toLocaleDateString()}
         </div>
-        <p className="font-tarobot-description mt-4">{post.content}</p>
-      </section>
+        <p className="mb-4 whitespace-pre-wrap">{post.content}</p>
+        <button onClick={handlePostLike} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          {isPostLiked ? "❤️" : "🤍"} 좋아요 {likeCount}
+        </button>
+      </Card>
 
-      {/* 댓글 섹션 */}
-      <section className="bg-gray-800 p-6 rounded-lg">
-        <h2 className="font-tarobot-title text-lg mb-4">댓글</h2>
-        {comments.length > 0 ? (
-          <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.commentId} className="bg-gray-700 p-4 rounded-lg">
-                <p className="font-semibold text-sm">{comment.author}</p>
-                <p className="text-sm text-muted-foreground">{comment.content}</p>
-                <p className="text-xs text-muted-foreground mt-2">{comment.createdAt}</p>
+      <Card className="p-6">
+        <h2 className="text-xl font-bold mb-4">댓글</h2>
+        <div className="space-y-4">
+          {comments.map((comment) => (
+            <div key={comment.id} className="border-b pb-4">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-sm text-gray-500">
+                  {comment.userId} | {new Date(comment.createdAt).toLocaleDateString()}
+                </div>
                 <button
-                  onClick={() => handleCommentLikeToggle(comment.commentId)}
-                  className="mt-2 px-3 py-1 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-600 text-white text-xs"
+                  onClick={() => handleCommentLike(comment.id)}
+                  className="flex items-center space-x-1 px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm"
                 >
-                  {comment.isLiked ? "좋아요 취소" : "좋아요"} ({comment.likes})
+                  <span>{commentLikes[comment.id]?.isLiked ? "❤️" : "🤍"}</span>
+                  <span>{commentLikes[comment.id]?.count}</span>
                 </button>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground">댓글이 없습니다.</p>
-        )}
-
-        {/* 댓글 작성 폼 */}
-        <div className="mt-6">
+              <p>{comment.content}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="댓글을 입력하세요..."
-            className="w-full p-2 rounded-lg bg-gray-700 text-white"
-            rows={3}
-            disabled={isSubmitting}
+            placeholder="댓글을 입력하세요"
+            className="w-full p-2 border rounded"
           />
-          <button
-            onClick={handleCommentSubmit}
-            disabled={isSubmitting || !newComment.trim()}
-            className={`mt-2 px-4 py-2 rounded-lg ${
-              isSubmitting || !newComment.trim()
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
-            }`}
-          >
-            {isSubmitting ? "작성 중..." : "댓글 작성"}
+          <button onClick={handleAddComment} className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+            댓글 작성하기
           </button>
         </div>
-      </section>
-    </main>
-  );
+      </Card>
+    </div>
+  )
 }

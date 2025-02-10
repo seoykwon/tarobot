@@ -2,9 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { API_URLS } from "@/config/api";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import InputField from "@/components/InputField"; // 재사용 가능한 InputField 컴포넌트
+import InputField from "@/components/InputField";
 
 // 폼 데이터 타입 정의
 type SignupFormData = {
@@ -31,11 +32,21 @@ export default function SignupPage() {
   // 폼 제출 처리
   const onSubmit = async (data: SignupFormData) => {
     try {
-      // 실제 API 호출 대신 임시 지연
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(API_URLS.AUTH.SIGNUP, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-      // 회원가입 성공 후 로그인 페이지로 이동
-      router.push("/auth/login");
+      if (response.status === 200) {
+        alert("회원가입이 완료되었습니다.");
+        router.push("/auth/login");
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "회원가입에 실패하였습니다.");
+      }
     } catch (error) {
       console.error("Signup failed:", error);
     }
@@ -54,7 +65,7 @@ export default function SignupPage() {
             <InputField
               id="name"
               label="이름"
-              placeholder="홍길동"
+              placeholder="타로봇"
               registration={register("name", {
                 required: "이름을 입력해주세요",
               })}
@@ -66,7 +77,7 @@ export default function SignupPage() {
               id="email"
               label="이메일"
               type="email"
-              placeholder="name@example.com"
+              placeholder="tarot@example.com"
               registration={register("email", {
                 required: "이메일을 입력해주세요",
                 pattern: {
