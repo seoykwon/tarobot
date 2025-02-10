@@ -49,4 +49,13 @@ public class CommentLikeServiceImpl implements CommentLikeService {
         Optional<CommentLike> likeOpt = commentLikeRepository.findByCommentAndUser(comment, currentUser);
         likeOpt.ifPresent(commentLikeRepository::delete);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isCommentLiked(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
+        User currentUser = securityUtil.getCurrentUser();
+        return commentLikeRepository.findByCommentAndUser(comment, currentUser).isPresent();
+    }
 }
