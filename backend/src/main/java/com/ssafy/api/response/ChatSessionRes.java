@@ -15,18 +15,22 @@ import java.util.UUID;
 @Schema(description = "ChatSession Response")
 public class ChatSessionRes {
 
-    @Schema(description = "技记 ID", example = "UUID")
+    @Schema(description = "靹胳厴 ID", example = "UUID")
     private UUID sessionId;
 
-    @Schema(description = "技记 惑怕", example = "ACTIVATE")
+    @Schema(description = "鞙犾爛 ID", example = "ssafy@naver.com")
+    private String userId;
+
+    @Schema(description = "靹胳厴 靸來儨", example = "ACTIVATE")
     private String status;
 
-    @Schema(description = "积己 矫埃", example = "2025-01-23T12:00:00")
+    @Schema(description = "靸濎劚 鞁滉皠", example = "2025-01-23T12:00:00")
     private LocalDateTime createdAt;
 
     public static ChatSessionRes of(ChatSession chatSession) {
         ChatSessionRes res = new ChatSessionRes();
         res.setSessionId(chatSession.getSessionId());
+        res.setUserId(chatSession.getUserId());
         res.setStatus(chatSession.getStatus());
         res.setCreatedAt(chatSession.getCreatedAt());
         return res;

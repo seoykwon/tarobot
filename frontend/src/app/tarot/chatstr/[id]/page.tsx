@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import CardSelector from "@/app/chat_test/card-selector";
 import Image from "next/image";
 import { tarotCards } from "@/utils/tarotCards";
+import { useParams } from "next/navigation";
 
 export default function ChatPage() {
   const router = useRouter();
+  const { id } = useParams();
 
   type MessageType = {
     sender: string;
@@ -24,14 +26,38 @@ export default function ChatPage() {
   const [chatType, setChatType] = useState("none"); // 대화 타입 상태 추가
   const [showTarotButton, setShowTarotButton] = useState(false); // 버튼 표시 여부
   const [showCardSelector, setShowCardSelector] = useState(false); // 카드 선택창 표시
-  
-  const [sessionId, setSessionId] = useState("c77cc092-5b83-4a79-a16d-a675bc9136e3"); // 세션 아이디 설정
+
+  const [userId, setUserId] = useState(""); // 유저 아이디
+  const [sessionId, setSessionId] = useState(""); // 세션 아이디 설정
 
   const chatContainerRef = useRef<HTMLDivElement>(null); // 스크롤 컨트롤을 위한 Ref
 
-  // const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
-  // const sessionId = "ondal207"; // 테스트용 세션 id
-  const userId = 123; // 예시 사용자 ID (실제 사용자 ID를 받아와야 함)
+    // 페이지 입장 시 세션 생성 요청 (스프링 서버에서 세션 생성 후 sessionId, userId 반환)
+    useEffect(() => {
+      const createSession = async () => {
+        try {
+          const response = await fetch("http://localhost:8080/api/v1/chat/session/enter", {  // 스프링에 세션 생성 요청
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ botId: id }),
+            credentials: "include",
+          });
+          if (!response.ok) {
+            throw new Error("세션 생성 실패");
+          }
+          const data = await response.json();
+          // data 객체에 sessionId와 userId가 포함되어 있다고 가정
+          setSessionId(data.sessionId);
+          setUserId(data.userId);
+        } catch (error) {
+          console.error("세션 생성 에러:", error);
+        }
+      };
+      
+      setTimeout(()=>createSession(), 1000);
+    }, []); // 컴포넌트가 마운트될 때 단 한 번 실행
 
   const sendMessage = async (card?: string | React.MouseEvent) => {
     let message = "";
@@ -52,17 +78,6 @@ export default function ChatPage() {
     setShowTarotButton(false);
   
     try {
-      // const queryParams = new URLSearchParams({
-      //   session_id: sessionId,
-      //   user_input: message,
-      //   type: gotype,
-      // }).toString();
-  
-      // const response = await fetch(`http://127.0.0.1:8000/chat/stream?${queryParams}`, {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      // });
-
       // ✅ JSON Body로 요청 전송 (쿼리 파라미터 제거)
       const response = await fetch("http://127.0.0.1:8000/chat/stream", {
       // const response = await fetch("http://127.0.0.1:8080/api/v1/chat/stream", { // Spring

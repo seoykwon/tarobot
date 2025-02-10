@@ -65,7 +65,8 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않음 (JWT 기반 인증)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/users/me", "/api/v1/user-profiles/me").authenticated() // 인증이 필요한 URL 설정
+                        .requestMatchers("/api/v1/users/me", "/api/v1/user-profiles/me",
+                                "/api/v1/chat/*").authenticated() // 인증이 필요한 URL 설정
                         .anyRequest().permitAll()                           // 나머지 요청은 모두 허용
                 )
                 .authenticationProvider(authenticationProvider()) // Authentication Provider 등록

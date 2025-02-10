@@ -18,12 +18,12 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 
     private final SecurityUtil securityUtil;
 
-    // Ã¤ÆÃ¹æ ÀÔÀå ½Ã ¼¼¼Ç »ı¼º (»ı¼º½Ã°£Àº @CreationTimestamp°¡ ÀÚµ¿ ÇÒ´ç)
+    // ì±„íŒ…ë°© ì…ì¥ ì‹œ ì„¸ì…˜ ìƒì„± (ìƒì„±ì‹œê°„ì€ @CreationTimestampê°€ ìë™ í• ë‹¹)
     @Override
     public ChatSession createChatSession(Long botId) {
         ChatSession session = new ChatSession();
 
-        // ÀÎÁõ °´Ã¼·Î ºÎÅÍ À¯Àú¸¦ ºÒ·¯¿Í Id ÀÔ·Â
+        // ì¸ì¦ ê°ì²´ë¡œ ë¶€í„° ìœ ì €ë¥¼ ë¶ˆëŸ¬ì™€ Id ì…ë ¥
         User currentUser = securityUtil.getCurrentUser();
 
         session.setUserId(currentUser.getUserId());
@@ -32,13 +32,13 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         return chatSessionRepository.save(session);
     }
 
-    // ¼¼¼Ç ID·Î Á¶È¸
+    // ì„¸ì…˜ IDë¡œ ì¡°íšŒ
     @Override
     public ChatSession findBySessionId(UUID sessionId) {
         return chatSessionRepository.findById(sessionId).orElse(null);
     }
 
-    // ÀúÀå ½Ã updatedAt ½ºÅÆÇÁ°¡ ÀÚµ¿ ¾÷µ¥ÀÌÆ® µÊ
+    // ì €ì¥ ì‹œ updatedAt ìŠ¤íƒ¬í”„ê°€ ìë™ ì—…ë°ì´íŠ¸ ë¨
     @Override
     public void updateLastAccessed(ChatSession session) {
         chatSessionRepository.save(session);
@@ -48,7 +48,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     @Transactional
     public void deleteChatSession(UUID sessionId) {
         ChatSession chatSession = chatSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("¼¼¼ÇÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù."));
+                .orElseThrow(() -> new IllegalArgumentException("ì„¸ì…˜ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."));
         chatSession.setStatus("CLOSED");
         chatSessionRepository.save(chatSession);
     }
