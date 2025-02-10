@@ -31,7 +31,7 @@ public class PostLikeServiceImpl implements PostLikeService {
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
         User currentUser = securityUtil.getCurrentUser();
 
-        // 이미 좋아요 한 내역이 있으면(중복 좋아요) 아무 작업도 하지 않도록 함
+        // 이미 좋아요 한 경우 추가 작업 없이 종료
         Optional<PostLike> likeOpt = postLikeRepository.findByPostAndUser(post, currentUser);
         if (likeOpt.isPresent()){
             return;
@@ -60,5 +60,14 @@ public class PostLikeServiceImpl implements PostLikeService {
             post.setLikeCount(post.getLikeCount() - 1);
             postRepository.save(post);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isPostLiked(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        User currentUser = securityUtil.getCurrentUser();
+        return postLikeRepository.findByPostAndUser(post, currentUser).isPresent();
     }
 }

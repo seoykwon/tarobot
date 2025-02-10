@@ -86,4 +86,13 @@ public class CommentController {
         commentLikeService.unlikeComment(commentId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "댓글 좋아요 상태 조회",
+            description = "현재 로그인한 사용자가 해당 댓글에 대해 좋아요를 눌렀는지 여부를 반환합니다. (true: 좋아요 있음, false: 좋아요 없음)")
+    @GetMapping("/{commentId}/like")
+    public ResponseEntity<Boolean> getCommentLikeStatus(@PathVariable Long commentId) {
+        boolean isLiked = commentLikeService.isCommentLiked(commentId);
+        return ResponseEntity.ok(isLiked);
+    }
+
 }

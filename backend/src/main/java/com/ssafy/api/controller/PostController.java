@@ -114,6 +114,18 @@ public class PostController {
     }
 
     // ---------------------------------------
+    // 게시글 좋아요 상태 조회
+    // ---------------------------------------
+    @GetMapping("/{postId}/like")
+    @Operation(summary = "게시글 좋아요 상태 조회",
+            description = "현재 로그인한 사용자가 해당 게시글에 대해 좋아요를 눌렀는지 여부를 반환합니다. (true: 좋아요 있음, false: 좋아요 없음)")
+    public ResponseEntity<Boolean> getLikeStatus(@PathVariable Long postId) {
+        boolean isLiked = postLikeService.isPostLiked(postId);
+        return ResponseEntity.ok(isLiked);
+    }
+
+
+    // ---------------------------------------
     // 게시글 수정 (제목 및 이미지)
     // ---------------------------------------
     @PutMapping("/{postId}")
