@@ -173,6 +173,9 @@ plugins {
 //  implementation("io.springfox:springfox-bean-validators:3.0.0")
         // oauth2
         implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+        //webflux
+        implementation 'org.springframework.boot:spring-boot-starter-webflux'
     }
 
 //sourceSets {

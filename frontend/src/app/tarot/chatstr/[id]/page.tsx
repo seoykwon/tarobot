@@ -24,11 +24,13 @@ export default function ChatPage() {
   const [chatType, setChatType] = useState("none"); // 대화 타입 상태 추가
   const [showTarotButton, setShowTarotButton] = useState(false); // 버튼 표시 여부
   const [showCardSelector, setShowCardSelector] = useState(false); // 카드 선택창 표시
+  
+  const [sessionId, setSessionId] = useState("c77cc092-5b83-4a79-a16d-a675bc9136e3"); // 세션 아이디 설정
 
   const chatContainerRef = useRef<HTMLDivElement>(null); // 스크롤 컨트롤을 위한 Ref
 
   // const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
-  const sessionId = "ondal207"; // 테스트용 세션 id
+  // const sessionId = "ondal207"; // 테스트용 세션 id
   const userId = 123; // 예시 사용자 ID (실제 사용자 ID를 받아와야 함)
 
   const sendMessage = async (card?: string | React.MouseEvent) => {
@@ -50,16 +52,33 @@ export default function ChatPage() {
     setShowTarotButton(false);
   
     try {
-      const queryParams = new URLSearchParams({
-        session_id: sessionId,
-        user_input: message,
-        type: gotype,
-      }).toString();
+      // const queryParams = new URLSearchParams({
+      //   session_id: sessionId,
+      //   user_input: message,
+      //   type: gotype,
+      // }).toString();
   
-      const response = await fetch(`http://127.0.0.1:8000/chat/stream?${queryParams}`, {
+      // const response = await fetch(`http://127.0.0.1:8000/chat/stream?${queryParams}`, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      // });
+
+      // ✅ JSON Body로 요청 전송 (쿼리 파라미터 제거)
+      const response = await fetch("http://127.0.0.1:8000/chat/stream", {
+      // const response = await fetch("http://127.0.0.1:8080/api/v1/chat/stream", { // Spring
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+        headers: { 
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            // sessionId: sessionId, // Spring
+            // userInput: message, // Spring
+            session_id: sessionId,
+            user_input: message,
+            type: gotype
+        }),
+        // credentials: "include", // Spring
+    });
   
       const chatTag = response.headers.get("ChatTag") || "none";
       setChatType(chatTag);

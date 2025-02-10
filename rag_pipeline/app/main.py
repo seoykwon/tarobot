@@ -19,7 +19,7 @@ redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # credential 설정과 같이 쓸 경우 규정 위반이라 무시됩니다.
     allow_credentials=True,
     allow_methods=["*"],   # GET, POST, PUT, DELETE 등
     allow_headers=["*"],   # Authorization, Content-Type 등
@@ -110,8 +110,16 @@ def create_session(custom_session_id: str = None):
 class TokenRequest(BaseModel):
     session_id: str
 
+class ChatRequest(BaseModel):
+    session_id: str
+    user_input: str
+    type: str
+
 class ChatResponse(BaseModel):
     answer: str
+
+class CloseChatRequest(BaseModel):
+    userId: int
 
 @app.post("/openvidu/connections")
 def create_connection(body: TokenRequest):
@@ -119,12 +127,6 @@ def create_connection(body: TokenRequest):
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id is required")
     return create_openvidu_connection(session_id)
-
-# 기존 엔드포인트
-
-class CloseChatRequest(BaseModel):
-    userId: int
-
 
 @app.get("/", tags=["Health Check"])
 async def read_root():
@@ -143,18 +145,21 @@ async def chat(request: CloseChatRequest):
     return {"message": f"userId: {request.userId}의 상담이 종료되었습니다."}
 
 @app.post("/chat/stream")
-async def chat_stream(session_id: str, user_input: str, type: str =""):
+async def chat_stream(request: ChatRequest): # Json body 형태로 변환
     """
     OpenAI API의 Streaming 응답을 제공하는 엔드포인트
     """
     try:
         # ✅ 기존 비동기 입력 처리 로직 활용
         # chat_tag를 여기서 받아서 리턴해야해서 여기서 전처리를 실행함
-        context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input, type)
+        context, keywords, user_id, chat_tag = await process_user_input(
+            request.session_id, request.user_input, request.type
+        )
 
         # ✅ StreamingResponse로 실시간 응답 제공
         return StreamingResponse(
-            response_generator(session_id, user_input, context, keywords=keywords, user_id=user_id, type=type, chat_tag=chat_tag),
+            response_generator(request.session_id, request.user_input, context, 
+                               keywords=keywords, user_id=user_id, type=request.type, chat_tag=chat_tag),
             media_type="text/plain",
             headers={"ChatTag": chat_tag}  # ✅ chatTag를 헤더에 포함
         )
