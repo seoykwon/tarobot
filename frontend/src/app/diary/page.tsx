@@ -32,7 +32,7 @@ export default function CalendarPage() {
     try {
       setIsLoading(true);
 
-      const response = await fetch(API_URLS.CALENDAR(year, month + 1), {
+      const response = await fetch(API_URLS.CALENDAR.MONTHLY(year, month + 1), {
           method: "GET",
           credentials: "include", // HttpOnly 쿠키 포함
         }
@@ -61,7 +61,7 @@ export default function CalendarPage() {
       const formattedDate = localDate.toISOString().split("T")[0];
 
 
-      const response = await fetch(API_URLS.TAROT_SUMMARY(formattedDate), {
+      const response = await fetch(API_URLS.CALENDAR.SUMMARY(formattedDate), {
         method: "GET",
         credentials: "include", // HttpOnly 쿠키 포함
       });

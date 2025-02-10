@@ -12,7 +12,7 @@ interface Announcement {
 // 공지사항 API 호출 함수
 async function fetchAnnouncements(): Promise<Announcement[]> {
   try {
-    const response = await fetch(API_URLS.ANNOUNCEMENTS, {
+    const response = await fetch(API_URLS.NOTICES.LIST, {
       cache: "no-store",
     });
     if (!response.ok) {

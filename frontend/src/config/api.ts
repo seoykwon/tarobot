@@ -12,7 +12,7 @@ export const API_URLS = {
   },
   CHAT: {
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
-    STREAM: (sessionId: string, userInput: string, type: string) =>
+    STREAM: (sessionId: string, userInput: string, type?: string) =>
       `${FASTAPI_BASE_URL}/chat?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
     CLOSE: `${FASTAPI_BASE_URL}/chat/close`,
   },
@@ -21,25 +21,33 @@ export const API_URLS = {
     SAVE_RESULT: `/api/save-result`,
     CARD_IMAGE: (cardNumber: number) => `/basic/maj${cardNumber}.svg`,
   },
-  TAROBOTS: {
+  TAROTBOTS: {
     LIST: `${BASE_URL}/api/v1/tarot-bots`,
     DETAILS: (id: number) => `${BASE_URL}/api/v1/tarot-bots/${id}`,
   },
   POSTS: {
-    SEARCH: (query: string) => `${BASE_URL}/posts/search?query=${query}`,
-    SEARCH_POSTS: (type: "title" | "content", query: string, page: number) =>
-      `${BASE_URL}/api/v1/posts/search/${type}?q=${encodeURIComponent(query)}&page=${page}&pageSize=10`,
     LIST: (filter: string, page: number) =>
-      `${BASE_URL}/api/v1/posts?page=${page - 1}&size=10&sort=${filter}`,
-    DETAILS: (id: string) => `${BASE_URL}/v1/posts/${id}`,
-    CREATE: `${BASE_URL}/api/v1/posts`,
-    LIKE: (articleId: string) => `${BASE_URL}/community/articles/${articleId}/like`,
-    COMMENT: (articleId: string) => `${BASE_URL}/community/articles/${articleId}/comments`,
-    COMMENT_LIKE: (articleId: string, commentId: number) =>
-      `${BASE_URL}/community/articles/${articleId}/comments/${commentId}/like`,
+      `${BASE_URL}/api/v1/posts/search?page=${page - 1}&sort=${filter}`,    // GET - 필터 검색
+    SEARCH: (type: "title" | "content", query: string, page: number) =>     // GET - 제목/내용 검색
+      `${BASE_URL}/api/v1/posts/search/${type}?q=${encodeURIComponent(query)}&page=${page-1}`,
+    DETAIL: (postId: string) => `${BASE_URL}/api/v1/posts/${postId}`,      // GET - 게시글 상세 정보 조회
+    UPDATE: (postId: string) => `${BASE_URL}/api/v1/posts/${postId}`,      // PUT - 게시글 정보 수정, title, content, imageUrl 포함
+    DELETE: (postId: string) => `${BASE_URL}/api/v1/posts/${postId}`,      // DELETE - 게시글 삭제
+    CREATE: `${BASE_URL}/api/v1/posts`,     // POST - 게시글 생성, title, content, imageUrl 포함
+    IS_LIKED: (postId: string) => `${BASE_URL}/api/v1/posts/${postId}/like`, // GET - 게시글 좋아요 상태 확인
+    LIKE: (postId: string) => `${BASE_URL}/api/v1/posts/${postId}/like`,    // POST - 게시글 좋아요 추가, DELETE - 게시글 좋아요 취소
+  },
+  COMMENTS: {
+    UPDATE_COMMENT: (commentId: string) => `${BASE_URL}/api/v1/${commentId}`, // PUT - 댓글 수정
+    DELETE_COMMENT: (commentId: string) => `${BASE_URL}/api/v1/${commentId}`, // DELETE - 댓글 삭제 (비활성화 처리)
+    GET_COMMENTS: (postId: string) => `${BASE_URL}/api/v1/comments?postId=${postId}`, // GET - 댓글 조회
+    CREATE_COMMENT: `${BASE_URL}/api/v1/comments`, // POST - 댓글 등록, body에 content, postId 포함시켜 보내기
+    IS_LIKED: (commentId: string) => `${BASE_URL}/api/v1/${commentId}/like`, // GET - 댓글 좋아요 상태 확인
+    LIKE_COMMENT: (commentId: string) => `${BASE_URL}/api/v1/${commentId}/like`, // POST - 댓글 좋아요, DELETE - 댓글 좋아요 취소
+    GET_EDITABLE_COMMENT: (commentId: string) => `${BASE_URL}/api/v1/${commentId}/edit`, // GET - 댓글 수정용 데이터 조회
+    DELETE_PERMANENTLY: (commentId: string) => `${BASE_URL}/${commentId}/permanent`, // DELETE - 댓글 영구 삭제 (관리자 전용)
   },
   USER: {
-    PROFILE: `${BASE_URL}/user-profiles/me`,
     BY_ID: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,
     UPDATE: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,
     REVIEWS: (userId?: string) => userId ? `${BASE_URL}/api/review/${userId}` : `${BASE_URL}/api/review`,

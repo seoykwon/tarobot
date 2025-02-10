@@ -7,11 +7,8 @@ export async function GET(req: Request) {
   const query = searchParams.get("q");
 
   try {
-    // Spring Boot 검색 API 호출 (환경변수에서 가져오기)
-    const response = await fetch(API_URLS.SEARCH(query || ""), {
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await fetch(API_URLS.POSTS.SEARCH(query || ""), {
+      headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
