@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,13 +22,13 @@ public class ReviewRes {
     private Long tarotBotId;
 
     @Schema(description = "리뷰 내용", example = "매우 만족")
-    private String comment;
+    private String content;
 
     @Schema(description = "별점 (1~5)", example = "5")
     private int rating;
 
-    @Schema(description = "작성 날짜", example = "2025-01-20")
-    private LocalDate createdAt;
+    @Schema(description = "작성 날짜 (리뷰가 작성된 날짜)", example = "2025-01-20T12:34:56")
+    private LocalDateTime createdAt;
 
     public static ReviewRes of(Review review) {
         return new ReviewRes(
@@ -34,7 +36,10 @@ public class ReviewRes {
                 review.getTarotBot().getId(),
                 review.getContent(),
                 review.getRating(),
-                review.getDate()
+                review.getCreatedAt()
         );
     }
+//    public static List<ReviewRes> fromEntities(List<Review> reviews) {
+//        return reviews.stream().map(ReviewRes::of).toList();
+//    }
 }
