@@ -166,6 +166,12 @@ body {
   .font-size-20 {
     font-size: 20px;
   }
+  .font-calendar-title {
+    color: var(--text-color); /* 다크/라이트 모드에서 변경 */
+    font-family: var(--font-noto-sans);
+    font-size: 20px;
+    font-weight: bold;
+  }
   /* .content-wrapper {
     background: var(--background-gradient); /* 동일한 그라데이션 적용 
   } */

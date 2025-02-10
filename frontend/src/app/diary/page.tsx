@@ -142,7 +142,7 @@ export default function CalendarPage() {
           <Button variant="ghost" onClick={handlePreviousMonth}>
             ←
           </Button>
-          <h2 className="text-lg font-bold">
+          <h2 className="font-calendar-title">
             {currentDate.toLocaleString("default", { year: "numeric" })}{" "}
             {currentDate.toLocaleString("default", { month: "long" })}
           </h2>
