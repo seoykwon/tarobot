@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { OpenVidu, Session, Publisher, Subscriber } from "openvidu-browser";
 import Draggable from "react-draggable";
 import ChatComponent from "../ChatComponent";
@@ -13,56 +13,47 @@ const OPENVIDU_CONNECTIONS_URL = API_URLS.OPENVIDU.CONNECTIONS;
 export default function OpenviduCallPage() {
   // 동적 라우팅으로부터 sessionId 받아오기
   const params = useParams();
-  const sessionId = (params.sessionId as string);
+  const sessionId = params.sessionId as string;
 
-  // userName은 백엔드에서 받아오도록 하며, 실패할 경우 "imsi"를 사용
-  const [userName, setUserName] = useState("");
+  // 사용자 이름을 백엔드에서 받아오기
+  const [userName, setUserName] = useState("imsi");
   useEffect(() => {
     async function fetchUserName() {
       try {
-        // 예시 URL – 실제 상황에 맞게 수정하세요.
         const response = await fetch(API_URLS.USERNOW.PROFILE, {
           headers: { "Content-Type": "application/json" },
         });
-        if (!response.ok) {
-          throw new Error("Failed to fetch user profile");
-        }
+        if (!response.ok) throw new Error("Failed to fetch user profile");
+
         const data = await response.json();
-        if (data && data.name) {
-          setUserName(data.name);
-        } else {
-          setUserName("imsi");
-        }
+        setUserName(data?.name || "imsi");
       } catch (error) {
         console.error("Error fetching user name:", error);
-        setUserName("imsi");
       }
     }
     fetchUserName();
   }, []);
 
+  // OpenVidu 관련 상태
   const [session, setSession] = useState<Session | null>(null);
   const [publisher, setPublisher] = useState<Publisher | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const localVideoRef = useRef<HTMLDivElement>(null);
+  // useRef로 OpenVidu 인스턴스 보관
   const OVRef = useRef<OpenVidu | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
 
-  // 페이지 진입시 세션에 자동 연결 (이 페이지 자체가 세션 시작)
-  useEffect(() => {
-    joinSession();
-    return () => {
-      leaveSession();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const joinSession = async () => {
+  /**
+   * 세션 참가 함수 (joinSession)
+   * 의존성: sessionId, userName
+   */
+  const joinSession = useCallback(async () => {
     try {
+      // OpenVidu 인스턴스 초기화
       OVRef.current = new OpenVidu();
 
-      // 세션 생성(또는 재사용) 호출
+      // 1. 세션 생성(서버에 요청)
       const sessionResponse = await fetch(OPENVIDU_SESSIONS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,7 +61,7 @@ export default function OpenviduCallPage() {
       });
       const sessionData = await sessionResponse.json();
 
-      // 토큰 발급 요청
+      // 2. 토큰 발급
       const tokenResponse = await fetch(OPENVIDU_CONNECTIONS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,8 +69,10 @@ export default function OpenviduCallPage() {
       });
       const tokenData = await tokenResponse.json();
 
+      // 3. 세션 초기화
       const mySession = OVRef.current.initSession();
 
+      // 4. 스트림 생성/삭제 이벤트 등록
       mySession.on("streamCreated", (event) => {
         const subscriber = mySession.subscribe(event.stream, undefined);
         setSubscribers((prev) => [...prev, subscriber]);
@@ -95,48 +88,70 @@ export default function OpenviduCallPage() {
         );
       });
 
-      // userName은 이미 set되어 있을 것이며, fallback은 "imsi"
+      // 5. 세션 연결
       await mySession.connect(tokenData.token, { clientData: userName });
 
-      // 로컬 Publisher 생성 – 거울 모드 활성화
-      const myPublisher = OVRef.current.initPublisher(localVideoRef.current, {
+      // 6. 로컬 퍼블리셔 생성
+      const localPublisher = OVRef.current.initPublisher(undefined, {
         audioSource: undefined,
         videoSource: undefined,
         publishAudio: true,
         publishVideo: true,
         resolution: "640x480",
         frameRate: 30,
-        mirror: true, // 거울 모드 활성화
+        mirror: true,
         insertMode: "APPEND",
       });
 
-      myPublisher.on("videoElementCreated", (event) => {
+      // 퍼블리셔 비디오 스타일 적용
+      localPublisher.on("videoElementCreated", (event) => {
         event.element.style.width = "100%";
         event.element.style.height = "100%";
       });
 
-      await mySession.publish(myPublisher);
+      // 7. 퍼블리셔를 세션에 추가
+      await mySession.publish(localPublisher);
 
+      // 8. 상태 저장
       setSession(mySession);
-      setPublisher(myPublisher);
+      setPublisher(localPublisher);
     } catch (error) {
       console.error("Error joining session:", error);
     }
-  };
+  }, [sessionId, userName]);
 
-  const leaveSession = () => {
+  /**
+   * 세션 종료 함수 (leaveSession)
+   * 의존성: publisher, session
+   */
+  const leaveSession = useCallback(() => {
     if (publisher) {
+      // WebRTC 리소스 해제
       publisher.stream.disposeWebRtcPeer();
       publisher.stream.disposeMediaStream();
     }
     if (session) {
+      // 세션 연결 해제
       session.disconnect();
     }
+    // 컴포넌트 상태 초기화
     setSession(null);
     setPublisher(null);
     setSubscribers([]);
+    // OpenVidu 인스턴스 제거
     OVRef.current = null;
-  };
+  }, [publisher, session]);
+
+  /**
+   * 컴포넌트 마운트 시에는 joinSession, 언마운트 시에는 leaveSession
+   * 경고 해결: [joinSession, leaveSession]를 의존성 배열에 포함
+   */
+  useEffect(() => {
+    joinSession();
+    return () => {
+      leaveSession();
+    };
+  }, [joinSession, leaveSession]);
 
   return (
     <div className="p-4">
@@ -155,12 +170,12 @@ export default function OpenviduCallPage() {
         </div>
       </div>
 
-      {/* Chat Component */}
+      {/* 채팅 컴포넌트 */}
       <div className="w-1/3 h-full bg-white">
         <ChatComponent sessionId={sessionId} userName={userName} />
       </div>
 
-      {/* PIP 비디오 영역 */}
+      {/* PIP(Picture-in-Picture) 비디오 영역 */}
       <Draggable>
         <div
           onClick={() => setIsExpanded((prev) => !prev)}
@@ -169,11 +184,9 @@ export default function OpenviduCallPage() {
           }`}
         >
           <div className="flex w-full h-full">
-            {/* Local Video – 왼쪽 절반 */}
             <div className="w-1/2 h-full border-r border-gray-600">
-              <div ref={localVideoRef} className="w-full h-full" />
+              <video ref={localVideoRef} className="w-full h-full" autoPlay />
             </div>
-            {/* Remote Video – 오른쪽 절반 */}
             <div className="w-1/2 h-full">
               <div className="w-full h-full flex flex-wrap">
                 {subscribers.length > 0 ? (
@@ -196,19 +209,15 @@ export default function OpenviduCallPage() {
   );
 }
 
+/** 구독자용 비디오 컴포넌트 */
 function SubscriberComponent({ subscriber }: { subscriber: Subscriber }) {
-  const subscriberRef = useRef<HTMLDivElement>(null);
+  const subscriberRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (subscriberRef.current) {
       subscriber.addVideoElement(subscriberRef.current);
     }
-    return () => {
-      if (subscriberRef.current) {
-        subscriberRef.current.innerHTML = "";
-      }
-    };
   }, [subscriber]);
 
-  return <div ref={subscriberRef} className="w-full h-full" />;
+  return <video ref={subscriberRef} className="w-full h-full" />;
 }
