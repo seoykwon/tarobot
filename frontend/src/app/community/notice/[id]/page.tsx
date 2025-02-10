@@ -12,7 +12,7 @@ interface Notice {
 
 async function fetchNoticeDetails(id: string): Promise<Notice | null> {
   try {
-    const res = await fetch(API_URLS.NOTICE_DETAILS(id), {
+    const res = await fetch(API_URLS.NOTICES.DETAILS(id), {
       cache: "no-store",
     });
 

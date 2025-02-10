@@ -12,7 +12,7 @@ export const API_URLS = {
   },
   CHAT: {
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
-    STREAM: (sessionId: string, userInput: string, type: string) =>
+    STREAM: (sessionId: string, userInput: string, type?: string) =>
       `${FASTAPI_BASE_URL}/chat?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
     CLOSE: `${FASTAPI_BASE_URL}/chat/close`,
   },
@@ -21,7 +21,7 @@ export const API_URLS = {
     SAVE_RESULT: `/api/save-result`,
     CARD_IMAGE: (cardNumber: number) => `/basic/maj${cardNumber}.svg`,
   },
-  TAROBOTS: {
+  TAROTBOTS: {
     LIST: `${BASE_URL}/api/v1/tarot-bots`,
     DETAILS: (id: number) => `${BASE_URL}/api/v1/tarot-bots/${id}`,
   },
@@ -48,7 +48,6 @@ export const API_URLS = {
     DELETE_PERMANENTLY: (commentId: string) => `${BASE_URL}/${commentId}/permanent`, // DELETE - 댓글 영구 삭제 (관리자 전용)
   },
   USER: {
-    PROFILE: `${BASE_URL}/user-profiles/me`,
     BY_ID: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,
     UPDATE: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,
     REVIEWS: (userId?: string) => userId ? `${BASE_URL}/api/review/${userId}` : `${BASE_URL}/api/review`,

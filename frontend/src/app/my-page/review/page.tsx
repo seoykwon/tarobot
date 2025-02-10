@@ -32,7 +32,7 @@ export default function ReviewPage() {
     setError(null);
     try {
       const userId = getUserIdFromCookie();
-      const response = await fetch(API_URLS.REVIEWS(userId), { credentials: "include" });
+      const response = await fetch(API_URLS.USER.REVIEWS(userId), { credentials: "include" });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch reviews: ${response.statusText}`);

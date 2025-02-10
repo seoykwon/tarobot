@@ -59,7 +59,7 @@ export default function CommunityClient({
 const fetchPosts = async (filter: string, pageNum = 1) => {
   setLoading(true);
   try {
-    const response = await fetch(API_URLS.FETCH_POSTS(filter, pageNum), {
+    const response = await fetch(API_URLS.POSTS.LIST(filter, pageNum), {
         method: "GET",
         credentials: "include",
         cache: "no-store",

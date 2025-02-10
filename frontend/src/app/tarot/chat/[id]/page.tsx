@@ -130,15 +130,15 @@ export default function ChatPage() {
   };
 
   // 🔹 카드 선택 핸들러
-  const handleCardSelect = (cardNumber: number) => {
+  const handleCardSelect = (cardId: string) => {
     setShowCardSelector(false); // 카드 선택 창 종료
-    const selectedCard = majorTarotCards[cardNumber];
+    const selectedCard = majorTarotCards[Number(cardId)];
     setMessages((prev) => [...prev, { sender: "bot", text: `"${selectedCard}" 카드를 선택했어!` },
       {
         sender: "bot",
         content: (
           <Image
-            src={`/basic/maj${cardNumber}.svg`}
+            src={`/basic/maj${cardId}.svg`}
             alt={`Selected tarot card ${selectedCard}`}
             width={96}
             height={134}

@@ -17,7 +17,7 @@ interface GameDetails {
 // Spring Boot API에서 게임 상세 정보 가져오기
 async function fetchGameDetails(id: string): Promise<GameDetails | null> {
   try {
-    const response = await fetch(API_URLS.GAME_DETAILS(id), {
+    const response = await fetch(API_URLS.GAME.DETAILS(id), {
       cache: "no-store", // 최신 데이터를 가져오기 위해 캐싱 비활성화
     });
 

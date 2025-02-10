@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
+import { Label } from '@/components/ui/Label';
 
 interface Fortune {
   date: string;
@@ -42,8 +43,8 @@ async function fetchData<T>(url: string): Promise<T | null> {
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
   const fortune = await fetchData<Fortune>(API_URLS.FORTUNE);
-  const tarotbots = (await fetchData<Tarotbot[]>(API_URLS.TAROT_BOTS)) ?? [];
-  const miniGames = (await fetchData<MiniGame[]>(API_URLS.MINI_GAMES)) ?? [];
+  const tarotbots = (await fetchData<Tarotbot[]>(API_URLS.TAROTBOTS.LIST)) ?? [];
+  const miniGames = (await fetchData<MiniGame[]>(API_URLS.GAME.LIST)) ?? [];
 
   return (
     <main className="min-h-[calc(100svh-128px)] bg-transparent pt-8 px-0 md:px-4 lg:px-16 

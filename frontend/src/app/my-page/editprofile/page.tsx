@@ -29,7 +29,7 @@ export default function UpdateProfilePage() {
       // API 호출
       // 임시로 민경훈 프로필 사용 => 인자로 받아서 사용하거나, JWT로 인증 받아 사용하자
       const userId = "mgh123rg@gmail.com";
-      const response = await fetch(API_URLS.USER_PROFILE.BY_ID(userId), {
+      const response = await fetch(API_URLS.USER.BY_ID(userId), {
         method: "PATCH",
         credentials: "include", // 쿠키 포함
         headers: { "Content-Type": "application/json" },
