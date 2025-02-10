@@ -44,51 +44,22 @@ public class PostController {
     }
 
     // ---------------------------------------
-    // 게시글 목록 조회 (통합 검색 로직 제거)
+    // 게시글 목록 조회 및 검색
     // ---------------------------------------
-    @GetMapping
-    @Operation(summary = "모든 게시글 조회",
-            description = "활성화된 게시글을 페이지네이션 및 정렬 조건(sort)에 따라 조회합니다.\n" +
-                    "기본 정렬은 최신순(createdAt 내림차순)이며, sort 파라미터에 \"like\", \"view\", \"comment\" 값을 전달하면 해당 기준 내림차순 정렬을 적용합니다.")
+    @GetMapping("/search")
+    @Operation(summary = "게시글 조회 및 검색", description = "제목 및/또는 내용에 해당 키워드가 포함된 활성 게시글을 페이지네이션 및 정렬 조건에 따라 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ResponseEntity<List<PostRes>> getAllPosts(
+    public ResponseEntity<List<PostRes>> searchPosts(
+            @RequestParam(required = false) @Parameter(description = "검색 키워드 (제목)", required = false) String title,
+            @RequestParam(required = false) @Parameter(description = "검색 키워드 (내용)", required = false) String content,
             @RequestParam(defaultValue = "0") @Parameter(description = "페이지 번호 (0부터 시작)", required = false) int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "페이지 크기", required = false) int size,
             @RequestParam(required = false, defaultValue = "new") @Parameter(description = "정렬 기준 (new: 최신순, like: 좋아요순, view: 조회수순, comment: 댓글순)", required = false) String sort) {
-        List<PostRes> posts = postService.getAllPosts(page, size, sort);
-        return ResponseEntity.ok(posts);
-    }
 
-    // ---------------------------------------
-    // 게시글 제목 검색
-    // ---------------------------------------
-    @GetMapping("/search/title")
-    @Operation(summary = "제목 검색", description = "게시글 제목에 해당 키워드가 포함된 결과를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    public ResponseEntity<List<PostRes>> searchPostsByTitle(
-            @RequestParam @Parameter(description = "검색 키워드 (제목)", required = true) String keyword) {
-        List<PostRes> posts = postService.getPostsByTitle(keyword);
-        return ResponseEntity.ok(posts);
-    }
-
-    // ---------------------------------------
-    // 게시글 내용 검색
-    // ---------------------------------------
-    @GetMapping("/search/content")
-    @Operation(summary = "내용 검색", description = "게시글 내용에 해당 키워드가 포함된 결과를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    public ResponseEntity<List<PostRes>> searchPostsByContent(
-            @RequestParam @Parameter(description = "검색 키워드 (내용)", required = true) String keyword) {
-        List<PostRes> posts = postService.getPostsByContent(keyword);
+        List<PostRes> posts = postService.searchPosts(page, size, sort, title, content);
         return ResponseEntity.ok(posts);
     }
 

@@ -17,7 +17,6 @@ public interface PostService {
     void deletePostPermanently(Long postId);
 
     // 조회/정렬/페이지네이션
-    List<PostRes> getAllPosts(int page, int size, String sort);
     PostRes getPostById(Long postId);
     Post getPostEntityById(Long postId);
 
@@ -25,8 +24,7 @@ public interface PostService {
     void increaseViewCount(Long postId);
 
     // 검색 기능 - 게시글 제목 및 내용 검색
-    List<PostRes> getPostsByTitle(String title);
-    List<PostRes> getPostsByContent(String content);
+    List<PostRes> searchPosts(int page, int size, String sort, String title, String content);
 
     /*
     List<PostRes> getPostsByAuthor(String userId);

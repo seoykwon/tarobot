@@ -41,8 +41,8 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public Post createPost(PostRegisterReq req) {
-        User author = userRepository.findByUserId(req.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+        User author = securityUtil.getCurrentUser();
+
         Post post = new Post();
         post.setTitle(req.getTitle());
         post.setContent(req.getContent());
@@ -121,7 +121,8 @@ public class PostServiceImpl implements PostService {
      *   클라이언트는 sort 파라미터로 "like", "view", "comment" 등의 값을 전달할 수 있습니다.
      */
     @Override
-    public List<PostRes> getAllPosts(int page, int size, String sort) {
+    public List<PostRes> searchPosts(int page, int size, String sort, String title, String content) {
+        // 페이징/정렬 처리 (기본 정렬: 최신순)
         Pageable pageable;
         if (sort == null || sort.equalsIgnoreCase("new")) {
             pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -134,8 +135,25 @@ public class PostServiceImpl implements PostService {
         } else {
             pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         }
-        Page<Post> postPage = postRepository.findAllByIsActiveTrue(pageable);
+
+        Page<Post> postPage;
+        boolean hasTitle = title != null && !title.trim().isEmpty();
+        boolean hasContent = content != null && !content.trim().isEmpty();
+
+        if (hasTitle && hasContent) {
+            // 제목 또는 내용 중 하나라도 키워드에 해당하는 게시글 검색
+            postPage = postRepository.findByTitleContainingOrContentContaining(title, content, pageable);
+        } else if (hasTitle) {
+            postPage = postRepository.findByTitleContaining(title, pageable);
+        } else if (hasContent) {
+            postPage = postRepository.findByContentContaining(content, pageable);
+        } else {
+            // 검색어 미입력 시 활성 게시글 전체 조회
+            postPage = postRepository.findAllByIsActiveTrue(pageable);
+        }
+
         return postPage.getContent().stream()
+                .filter(Post::isActive)
                 .map(PostRes::of)
                 .collect(Collectors.toList());
     }
@@ -160,32 +178,32 @@ public class PostServiceImpl implements PostService {
         return PostRes.of(post);
     }
 
-    /**
-     * 게시글 제목 기반 검색
-     * - 제목에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
-     */
-    @Override
-    public List<PostRes> getPostsByTitle(String title) {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-        Page<Post> postPage = postRepository.findByTitleContaining(title, pageable);
-        return postPage.getContent().stream()
-                .filter(Post::isActive)
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 게시글 내용 기반 검색
-     * - 게시글 내용에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
-     */
-    public List<PostRes> getPostsByContent(String content) {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-        Page<Post> postPage = postRepository.findByContentContaining(content, pageable);
-        return postPage.getContent().stream()
-                .filter(Post::isActive)
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
+//    /**
+//     * 게시글 제목 기반 검색
+//     * - 제목에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
+//     */
+//    @Override
+//    public List<PostRes> getPostsByTitle(String title) {
+//        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+//        Page<Post> postPage = postRepository.findByTitleContaining(title, pageable);
+//        return postPage.getContent().stream()
+//                .filter(Post::isActive)
+//                .map(PostRes::of)
+//                .collect(Collectors.toList());
+//    }
+//
+//    /**
+//     * 게시글 내용 기반 검색
+//     * - 게시글 내용에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
+//     */
+//    public List<PostRes> getPostsByContent(String content) {
+//        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+//        Page<Post> postPage = postRepository.findByContentContaining(content, pageable);
+//        return postPage.getContent().stream()
+//                .filter(Post::isActive)
+//                .map(PostRes::of)
+//                .collect(Collectors.toList());
+//    }
 
 
 
