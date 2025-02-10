@@ -3,7 +3,7 @@ import { API_URLS } from "@/config/api";
 
 export async function fetchUserProfile() {
   try {
-    const response = await fetch(API_URLS.USERNOW.PROFILE, {
+    const response = await fetch(API_URLS.USER.ME, {
       method: "GET",
       credentials: "include",
     });

@@ -1,50 +1,48 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { API_URLS } from "@/config/api";
 
 interface Review {
-  id: number;
-  rating: number;
-  content: string;
-  date: string;
+  id: number; // 리뷰 ID
+  createdAt: string; // 리뷰 생성 날짜 (ISO 형식)
+  updatedAt: string; // 리뷰 수정 날짜 (ISO 형식)
+  author: string; // 작성자 이름
+  rating: number; // 평점
+  content: string; // 리뷰 내용
+  date: string; // 리뷰 작성 날짜 (YYYY-MM-DD 형식)
 }
-
-// 쿠키에서 유저 ID 가져오는 함수
-const getUserIdFromCookie = (): string | undefined => {
-  const cookieValue = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("user_id="))
-    ?.split("=")[1];
-
-  return cookieValue || undefined; // null 대신 undefined 반환
-};
 
 export default function ReviewPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 모든 리뷰 데이터를 한 번에 가져오는 함수
   const fetchReviews = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const userId = getUserIdFromCookie();
-      const response = await fetch(API_URLS.USER.REVIEWS(userId), { credentials: "include" });
+      const response = await fetch(API_URLS.REVIEW.ALL, {
+        method: "GET",
+        credentials: "include", // 쿠키 포함
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch reviews: ${response.statusText}`);
       }
 
       const data: Review[] = await response.json();
-      setReviews(data);
+      setReviews(data); // 리뷰 데이터를 상태에 저장
     } catch (error) {
       console.error("리뷰 데이터를 가져오는 중 오류 발생:", error);
       setError("리뷰 데이터를 불러오는 중 문제가 발생했습니다.");
     } finally {
-      setLoading(false);
+      setLoading(false); // 로딩 상태 해제
     }
   };
 
@@ -75,16 +73,18 @@ export default function ReviewPage() {
         <div className="space-y-4">
           {reviews.map((review) => (
             <Card key={review.id}>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold">⭐ {review.rating}</span>
+              <CardContent>
+                <div className="flex flex-col space-y-2">
+                  <span className="font-bold text-lg">⭐ {review.rating}</span>
+                  <p>{review.content}</p>
                   <span className="text-sm text-muted-foreground">
-                    {new Date(review.date).toLocaleDateString()}
+                    작성일: {new Date(review.date).toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
                   </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p>{review.content}</p>
               </CardContent>
             </Card>
           ))}

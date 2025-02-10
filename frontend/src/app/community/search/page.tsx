@@ -40,7 +40,7 @@ export default function SearchPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(API_URLS.POSTS.SEARCH(searchType, query, pageNum), {
+      const response = await fetch(API_URLS.POSTS.SEARCH(searchType, query || "", pageNum), {
         cache: "no-store",
       });
 

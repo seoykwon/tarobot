@@ -87,9 +87,11 @@ export default async function HomePage() {
               <Image
                 src="/card-back-celestial.svg"
                 alt="Card Back"
-                width={96}
-                height={144}
+                width={72}
+                height={108}
                 className="rounded-lg object-cover"
+                style={{ width: "120px", height: "180px" }} // 크기를 줄임 (2:3 비율 유지)
+                priority
               />
               <p>오늘의 운세를 확인해보세요!!</p>
               <Link href="/daily">

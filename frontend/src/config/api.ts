@@ -47,10 +47,19 @@ export const API_URLS = {
     DELETE_PERMANENTLY: (commentId: string) => `${BASE_URL}/${commentId}/permanent`, // DELETE - 댓글 영구 삭제 (관리자 전용)
   },
   USER: {
-    BY_ID: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,
-    UPDATE: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,
-    REVIEWS: (userId?: string) => userId ? `${BASE_URL}/api/review/${userId}` : `${BASE_URL}/api/review`,
+    ME: `${BASE_URL}/api/v1/user-profiles/me`,    // GET - 회원 본인 프로필 조회
+    BY_ID: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,    // GET - 이름 기반 프로필 검색
+    UPDATE: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,   // PATCH - 유저 프로필 수정
   },
+  REVIEW: {
+    BY_ID: (reviewId: string) => `${BASE_URL}/api/review/${reviewId}`,         // GET - 특정 리뷰 조회
+    CREATE: (tarotBotId: string) => `${BASE_URL}/api/review/${tarotBotId}`,    // POST - 리뷰 생성, body에 author, rating, content 포함시켜 보내기
+    UPDATE: (reviewId: string) => `${BASE_URL}/api/review/${reviewId}`,        // PUT - 리뷰 수정, body에 author, rating, content 포함시켜 보내기기
+    DELETE: (reviewId: string) => `${BASE_URL}/api/review/${reviewId}`,        // DELETE - 리뷰 삭제
+    ALL: `${BASE_URL}/api/review`,                                             // GET - 모든 리뷰 조회
+    ME: `${BASE_URL}/api/me`,                                                  // GET - 내 작성 리뷰 조회
+  },
+
   NOTICES: {
     LIST: `${BASE_URL}/community/announcements`,
     DETAILS: (id: string) => `${BASE_URL}/community/notices/${id}`,
