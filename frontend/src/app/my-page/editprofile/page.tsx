@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation"; // Next.js의 useRouter 훅
 import { API_URLS } from "@/config/api";
+import Image from "next/image";
 
 export default function UpdateProfilePage() {
   const [profileImage, setProfileImage] = useState<string | null>(null); // 프로필 이미지
@@ -64,11 +65,13 @@ export default function UpdateProfilePage() {
         {/* 이미지 변경 */}
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mb-4">
-            {profileImage ? (
-              <img
+          {profileImage ? (
+              <Image
                 src={profileImage}
                 alt="Profile"
                 className="w-full h-full object-cover"
+                width={100} // 원하는 너비
+                height={100} // 원하는 높이
               />
             ) : (
               <span className="text-gray-400">No Image</span>

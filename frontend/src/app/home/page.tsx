@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { ChevronRight, GamepadIcon } from "lucide-react";
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
-import { Label } from '@/components/ui/Label';
 
 interface Fortune {
   date: string;
