@@ -10,7 +10,7 @@ from app.utils.chatbot_concept import names, concepts
 from app.services.pinecone_integration import upsert_documents
 from app.services.redis_utils import get_recent_history, save_message
 
-async def response_generator(session_id: str, user_input: str, context: str, keywords: list[str], user_id: str, type: str, chat_tag: str) -> AsyncGenerator[str, None]:
+async def response_generator(session_id: str, user_input: str, context: str, bot_id: int, keywords: list[str], user_id: str, type: str, chat_tag: str) -> AsyncGenerator[str, None]:
     """
     OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터
     """
@@ -33,7 +33,7 @@ async def response_generator(session_id: str, user_input: str, context: str, key
 
         llm_answer = ""  # ✅ 모든 chunk를 저장할 변수
 
-        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concepts["온달"], stream=True):  
+        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concepts[names[bot_id]], stream=True):  
             if not chunk:  
                 break
             llm_answer += chunk  

@@ -113,13 +113,15 @@ class TokenRequest(BaseModel):
 class ChatRequest(BaseModel):
     session_id: str
     user_input: str
+    user_id: str
+    bot_id: int
     type: str
 
 class ChatResponse(BaseModel):
     answer: str
 
 class CloseChatRequest(BaseModel):
-    userId: str
+    sessionId: str
 
 @app.post("/openvidu/connections")
 def create_connection(body: TokenRequest):
@@ -142,7 +144,7 @@ async def chat(session_id: str, user_input: str, type: str = ""):
 # 상담 종료 신호 수신
 @app.post("/chat/close")
 async def chat(request: CloseChatRequest):
-    return {"message": f"userId: {request.userId}의 상담이 종료되었습니다."}
+    return {"message": f"sessionId: {request.sessionId}의 상담이 종료되었습니다."}
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest): # Json body 형태로 변환
@@ -152,14 +154,15 @@ async def chat_stream(request: ChatRequest): # Json body 형태로 변환
     try:
         # ✅ 기존 비동기 입력 처리 로직 활용
         # chat_tag를 여기서 받아서 리턴해야해서 여기서 전처리를 실행함
-        context, keywords, user_id, chat_tag = await process_user_input(
-            request.session_id, request.user_input, request.type
+        context, keywords, chat_tag = await process_user_input(
+            request.session_id, request.user_input, request.type,
+            request.user_id, request.bot_id
         )
 
         # ✅ StreamingResponse로 실시간 응답 제공
         return StreamingResponse(
-            response_generator(request.session_id, request.user_input, context, 
-                               keywords=keywords, user_id=user_id, type=request.type, chat_tag=chat_tag),
+            response_generator(request.session_id, request.user_input, context, bot_id=request.bot_id,
+                               keywords=keywords, user_id=request.user_id, type=request.type, chat_tag=chat_tag),
             media_type="text/plain",
             headers={"ChatTag": chat_tag}  # ✅ chatTag를 헤더에 포함
         )

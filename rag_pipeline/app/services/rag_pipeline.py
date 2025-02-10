@@ -23,14 +23,12 @@ dummy_user_profile = {
     }
 }
 
-async def process_user_input(session_id: str, user_input: str, type: str):
+async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int):
     """
     사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
     """
     try:
         print("🟢 process_user_input 시작")  # ✅ 로그 추가
-        # user_id = dummy_user_profile["user_id"] # user_id 바꿔가며 테스트
-        user_id = "test_user_207"
 
         ### 선행되어야 하는 Tag, Keyword 추출 작업 먼저 실행
         # tarot 의 경우 태그와 키워드 고정
@@ -96,7 +94,7 @@ async def process_user_input(session_id: str, user_input: str, type: str):
         # asyncio.gather(save_task, save_summary_task) # 저장 작업 완료 대기. 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
 
         print("🟣 process_user_input 완료")  # ✅ 로그 추가
-        return context, keywords, user_id, chat_tag
+        return context, keywords, chat_tag
 
     except Exception as e:
         print(f"❌ process_user_input 실패: {e}")  # ✅ 예외 출력
