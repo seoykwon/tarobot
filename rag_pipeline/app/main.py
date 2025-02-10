@@ -119,7 +119,7 @@ class ChatResponse(BaseModel):
     answer: str
 
 class CloseChatRequest(BaseModel):
-    userId: int
+    userId: str
 
 @app.post("/openvidu/connections")
 def create_connection(body: TokenRequest):

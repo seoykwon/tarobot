@@ -1,4 +1,5 @@
 // src/api/tarobotDetails.ts
+import { API_URLS } from "@/config/api";
 
 export interface Review {
   id: number;
@@ -44,8 +45,7 @@ export const fetchTarobotDetails = async (
   id: number
 ): Promise<TarobotDetails | null> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/tarot-bots/${id}`,
+    const response = await fetch(API_URLS.TAROTBOTS.DETAILS(id),
       {
         cache: "no-store",
         headers: {
