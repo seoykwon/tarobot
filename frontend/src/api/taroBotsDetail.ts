@@ -45,7 +45,7 @@ export const fetchTarobotDetails = async (
 ): Promise<TarobotDetails | null> => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/tarot-bots/${id}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/tarot-bots/${id}`,
       {
         cache: "no-store",
         headers: {
