@@ -1,50 +1,57 @@
-
-
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.8); /* ✅ 검은색 배경이 전체를 가득 채움 */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 
+/* ✅ 보라빛 배경 크기 축소 */
 .overlayContent {
-  background-color: #1a1a2e;
-  padding: 24px;
+  background-color: #1a1a2e; /* ✅ 보라색 배경 */
+  padding: 12px; /* ✅ 화면 크기가 작아도 일정한 패딩 유지 */
   border-radius: 16px;
   position: relative;
-  width: 80%;
-  max-width: 900px;
+  width: calc(100% - 64px); /* ✅ 좌우 패딩을 더 주어 크기 축소 */
+  min-width: 300px; /* ✅ 최소 크기 설정 */
+  max-width: 820px; /* ✅ 기존보다 작게 조정 */
+  overflow-x: auto; /* ✅ 가로 스크롤 필요 시 자동 생성 */
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.closeButton {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 1001;
-}
-
+/* ✅ 카드 그리드 (스크롤은 overlayContent에서만 발생) */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, 1fr); /* ✅ 기존 배열 유지 */
   gap: 12px;
   padding: 20px;
+  min-width: 720px; /* ✅ 최소 크기 설정 */
+}
+
+/* ✅ 기본 가로 스크롤 스타일 */
+.overlayContent::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overlayContent::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.overlayContent::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .card {
   position: relative;
-  aspect-ratio: 1; /* 일반적인 카드 비율 */
-  width: 120px;
+  aspect-ratio: 1;
+  width: 120px; /* ✅ 카드 크기 유지 */
   cursor: pointer;
   perspective: 100px;
   transition: transform 0.6s;
