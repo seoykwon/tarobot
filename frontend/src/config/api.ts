@@ -1,6 +1,5 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 const FASTAPI_BASE_URL = process.env.NEXT_PUBLIC_FASTAPI_BASE_URL || "http://localhost:8000";
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000";
 
 export const API_URLS = {
   AUTH: {
@@ -90,7 +89,7 @@ export const API_URLS = {
     PROFILE: `${BASE_URL}/api/v1/user/me`, // 현재 로그인된 유저 정보 가져오기
   },
   SOCKET: {
-    BASE: SOCKET_URL, // WebSocket 서버 기본 URL
-    CHAT: `${SOCKET_URL}/chat`, // 채팅 WebSocket 경로
+    BASE: FASTAPI_BASE_URL, // WebSocket 서버 기본 URL
+    CHAT: `${FASTAPI_BASE_URL}/chat`, // 채팅 WebSocket 경로
   },
 };

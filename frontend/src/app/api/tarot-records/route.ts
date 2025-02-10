@@ -7,6 +7,7 @@ export async function GET() {
     const data = await fetchTarotRecords();
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Error fetching tarot records:", error);  // ✅ 추가
     return NextResponse.json({ error: "Failed to fetch tarot records" }, { status: 500 });
   }
 }

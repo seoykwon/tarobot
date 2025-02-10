@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { MessageSquare, Heart, Clock, ArrowUp, Search, Eye } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  MessageSquare,
+  Heart,
+  Clock,
+  ArrowUp,
+  Search,
+  Eye,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import Image from "next/image";
@@ -45,7 +52,6 @@ export default function CommunityClient({
 }) {
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
-  // 기본 필터는 '최신'이므로 selectedFilter는 "new"로 설정
   const [selectedFilter, setSelectedFilter] = useState<string>("new");
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -55,40 +61,54 @@ export default function CommunityClient({
   const [searchQuery, setSearchQuery] = useState("");
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-// 게시글 데이터를 가져올 때 필터에 따라 정렬 조건 추가
-const fetchPosts = async (filter: string, pageNum = 1) => {
-  setLoading(true);
-  try {
-    const response = await fetch(API_URLS.POSTS.LIST(filter, pageNum), {
+  // 데이터를 가져오는 함수는 useCallback으로 감싸서 메모화
+  // (setState 함수들은 안정적인 reference라 별도의 deps는 없어도 경고가 없습니다.)
+  const fetchPosts = useCallback(async (filter: string, pageNum: number) => {
+    setLoading(true);
+    try {
+      const response = await fetch(API_URLS.POSTS.LIST(filter, pageNum), {
         method: "GET",
         credentials: "include",
         cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch posts");
+        setHasMore(false);
+        return;
       }
-    );
-    if (!response.ok) {
-      console.error("Failed to fetch posts");
+
+      const data = await response.json();
+
+      // 데이터가 없으면 hasMore를 false로 설정
+      if (!data || data.length === 0) {
+        setHasMore(false);
+      } else {
+        setPosts((prev) =>
+          // pageNum이 1이면 새 배열로 대체, 그렇지 않으면 이어 붙이기
+          pageNum === 1 ? data : [...prev, ...data]
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching posts:", error);
       setHasMore(false);
-      return;
+    } finally {
+      setLoading(false);
     }
-    const data = await response.json();
-    if (!data || data.length === 0) {
-      setHasMore(false);
-    } else {
-      // pageNum === 1일 경우 게시글 데이터를 초기화하고 새 데이터로 교체 
-      setPosts((prevPosts) =>
-        pageNum === 1 ? [...data] : [...prevPosts, ...data]
-      );
-    }
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    setHasMore(false);
-  } finally {
-    setLoading(false);
-  }
-};
+  }, []);
+
+  // ❗ 필터가 변경되면 페이지, posts, hasMore 상태를 리셋
+  useEffect(() => {
+    setPage(1);
+    setPosts([]);
+    setHasMore(true);
+  }, [selectedFilter]);
+
+  // ❗ page나 selectedFilter가 바뀔 때마다 fetch
+  useEffect(() => {
+    fetchPosts(selectedFilter, page);
+  }, [fetchPosts, selectedFilter, page]);
 
   // 검색 제출 핸들러
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -100,38 +120,27 @@ const fetchPosts = async (filter: string, pageNum = 1) => {
     }
   };
 
-  // 컴포넌트 mount 시 초기 로드
-  useEffect(() => {
-    fetchPosts(selectedFilter, page);
-  }, []);
-
-  // 필터 변경 시 초기화 후 데이터 다시 호출
-  useEffect(() => {
-    setPage(1);
-    setPosts([]); 
-    setHasMore(true);
-    fetchPosts(selectedFilter, 1);
-  }, [selectedFilter]);
-
   // 무한 스크롤 처리
   useEffect(() => {
     if (!hasMore || loading) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setPage((prevPage) => prevPage + 1);
+          setPage((prev) => prev + 1);
         }
       },
       { threshold: 1.0 }
     );
-    if (observerRef.current) observer.observe(observerRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, loading]);
 
-  // 페이지 번호 변경 시 추가 데이터 호출
-  useEffect(() => {
-    if (page > 1) fetchPosts(selectedFilter, page);
-  }, [page]);
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, loading]);
 
   // 스크롤에 따라 탑 버튼 표시
   useEffect(() => {
@@ -210,7 +219,7 @@ const fetchPosts = async (filter: string, pageNum = 1) => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowSearchOverlay(false)} 
+                  onClick={() => setShowSearchOverlay(false)}
                 >
                   취소
                 </Button>
@@ -228,7 +237,7 @@ const fetchPosts = async (filter: string, pageNum = 1) => {
             <Link key={post.id} href={`/community/${post.id}`}>
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                 <div className="p-4 flex justify-between gap-4">
-                  {/* 왼쪽: 제목, 내용, 작성자, 좋아요, 댓글, 조회수 등 */}
+                  {/* 왼쪽: 제목, 내용 등 */}
                   <div className="flex-1 min-w-0">
                     <h2 className="font-tarobot-title">{post.title}</h2>
                     <p className="font-tarobot-description mb-2 line-clamp-2">
@@ -242,11 +251,13 @@ const fetchPosts = async (filter: string, pageNum = 1) => {
                       <Eye className="w-4 h-4" />
                       <span>{post.viewCount}</span>
                       <Clock className="w-4 h-4" />
-                      <span>{new Date(post.createdAt).toLocaleString()}</span>
+                      <span>
+                        {new Date(post.createdAt).toLocaleString()}
+                      </span>
                       <span>by {post.userId}</span>
                     </div>
                   </div>
-                  {/* 오른쪽: 썸네일 이미지 */}
+                  {/* 오른쪽: 썸네일 */}
                   <Image
                     src={post.imageUrl || "/images/dummy1.png"}
                     alt={post.title}
@@ -261,6 +272,7 @@ const fetchPosts = async (filter: string, pageNum = 1) => {
         ) : (
           !loading && <p className="text-muted-foreground">게시글이 없습니다.</p>
         )}
+        {/* 무한 스크롤 관찰 대상 */}
         <div ref={observerRef} className="h-10 flex items-center justify-center">
           {loading && <p>Loading...</p>}
         </div>

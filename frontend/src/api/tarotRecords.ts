@@ -11,12 +11,13 @@ export async function fetchTarotRecords() {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch tarot records");
+      console.error("Failed to fetch tarot records, using fallback data.");
+      return []; // ✅ 실패 시 빈 배열 반환
     }
 
     return await response.json();
   } catch (error) {
     console.error("Error fetching tarot records:", error);
-    return { error: "Failed to fetch tarot records" };
+    return []; // ✅ 네트워크 오류 발생 시 빈 배열 반환
   }
 }

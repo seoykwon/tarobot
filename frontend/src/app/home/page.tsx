@@ -39,11 +39,22 @@ async function fetchData<T>(url: string): Promise<T | null> {
   }
 }
 
+const defaultFortune: Fortune = {
+  date: "N/A",
+  fortune: "운세 정보를 불러올 수 없습니다.",
+  luckyNumber: 0,
+};
+
+const defaultMiniGames: MiniGame[] = [
+  { gameId: 1, name: "타로 맞추기", description: "타로 카드를 맞춰보세요!" },
+  { gameId: 2, name: "점성술 퀴즈", description: "점성술 관련 퀴즈를 풀어보세요!" },
+];
+
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
-  const fortune = await fetchData<Fortune>(API_URLS.FORTUNE);
-  const tarotbots = (await fetchData<Tarotbot[]>(API_URLS.TAROTBOTS.LIST)) ?? [];
-  const miniGames = (await fetchData<MiniGame[]>(API_URLS.GAME.LIST)) ?? [];
+  const fortune = (await fetchData<Fortune>(API_URLS.FORTUNE)) ?? defaultFortune;
+  const tarotbots = (await fetchData<Tarotbot[]>(API_URLS.TAROTBOTS.LIST)) ?? []; // ✅ 기본값 빈 배열
+  const miniGames = (await fetchData<MiniGame[]>(API_URLS.GAME.LIST)) ?? defaultMiniGames;
 
   return (
     <main className="min-h-[calc(100svh-128px)] bg-transparent pt-8 px-0 md:px-4 lg:px-16 
@@ -76,9 +87,11 @@ export default async function HomePage() {
               <Image
                 src="/card-back-celestial.svg"
                 alt="Card Back"
-                width={96}
-                height={144}
+                width={72}
+                height={108}
                 className="rounded-lg object-cover"
+                style={{ width: "120px", height: "180px" }} // 크기를 줄임 (2:3 비율 유지)
+                priority
               />
               <p>오늘의 운세를 확인해보세요!!</p>
               <Link href="/daily">
