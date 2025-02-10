@@ -58,7 +58,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage])
     try {
       const sessionId = "12345" // 실제 구현시 고유한 세션 ID 생성 필요
-      const response = await fetch(API_URLS.CHAT_STREAM(sessionId, option), {
+      const response = await fetch(API_URLS.CHAT.STREAM(sessionId, option), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
@@ -116,7 +116,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage])
     try {
       const sessionId = "12345" // 실제 구현시 고유한 세션 ID 생성 필요
-      const response = await fetch(API_URLS.CHAT_STREAM(sessionId, cardId), {
+      const response = await fetch(API_URLS.CHAT.STREAM(sessionId, cardId), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
@@ -161,7 +161,7 @@ export default function ChatPage() {
   const handleReviewSubmit = async (data: { rating: number; review: string }) => {
     try {
       console.log(data)
-      await fetch(API_URLS.REVIEW("Bot.id"), {
+      await fetch(API_URLS.USER.REVIEWS("Bot.id"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

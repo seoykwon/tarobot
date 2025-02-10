@@ -26,7 +26,7 @@ interface PostDetails {
 // 게시글 상세 정보 API 호출 함수
 async function fetchPostDetails(id: string): Promise<PostDetails | null> {
   try {
-    const res = await fetch(API_URLS.POST_DETAILS(id), {
+    const res = await fetch(API_URLS.POSTS.DETAILS(id), {
       cache: "no-store",
     });
 

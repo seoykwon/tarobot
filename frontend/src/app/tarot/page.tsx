@@ -96,7 +96,7 @@ const dummyBots: TarotBot[] = [
 
 async function fetchTarotBots(): Promise<TarotBot[]> {
   try {
-    const response = await fetch(API_URLS.TAROBOTS.LIST, {
+    const response = await fetch(API_URLS.TAROTBOTS.LIST, {
       cache: "no-store", // 최신 데이터를 가져오기 위해 캐싱 비활성화
     });
 

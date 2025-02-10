@@ -3,7 +3,7 @@ import { API_URLS } from "@/config/api";
 
 export async function fetchUserProfile() {
   try {
-    const response = await fetch(API_URLS.USER_PROFILE.ME, {
+    const response = await fetch(API_URLS.USERNOW.PROFILE, {
       method: "GET",
       credentials: "include",
     });
@@ -21,7 +21,7 @@ export async function fetchUserProfile() {
 
 export async function logoutUser() {
   try {
-    const response = await fetch(API_URLS.LOGOUT, {
+    const response = await fetch(API_URLS.AUTH.LOGOUT, {
       method: "POST",
       credentials: "include",
     });

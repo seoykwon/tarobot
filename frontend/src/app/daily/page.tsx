@@ -10,7 +10,7 @@ import { API_URLS } from "@/config/api";
 // 토큰 유효성 검증 및 리프레시 함수
 async function validateAndRefresh() {
   try {
-    const validateResponse = await fetch(API_URLS.TOKEN_VALIDATE, {
+    const validateResponse = await fetch(API_URLS.TOKEN.VALIDATE, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -19,7 +19,7 @@ async function validateAndRefresh() {
     });
 
     if (!validateResponse.ok) {
-      const refreshResponse = await fetch(API_URLS.TOKEN_REFRESH, {
+      const refreshResponse = await fetch(API_URLS.TOKEN.REFRESH, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -144,7 +144,7 @@ export default function FirstVisitPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(API_URLS.CHAT_STREAM("12345", `majortarotcard_${cardNumber}`), {
+      const response = await fetch(API_URLS.CHAT.STREAM("12345", `majortarotcard_${cardNumber}`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         }
@@ -170,7 +170,7 @@ export default function FirstVisitPage() {
         .find((row) => row.startsWith("user_id="))
         ?.split("=")[1];
 
-      await fetch(API_URLS.SAVE_RESULT, {
+      await fetch(API_URLS.TAROT.SAVE_RESULT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
