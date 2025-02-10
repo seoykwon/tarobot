@@ -39,8 +39,8 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public Post createPost(PostRegisterReq req) {
-        User author = userRepository.findByUserId(req.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+        User author = securityUtil.getCurrentUser();
+
         Post post = new Post();
         post.setTitle(req.getTitle());
         post.setContent(req.getContent());
