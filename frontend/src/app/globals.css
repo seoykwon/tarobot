@@ -15,7 +15,7 @@
   /* --text-color: #7A5DC7;              새로운 텍스트 색상 */
   --background: #F2E6F7;  /* 페일 미스틱 퍼플 */
   --foreground: #6B1A72;  /* 미디엄 퍼플 (기본 텍스트) */
-  --text-color: #6B1A72;  /* 본문 텍스트 */
+  --text-color: #1A3A6E;  /* 본문 텍스트 */
   --accent-color: #4A0E4E; /* 딥 퍼플 (헤더, 강조 텍스트) */
   --highlight-color: #8C2796; /* 라이트 퍼플 (링크, 버튼) */
   --title-clolor: #4A0E4E;  /* 다크/라이트 모드 색 변경 */
@@ -111,8 +111,8 @@ body {
   }
   .font-page-title {  /* 오늘의 운세/타로마스터 등 */
     font-family: var(--font-noto-sans);
-    color: var(--accent-color);
-    color: var(--accent-color);
+    color: var(--text-color);
+    /* color: var(--accent-color); */
     font-size: 24px;
   }
 
