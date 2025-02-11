@@ -1,3 +1,44 @@
+stages:
+  - test
+
+# 🔵 FastAPI (Python)
+sonarqube_check_fastapi:
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  stage: test
+  before_script:
+    - cd rag_pipeline
+    - pip install -r requirements.txt  # FastAPI 의존성 설치
+  script:
+    - sonar-scanner
+      -Dsonar.projectKey=$SONAR_PROJECT_KEY
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
+      -Dsonar.sources=.
+  allow_failure: true
+  only:
+    - main
+
+# 🟢 Next.js (Node.js 18)
+sonarqube_check_nextjs:
+  image: 
+    name: node:18
+    entrypoint: [""]
+  stage: test
+  before_script:
+    - cd frontend
+    - npm install  # Next.js 의존성 설치
+  script:
+    - npx sonar-scanner
+      -Dsonar.projectKey=$SONAR_PROJECT_KEY
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
+      -Dsonar.sources=.
+  allow_failure: true
+  only:
+    - main
+
 sonarqube-check:
   image: gradle:jre11-slim
   variables:
