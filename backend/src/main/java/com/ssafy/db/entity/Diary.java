@@ -29,6 +29,7 @@ public class Diary extends BaseEntity {
     private String title; // 상담 제목
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String summary; // 상담 요약
 
     private String cardImageUrl; // 타로 카드 이미지 URL

@@ -9,11 +9,11 @@ import java.util.UUID;
 @Data
 @Schema(description = "Chat Clost Request")
 public class ChatCloseRequest {
-    @NotNull(message = "¼¼¼Ç ID´Â ÇÊ¼ö ÀÔ·Â Ç×¸ñÀÔ´Ï´Ù.")
-    @Schema(description = "Ã¤ÆÃ¿¡ »ç¿ëÇÒ ¼¼¼Ç ID", example = "UUID")
+    @NotNull(message = "ì„¸ì…˜ IDëŠ” í•„ìˆ˜ ì…ë ¥ í•­ëª©ì…ë‹ˆë‹¤.")
+    @Schema(description = "ì±„íŒ…ì— ì‚¬ìš©í•  ì„¸ì…˜ ID", example = "UUID")
     private UUID sessionId;
 
-    @NotNull(message = "»ç¿ëÀÚ ID´Â ÇÊ¼ö ÀÔ·Â Ç×¸ñÀÔ´Ï´Ù.")
-    @Schema(description = "»ç¿ëÀÚÀÇ ID", example = "username@email.com")
+    @NotNull(message = "ì‚¬ìš©ì IDëŠ” í•„ìˆ˜ ì…ë ¥ í•­ëª©ì…ë‹ˆë‹¤.")
+    @Schema(description = "ì‚¬ìš©ìì˜ ID", example = "username@email.com")
     private String userId;
 }

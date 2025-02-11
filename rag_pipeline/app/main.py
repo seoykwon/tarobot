@@ -11,7 +11,8 @@ from typing import Dict, Optional
 from app.services.rag_pipeline import rag_pipeline, process_user_input
 from app.utils.response_utils import response_generator  # ✅ Streaming import
 from app.core.openvidu_api import create_openvidu_session, create_openvidu_connection
-from rag_pipeline.app.utils.fo_mini_api import call_4o_mini
+from app.utils.fo_mini_api import call_4o_mini
+from app.services.redis_utils import get_recent_history
 
 app = FastAPI()
 
@@ -144,14 +145,13 @@ async def chat(session_id: str, user_input: str, type: str = ""):
 
 # 상담 종료 신호 수신
 @app.post("/chat/close")
-async def chat(data: dict):
+async def chat(request: CloseChatRequest):
     # 상담 기록 전체 불러오기 및 요약해서 정보 넘기기
-    session_id = data.get("sessionId")
-    if not session_id:
+    if not request.sessionId:
         raise HTTPException(status_code=400, detail="Session ID required")
     
     # Redis에서 채팅 로그 가져오기
-    chat_logs = redis_client.lrange(f"chat:{session_id}", 0, -1)
+    chat_logs = get_recent_history(session_id=request.sessionId, count=0)
     if not chat_logs:
         raise HTTPException(status_code=404, detail="No chat logs found")
     
@@ -167,7 +167,8 @@ async def chat(data: dict):
         """,
         max_tokens=400
     )
-    return {"message": f"sessionId: {session_id}의 상담이 종료되었습니다.", "summary": summary}
+    return summary
+    # return {"message": f"sessionId: {session_id}의 상담이 종료되었습니다.", "summary": summary}
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest): # Json body 형태로 변환

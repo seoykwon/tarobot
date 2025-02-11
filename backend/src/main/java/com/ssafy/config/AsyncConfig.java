@@ -1,12 +1,12 @@
-package com.ssafy.config;
-
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
-
-@Configuration
-@EnableAsync
-public class AsyncConfig {
-    // ºñµ¿±â Ã³¸®¸¦ À§ÇÑ ¼³Á¤
-    // ÇÊ¿ä¿¡ µû¶ó Ä¿½ºÅÒ TaskExecutor¸¦ Á¤ÀÇÇÒ ¼ö ÀÖ½À´Ï´Ù.
-}
-
+//package com.ssafy.config;
+//
+//import org.springframework.context.annotation.Configuration;
+//import org.springframework.scheduling.annotation.EnableAsync;
+//
+//@Configuration
+//@EnableAsync
+//public class AsyncConfig {
+//    // ë¹„ë™ê¸° ì²˜ë¦¬ë¥¼ ìœ„í•œ ì„¤ì •
+//    // í•„ìš”ì— ë”°ë¼ ì»¤ìŠ¤í…€ TaskExecutorë¥¼ ì •ì˜í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+//}
+//

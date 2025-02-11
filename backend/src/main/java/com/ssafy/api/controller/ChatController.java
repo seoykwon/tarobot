@@ -75,8 +75,8 @@ public class ChatController {
         // 1. 세션 종료 처리 (DB 업데이트, 로그 기록 등)
         chatSessionService.deleteChatSession(request.getSessionId());
 
-        // 2. 비동기 요약 요청 (예: @Async 사용)
-        chatSessionService.asyncSummaryAndDiarySave(request.getSessionId(), request.getUserId());
+        // 2. 요약 요청
+        chatSessionService.summaryAndDiarySave(request.getSessionId(), request.getUserId());
 
         return ResponseEntity.ok(Map.of("message", "채팅 종료 처리 중"));
     }

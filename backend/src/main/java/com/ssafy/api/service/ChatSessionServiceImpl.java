@@ -68,19 +68,22 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Async
-    public void asyncSummaryAndDiarySave(UUID sessionId, String userId) {
+    public void summaryAndDiarySave(UUID sessionId, String userId) {
         try {
-            // 3. FastAPI에 요약 요청 (세션 ID 전달)
-            Mono<String> summaryMono = webClient.post()
+            String summary = webClient.post()
                     .uri("/chat/close")
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(Map.of("sessionId", sessionId))
+                    .bodyValue(Map.of(
+                            "sessionId", sessionId.toString() // ✅ UUID를 문자열로 변환하여 전송
+                    ))
                     .retrieve()
-                    .bodyToMono(String.class);
+                    .bodyToMono(String.class)
+                    .block();
 
-            // 4. FastAPI로부터 요약 결과 수신 후, DB에 diary 저장
-            summaryMono.subscribe(summary -> {
+
+            System.out.println("✅ Response from FastAPI: " + summary);
+
+            if (summary != null && !summary.isEmpty()) {
                 User user = userRepository.findByUserId(userId)
                         .orElseThrow(() -> new RuntimeException("User not found with userId: " + userId));
 
@@ -89,7 +92,12 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 diary.setConsultDate(LocalDate.now());
                 diary.setSummary(summary);
                 diaryRepository.save(diary);
-            });
+
+                System.out.println("✅ Summary saved to Diary: " + summary);
+            } else {
+                System.out.println("❌ No summary received from FastAPI.");
+            }
+
         } catch(Exception e) {
             // 예외 처리 (로깅 등)
             System.out.println("비동기 요약 & 일지 저장 실패");
