@@ -1,6 +1,9 @@
 stages:
   - test
 
+variables:
+  GIT_DEPTH: "0"  # ✅ Git 전체 히스토리 가져오기 (SonarQube blame 문제 해결)
+
 # 🔵 FastAPI (Python 3.12)
 sonarqube_check_fastapi:
   image: 
@@ -8,28 +11,29 @@ sonarqube_check_fastapi:
     entrypoint: [""]
   stage: test
   tags:
-    - fastapi  # ✅ FastAPI 전용 Runner에서 실행
+    - fastapi
   before_script:
     - cd rag_pipeline
     - pip install --upgrade pip
-    - pip install -r requirements.txt  # FastAPI 의존성 설치
-    # ✅ SonarQube CLI 설치 (FastAPI 환경)
+    - pip install -r requirements.txt
+    # ✅ SonarQube CLI 설치
     - |
       curl -fsSL -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
       unzip sonar-scanner.zip
       mv sonar-scanner-5.0.1.3006-linux /usr/local/sonar-scanner
       export PATH="/usr/local/sonar-scanner/bin:$PATH"
   script:
-    - sonar-scanner
-        -Dsonar.projectKey=$SONAR_PROJECT_KEY
-        -Dsonar.host.url=$SONAR_HOST_URL
-        -Dsonar.login=$SONAR_TOKEN
-        -Dsonar.sources=.
+    - sonar-scanner 
+        -Dsonar.projectKey="$SONAR_PROJECT_KEY" 
+        -Dsonar.host.url="$SONAR_HOST_URL" 
+        -Dsonar.login="$SONAR_TOKEN" 
+        -Dsonar.sources=. 
+        -Dsonar.qualitygate.wait=true
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       changes:
-        - rag_pipeline/**/*  # FastAPI 코드 변경 시만 실행
+        - rag_pipeline/**/*
 
 # 🟢 Next.js (Node.js 18)
 sonarqube_check_nextjs:
@@ -38,52 +42,52 @@ sonarqube_check_nextjs:
     entrypoint: [""]
   stage: test
   tags:
-    - nextjs  # ✅ Next.js 전용 Runner에서 실행
+    - nextjs
   before_script:
     - cd frontend
-    - npm ci  # ✅ npm install 대신 npm ci 사용
-    - npm install -g sonarqube-scanner  # ✅ SonarQube CLI 설치
+    - npm ci
+    - npm install -g sonarqube-scanner
   script:
-    - sonar-scanner
-        -Dsonar.projectKey=$SONAR_PROJECT_KEY
-        -Dsonar.host.url=$SONAR_HOST_URL
-        -Dsonar.login=$SONAR_TOKEN
-        -Dsonar.sources=.
+    - npx sonar-scanner 
+        -Dsonar.projectKey="$SONAR_PROJECT_KEY" 
+        -Dsonar.host.url="$SONAR_HOST_URL" 
+        -Dsonar.login="$SONAR_TOKEN" 
+        -Dsonar.sources=. 
+        -Dsonar.qualitygate.wait=true
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       changes:
-        - frontend/**/*  # Next.js 코드 변경 시만 실행
+        - frontend/**/*
 
 # 🟢 Spring Boot (Gradle 8.3 + JDK 17)
 sonarqube_check_springboot:
   stage: test
   image: gradle:8.3-jdk17
   tags:
-    - springboot  # ✅ Spring Boot 전용 Runner에서 실행
+    - springboot
   variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # SonarQube 캐시 위치
-    GIT_DEPTH: "0"  # 전체 git 기록을 가져와야 분석 가능
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   cache:
     key: "${CI_JOB_NAME}"
     paths:
       - .sonar/cache
   before_script:
     - cd backend
-    # ✅ SonarQube CLI 설치 (Gradle 환경)
+    # ✅ SonarQube CLI 설치
     - |
       curl -fsSL -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
       unzip sonar-scanner.zip
       mv sonar-scanner-5.0.1.3006-linux /usr/local/sonar-scanner
       export PATH="/usr/local/sonar-scanner/bin:$PATH"
   script:
-  - gradle --no-daemon --info build sonar 
-      -Dsonar.projectKey="$SONAR_PROJECT_KEY" 
-      -Dsonar.host.url="$SONAR_HOST_URL" 
-      -Dsonar.login="$SONAR_TOKEN"
-      -Dsonar.sources=.
+    - gradle --no-daemon --info build sonar 
+        -Dsonar.projectKey="$SONAR_PROJECT_KEY" 
+        -Dsonar.host.url="$SONAR_HOST_URL" 
+        -Dsonar.login="$SONAR_TOKEN"
+        -Dsonar.qualitygate.wait=true
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       changes:
-        - backend/**/*  # Spring Boot 코드 변경 시만 실행
+        - backend/**/*
