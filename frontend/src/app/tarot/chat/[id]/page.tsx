@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "@/app/chat_test/card-selector";
+import { majorTarotCards } from "@/utils/tarotCards";
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
 
@@ -27,23 +28,19 @@ export default function ChatPage() {
 
   const chatContainerRef = useRef<HTMLDivElement>(null); // 스크롤 컨트롤을 위한 Ref
 
-  // const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
-  const sessionId = "lacu207"; // 테스트용 세션 id
+  const sessionId = "abc123"; // 예시 세션 ID (실제 세션 ID를 백엔드에서 받아와야 함)
   const userId = 123; // 예시 사용자 ID (실제 사용자 ID를 받아와야 함)
 
   const sendMessage = async (card?: string | React.MouseEvent) => {
     let message = ""
-    let gotype = "none"
     if (typeof card === "string") {
       message = card;
-      gotype = chatType;
     }
     else {
       if (!input.trim()) return;
       message = input;
       const userMessage = { sender: "user", text: message };
       setMessages((prev) => [...prev, userMessage]);
-      setChatType("none"); // 타로 버튼을 클릭하지 않았다면 타입을 되돌리자
     }
 
     setInput("");

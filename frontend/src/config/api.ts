@@ -3,11 +3,11 @@ const FASTAPI_BASE_URL = process.env.NEXT_PUBLIC_FASTAPI_BASE_URL || "http://loc
 
 export const API_URLS = {
   AUTH: {
-    LOGIN: `${BASE_URL}/api/v1/auth/login`,
-    SIGNUP: `${BASE_URL}/api/v1/users`,
+    LOGIN: `${BASE_URL}/v1/auth/login`,
+    SIGNUP: `${BASE_URL}/v1/users`,
     GOOGLE: `${BASE_URL}/oauth2/authorization/google`,
     KAKAO: `${BASE_URL}/auth/kakao`,
-    LOGOUT: `${BASE_URL}/api/v1/auth/logout`,
+    LOGOUT: `${BASE_URL}/auth/logout`,
   },
   CHAT: {
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
