@@ -29,7 +29,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date()); // 현재 날짜 (달력 기준)
   const [selectedDate, setSelectedDate] = useState(new Date()); // 선택된 날짜
   const [daysInfo, setDaysInfo] = useState<DayInfo[]>([]);
-  const [tarotData, setTarotData] = useState<TarotSummary | null>(null);
+  const [tarotData, setTarotData] = useState<TarotSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch calendar data for the current month
@@ -70,13 +70,13 @@ export default function CalendarPage() {
 
       const data: TarotSummary[] | null = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        setTarotData(data[0]); // 첫 번째 아이템 사용
+        setTarotData(data); // 첫 번째 아이템 사용
       } else {
-        setTarotData(null); // 데이터가 없을 경우 처리
+        setTarotData([]); // 데이터가 없을 경우 처리
       }
     } catch (error) {
       console.error("Error fetching tarot data:", error);
-      setTarotData(null);
+      setTarotData([]);
     } finally {
       setIsLoading(false);
     }
@@ -203,19 +203,21 @@ export default function CalendarPage() {
         {/* Fortune Summary */}
         <div className="space-y-4">
           <h2 className="font-page-title">Your Fortune Summary</h2>
-          <Card className="p-1"> 
-            <CardHeader>
-              <CardTitle className="font-tarobot-title">
-                {isLoading ? "Loading..." : tarotData?.title || "오늘의 타로 결과를 확인하세요"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-start gap-4"> 
-              {tarotData ? (
-                <>
+
+          {/* 여러 개의 타로 카드 렌더링 */}
+          {isLoading ? (
+            <p className="text-center">Loading...</p>
+          ) : tarotData.length > 0 ? (
+            tarotData.map((tarot, index) => (
+              <Card key={index} className="p-1"> 
+                <CardHeader>
+                  <CardTitle className="font-tarobot-title">{tarot.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-start gap-4"> 
                   {/* 좌측: 카드 이미지 */}
                   <Image
-                    src={tarotData.cardImageUrl}
-                    alt={tarotData.title}
+                    src={tarot.cardImageUrl}
+                    alt={tarot.title}
                     width={140} 
                     height={210} 
                     className="object-cover rounded-lg shadow-md"
@@ -223,29 +225,24 @@ export default function CalendarPage() {
 
                   {/* 우측: 제목 + 내용 */}
                   <div className="flex-1 text-left">
-                    {/* 카드 태그 추가 */}
                     <p className="font-tarobot-tag text-sm text-muted-foreground mb-2">
-                      Tag: {tarotData.tag}
+                      Tag: {tarot.tag}
                     </p>
-                    {/* 카드 요약 설명 */}
                     <p className="font-tarobot-description text-muted-foreground">
-                      {tarotData.summary}
+                      {tarot.summary}
                     </p>
-                    {/* 운세 날짜 추가 */}
                     <p className="text-xs text-gray-500 mt-2">
-                      Date of Fortune: {tarotData.consultDate}
+                      Date of Fortune: {tarot.consultDate}
                     </p>
                   </div>
-                </>
-              ) : (
-                !isLoading && (
-                  <p className="font-tarobot-description text-muted-foreground">
-                    선택한 날짜에 대한 데이터가 없습니다. 오늘의 타로 결과를 확인하세요.
-                  </p>
-                )
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="font-tarobot-description text-muted-foreground">
+              선택한 날짜에 대한 데이터가 없습니다. 오늘의 타로 결과를 확인하세요.
+            </p>
+          )}
         </div>
 
 

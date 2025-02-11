@@ -1,5 +1,6 @@
 package com.ssafy.api.service;
 
+import com.ssafy.api.response.ChatSummaryRes;
 import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.ChatSession;
 import com.ssafy.db.entity.Diary;
@@ -70,37 +71,38 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     @Override
     public void summaryAndDiarySave(UUID sessionId, String userId) {
         try {
-            String summary = webClient.post()
+            // ✅ FastAPI 응답을 DTO 객체로 매핑
+            ChatSummaryRes response = webClient.post()
                     .uri("/chat/close")
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(Map.of(
-                            "sessionId", sessionId.toString() // ✅ UUID를 문자열로 변환하여 전송
-                    ))
+                    .bodyValue(Map.of("sessionId", sessionId.toString()))
                     .retrieve()
-                    .bodyToMono(String.class)
+                    .bodyToMono(ChatSummaryRes.class) // ✅ DTO로 변환
                     .block();
 
+            System.out.println("✅ Response from FastAPI: " + response);
 
-            System.out.println("✅ Response from FastAPI: " + summary);
-
-            if (summary != null && !summary.isEmpty()) {
+            if (response != null) {
                 User user = userRepository.findByUserId(userId)
                         .orElseThrow(() -> new RuntimeException("User not found with userId: " + userId));
 
                 Diary diary = new Diary();
                 diary.setUser(user);
                 diary.setConsultDate(LocalDate.now());
-                diary.setSummary(summary);
-                diaryRepository.save(diary);
+                diary.setSummary(response.getSummary());
+                diary.setTitle(response.getTitle());
+                diary.setTag(response.getTag());
+                diary.setCardImageUrl(response.getCardImageUrl());
 
-                System.out.println("✅ Summary saved to Diary: " + summary);
+                diaryRepository.save(diary);
+                System.out.println("✅ Diary saved successfully with title: " + response.getTitle());
             } else {
-                System.out.println("❌ No summary received from FastAPI.");
+                System.out.println("❌ No response received from FastAPI.");
             }
 
-        } catch(Exception e) {
-            // 예외 처리 (로깅 등)
-            System.out.println("비동기 요약 & 일지 저장 실패");
+        } catch (Exception e) {
+            System.out.println("비동기 요약 & 일지 저장 실패: " + e.getMessage());
         }
     }
+
 }

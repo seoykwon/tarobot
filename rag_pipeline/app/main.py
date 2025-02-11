@@ -125,6 +125,12 @@ class ChatResponse(BaseModel):
 class CloseChatRequest(BaseModel):
     sessionId: str
 
+class ChatSummaryResponse(BaseModel):
+    summary: str
+    title: str
+    tag: str
+    cardImageUrl: str
+
 @app.post("/openvidu/connections")
 def create_connection(body: TokenRequest):
     session_id = body.session_id
@@ -144,14 +150,14 @@ async def chat(session_id: str, user_input: str, type: str = ""):
     return {"answer": result, "chatTag": tag}
 
 # 상담 종료 신호 수신
-@app.post("/chat/close")
+@app.post("/chat/close", response_model=ChatSummaryResponse)
 async def chat(request: CloseChatRequest):
     # 상담 기록 전체 불러오기 및 요약해서 정보 넘기기
     if not request.sessionId:
         raise HTTPException(status_code=400, detail="Session ID required")
     
     # Redis에서 채팅 로그 가져오기
-    chat_logs = get_recent_history(session_id=request.sessionId, count=0)
+    chat_logs = await get_recent_history(session_id=request.sessionId, count=0)
     if not chat_logs:
         raise HTTPException(status_code=404, detail="No chat logs found")
     
@@ -161,14 +167,19 @@ async def chat(request: CloseChatRequest):
         채팅 로그를 300자 이내로 요약하세요.
         - 타로 점에 관한 내용이 있다면, 해당 내용을 중점적으로 요약하세요.
         - 사용자의 고민과 타로 결과, 타로 결과에 따라 사용자가 어떻게 행동해야 할지를 빠뜨리지 마세요.
+        - 클라이언트에게 보일 내용이므로, 사용자는~ 이라고 대답하지 말고, 당신은~ 이라고 대답하세요.
 
         채팅 로그:
         {chat_logs}
         """,
         max_tokens=400
     )
-    return summary
-    # return {"message": f"sessionId: {session_id}의 상담이 종료되었습니다.", "summary": summary}
+    return {
+        "summary": summary,
+        "title": "타로 상담 결과",  # ✅ 실제 타이틀 값
+        "tag": "타로, 테스트",  # ✅ 적절한 태그 추가
+        "cardImageUrl": "/images/dummy1.png"  # ✅ 이미지 URL
+    }
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest): # Json body 형태로 변환
