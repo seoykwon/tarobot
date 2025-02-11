@@ -1,59 +1,79 @@
 "use client"
 
-import type React from "react"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import styles from "./StarryBackground.module.css"
 
-const StarryBackground: React.FC = () => {
-  const [shootingStars, setShootingStars] = useState<JSX.Element[]>([])
+// 시드 기반 난수 생성기
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed++) * 10000
+  return Number((x - Math.floor(x)).toFixed(8)) // 소수점 8자리로 고정
+}
+
+// 별 생성 함수
+const createStars = (count: number, seed: number) => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    style: {
+      top: `${(seededRandom(seed + i) * 100).toFixed(2)}%`,
+      left: `${(seededRandom(seed + i + count) * 100).toFixed(2)}%`,
+    } as React.CSSProperties,
+  }))
+}
+
+// 유성 생성 함수
+const createShootingStar = (index: number, seed: number) => {
+  const id = Date.now() + index
+  const isFromTop = seededRandom(seed + id) > 0.5
+  const position = seededRandom(seed + id + 1) * 100
+  const delay = index * 0.5
+  const width = seededRandom(seed + id + 2) * 100 + 100
+
+  return {
+    id,
+    style: {
+      top: isFromTop ? "0" : `${position}%`,
+      right: isFromTop ? `${position}%` : "0",
+      width: `${width}px`,
+      animationDelay: `${delay}s`,
+    } as React.CSSProperties,
+  }
+}
+
+interface StarryBackgroundProps {
+  starCount?: number
+  seed?: number
+}
+
+const StarryBackground: React.FC<StarryBackgroundProps> = ({ starCount = 50, seed = Date.now() }) => {
+  const [shootingStars, setShootingStars] = useState<React.ReactNode[]>([])
+  const stars = React.useMemo(() => createStars(starCount, seed), [starCount, seed])
 
   useEffect(() => {
-    const createShootingStar = (index: number) => {
-      const id = Date.now() + index
-      const isFromTop = Math.random() > 0.5 // 50% chance to start from top or right edge
-      const position = Math.random() * 100
-      const delay = index * 0.5 // 0.5 second delay between each star
-      const width = Math.random() * 100 + 100 // Random width between 100-200px
-
-      return (
-        <div
-          key={id}
-          className={styles.shootingStar}
-          style={{
-            top: isFromTop ? "0" : `${position}%`,
-            right: isFromTop ? `${position}%` : "0",
-            width: `${width}px`,
-            animationDelay: `${delay}s`,
-          }}
-        />
-      )
-    }
+    // 클라이언트 사이드에서만 애니메이션 딜레이 적용
+    stars.forEach((star, index) => {
+      const element = document.getElementById(`star-${star.id}`)
+      if (element) {
+        element.style.animationDelay = `${(seededRandom(seed + index + starCount * 2) * 5).toFixed(2)}s`
+      }
+    })
 
     const createShootingStarSequence = () => {
-      const newShootingStars = [0, 1, 2].map(createShootingStar)
+      const newShootingStars = [0, 1, 2].map((index) => {
+        const star = createShootingStar(index, seed + Date.now())
+        return <div key={star.id} className={styles.shootingStar} style={star.style} />
+      })
       setShootingStars(newShootingStars)
     }
 
-    // 즉시 첫 번째 시퀀스의 별똥별 생성
     createShootingStarSequence()
-
-    const shootingStarInterval = setInterval(createShootingStarSequence, 5000) // Every 5 seconds
-
-    return () => clearInterval(shootingStarInterval)
-  }, [])
+    const interval = setInterval(createShootingStarSequence, 5000)
+    return () => clearInterval(interval)
+  }, [stars, seed, starCount])
 
   return (
     <div className={styles.starryBackground}>
-      {[...Array(50)].map((_, i) => (
-        <div
-          key={i}
-          className={styles.star}
-          style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-          }}
-        />
+      {stars.map((star) => (
+        <div key={star.id} id={`star-${star.id}`} className={styles.star} style={star.style} />
       ))}
       {shootingStars}
     </div>
