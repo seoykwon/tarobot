@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 성공</title>
+</head>
+<body>
+<h1>구글 로그인이 성공하였습니다.</h1>
+<p>3초 뒤에 창이 자동으로 닫힙니다.</p>
+
+<script>
+    window.opener.postMessage("google-login-success", "*");
+    setTimeout(() => {
+        window.close();
+    }, 3000);
+</script>
+</body>
+</html>
