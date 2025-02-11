@@ -1,4 +1,5 @@
 # main.py
+import json
 import uvicorn
 import asyncio
 import socketio
@@ -7,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from app.services.rag_pipeline import rag_pipeline, process_user_input
 from app.utils.response_utils import response_generator  # ✅ Streaming import
 from app.core.openvidu_api import create_openvidu_session, create_openvidu_connection
@@ -129,7 +130,7 @@ class CloseChatRequest(BaseModel):
 class ChatSummaryResponse(BaseModel):
     summary: str
     title: str
-    tag: str
+    tag: List[str]
     cardImageUrl: str
 
 @app.post("/openvidu/connections")
@@ -162,22 +163,15 @@ async def chat(request: CloseChatRequest):
     if not chat_logs:
         raise HTTPException(status_code=404, detail="No chat logs found")
     
-    # 대화 기록 요약 (여기서는 간단한 요약 예시)
-    summary_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["text"], max_tokens=400))
-    title_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["title"], max_tokens=30))
-    tag_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["tag"], max_tokens=30))
-    cardImageUrl_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["card"], max_tokens=50))
-    summary, title, tag, cardImageUrl = await asyncio.gather(
-        summary_t, title_t, tag_t, cardImageUrl_t,
-        return_exceptions=True  # ✅ 하나의 태스크가 실패해도 나머지 태스크 실행 유지
-    )
+    # ✅ 한 번의 API 호출로 JSON 응답을 받음
+    response = await call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["diary"], max_tokens=500)
 
-    return {
-        "summary": summary,
-        "title": title,  # ✅ 실제 타이틀 값
-        "tag": tag,  # ✅ 적절한 태그 추가
-        "cardImageUrl": cardImageUrl  # ✅ 이미지 URL
-    }
+    try:
+        result = json.loads(response)  # ✅ JSON 응답 파싱
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse response from AI")
+
+    return result  # ✅ JSON 객체 반환
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest): # Json body 형태로 변환

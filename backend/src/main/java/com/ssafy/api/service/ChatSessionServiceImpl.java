@@ -91,7 +91,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 diary.setConsultDate(LocalDate.now());
                 diary.setSummary(response.getSummary());
                 diary.setTitle(response.getTitle());
-                diary.setTag(response.getTag());
+                diary.setTag(String.join(", ", response.getTag()));
                 diary.setCardImageUrl(response.getCardImageUrl());
 
                 diaryRepository.save(diary);
