@@ -13,6 +13,12 @@ sonarqube_check_fastapi:
     - cd rag_pipeline
     - pip install --upgrade pip
     - pip install -r requirements.txt  # FastAPI 의존성 설치
+    # ✅ SonarQube CLI 설치 (FastAPI 환경)
+    - |
+      curl -fsSL -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+      unzip sonar-scanner.zip
+      mv sonar-scanner-5.0.1.3006-linux /usr/local/sonar-scanner
+      export PATH="/usr/local/sonar-scanner/bin:$PATH"
   script:
     - sonar-scanner \
         -Dsonar.projectKey=$SONAR_PROJECT_KEY \
@@ -35,9 +41,10 @@ sonarqube_check_nextjs:
     - nextjs  # ✅ Next.js 전용 Runner에서 실행
   before_script:
     - cd frontend
-    - npm ci  # ✅ npm install 대신 npm ci 사용 (더 빠르고 일관된 패키지 설치)
+    - npm ci  # ✅ npm install 대신 npm ci 사용
+    - npm install -g sonarqube-scanner  # ✅ SonarQube CLI 설치
   script:
-    - npx sonar-scanner \
+    - sonar-scanner \
         -Dsonar.projectKey=$SONAR_PROJECT_KEY \
         -Dsonar.host.url=$SONAR_HOST_URL \
         -Dsonar.login=$SONAR_TOKEN \
@@ -63,6 +70,12 @@ sonarqube_check_springboot:
       - .sonar/cache
   before_script:
     - cd backend
+    # ✅ SonarQube CLI 설치 (Gradle 환경)
+    - |
+      curl -fsSL -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+      unzip sonar-scanner.zip
+      mv sonar-scanner-5.0.1.3006-linux /usr/local/sonar-scanner
+      export PATH="/usr/local/sonar-scanner/bin:$PATH"
   script:
     - gradle --no-daemon --info build sonar
   allow_failure: true
