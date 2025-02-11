@@ -204,6 +204,8 @@ async def retrieve_data(key: str):
     val = redis_client.get(key)
     return {"key": key, "value": val}
 
+print('love')
+
 # uvicorn 실행
 def start_server():
     uvicorn.run(
