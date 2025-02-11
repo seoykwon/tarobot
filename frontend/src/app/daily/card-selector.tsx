@@ -19,7 +19,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     setSelectedCard(cardNumber)
     setTimeout(() => {
       onCardSelect(cardNumber)
-    }, 500)
+    }, 5000)
   }
 
   const handleScroll = (direction: "left" | "right") => {
