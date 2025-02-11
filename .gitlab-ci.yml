@@ -1,28 +1,29 @@
 stages:
   - test
 
-# 🔵 FastAPI (Python)
+# 🔵 FastAPI (Python 3.12)
 sonarqube_check_fastapi:
   image: 
-    name: sonarsource/sonar-scanner-cli:latest
+    name: python:3.12
     entrypoint: [""]
   stage: test
+  tags:
+    - fastapi  # ✅ FastAPI 전용 Runner에서 실행
   before_script:
     - cd rag_pipeline
+    - pip install --upgrade pip
     - pip install -r requirements.txt  # FastAPI 의존성 설치
   script:
-    - |
-      sonar-scanner \
+    - sonar-scanner \
         -Dsonar.projectKey=$SONAR_PROJECT_KEY \
         -Dsonar.host.url=$SONAR_HOST_URL \
         -Dsonar.login=$SONAR_TOKEN \
         -Dsonar.sources=.
   allow_failure: true
-  only:
-    refs:
-      - master
-    changes:
-      - rag_pipeline/**/*  # FastAPI 코드 변경 시만 실행
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - rag_pipeline/**/*  # FastAPI 코드 변경 시만 실행
 
 # 🟢 Next.js (Node.js 18)
 sonarqube_check_nextjs:
@@ -30,40 +31,42 @@ sonarqube_check_nextjs:
     name: node:18
     entrypoint: [""]
   stage: test
+  tags:
+    - nextjs  # ✅ Next.js 전용 Runner에서 실행
   before_script:
     - cd frontend
-    - npm install  # Next.js 의존성 설치
+    - npm ci  # ✅ npm install 대신 npm ci 사용 (더 빠르고 일관된 패키지 설치)
   script:
-    - |
-      npx sonar-scanner \
+    - npx sonar-scanner \
         -Dsonar.projectKey=$SONAR_PROJECT_KEY \
         -Dsonar.host.url=$SONAR_HOST_URL \
         -Dsonar.login=$SONAR_TOKEN \
         -Dsonar.sources=.
   allow_failure: true
-  only:
-    refs:
-      - master
-    changes:
-      - frontend/**/*  # Next.js 코드 변경 시만 실행
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - frontend/**/*  # Next.js 코드 변경 시만 실행
 
-# 🟢 Spring Boot (Java Gradle)
-sonarqube-check:
-  stage: test  # ❗누락된 stage 추가
-  image: gradle:jre11-slim
+# 🟢 Spring Boot (Gradle 8.3 + JDK 17)
+sonarqube_check_springboot:
+  stage: test
+  image: gradle:8.3-jdk17
+  tags:
+    - springboot  # ✅ Spring Boot 전용 Runner에서 실행
   variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # SonarQube 캐시 위치
+    GIT_DEPTH: "0"  # 전체 git 기록을 가져와야 분석 가능
   cache:
     key: "${CI_JOB_NAME}"
     paths:
       - .sonar/cache
-  script:
+  before_script:
     - cd backend
-    - gradle sonar
+  script:
+    - gradle --no-daemon --info build sonar
   allow_failure: true
-  only: 
-    refs:
-      - master
-    changes:
-      - backend/**/*  # Spring Boot 코드 변경 시만 실행
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - backend/**/*  # Spring Boot 코드 변경 시만 실행
