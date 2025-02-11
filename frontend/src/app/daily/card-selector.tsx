@@ -12,17 +12,21 @@ interface CardSelectorProps {
 const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) => {
   const [selectedCard, setSelectedCard] = useState<number | null>(null)
   const [startIndex, setStartIndex] = useState(0)
+  const [isSelecting, setIsSelecting] = useState(false) // 고르는 중 추가 -> 고르는 중일때는 다른 카드 선택 불가
   const totalCards = 22
   const visibleCards = 8
 
   const handleCardSelect = (cardNumber: number) => {
+    if (isSelecting) return
+    setIsSelecting(true) // 선택 프로세스 시작
     setSelectedCard(cardNumber)
     setTimeout(() => {
       onCardSelect(cardNumber)
-    }, 5000)
+    }, 2000)  /* 몇초동안 카드 앞면 보여줄래 */
   }
 
   const handleScroll = (direction: "left" | "right") => {
+    if (isSelecting) return //선택 중에는 스크롤 불가
     setStartIndex((prevIndex) => {
       if (direction === "left") {
         return (prevIndex - 1 + totalCards) % totalCards
@@ -43,6 +47,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (isSelecting) return //선택중에는 키보드 네비게이션 방지
       if (event.key === "ArrowLeft") {
         handleScroll("left")
       } else if (event.key === "ArrowRight") {
@@ -54,12 +59,12 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [handleScroll]) // Added handleScroll to dependencies
+  }, [isSelecting, handleScroll]) // isSelecting을 의존성 배열에 추가
 
   return (
     <div className={styles.overlay}>
       <div className={styles.overlayContent}>
-        <button className={styles.closeButton} onClick={onClose}>
+        <button className={styles.closeButton} onClick={onClose} disabled={isSelecting}>
           ✕
         </button>
         <div className={styles.cardSemiCircle}>
@@ -90,10 +95,18 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
             </div>
           ))}
         </div>
-        <button className={`${styles.scrollButton} ${styles.scrollLeft}`} onClick={() => handleScroll("left")}>
+        <button 
+          className={`${styles.scrollButton} ${styles.scrollLeft}`} 
+          onClick={() => handleScroll("left")}
+          disabled={isSelecting}
+        >
           &#8592;
         </button>
-        <button className={`${styles.scrollButton} ${styles.scrollRight}`} onClick={() => handleScroll("right")}>
+        <button 
+          className={`${styles.scrollButton} ${styles.scrollRight}`} 
+          onClick={() => handleScroll("right")}
+          disabled={isSelecting}
+        >
           &#8594;
         </button>
       </div>
