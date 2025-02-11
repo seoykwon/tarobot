@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -51,33 +52,38 @@ public class ReviewController {
                 .body(BaseResponseBody.of(200, "Success"));
     }
 
-    // 전체 리뷰 목록 조회 (전체 리뷰)
+    @Operation(summary = "리뷰 조회", description = "reviewId 파라미터가 있으면 해당 리뷰 단건, tarotBotId 파라미터가 있으면 해당 타로봇의 리뷰, 둘 다 없으면 전체 리뷰 내림차순 조회")
     @GetMapping
-    @Operation(summary = "모든 리뷰 조회", description = "모든 리뷰를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    public ResponseEntity<List<ReviewRes>> getAllReviews() {
-        List<Review> reviews = reviewRepository.findAll();
+    public ResponseEntity<?> getReviews(
+            @RequestParam(required = false) Long reviewId,
+            @RequestParam(required = false) Long tarotBotId) {
+
+        // reviewId 값이 존재하면 단건 조회
+        if (reviewId != null) {
+            Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
+            if (reviewOptional.isPresent()) {
+                return ResponseEntity.ok(ReviewRes.of(reviewOptional.get()));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 리뷰를 찾을 수 없습니다.");
+            }
+        }
+
+        // tarotBotId 값이 존재하면 해당 타로봇의 리뷰 목록 조회 (내림차순 정렬)
+        if (tarotBotId != null) {
+            tarotBotRepository.findById(tarotBotId)
+                    .orElseThrow(() -> new RuntimeException("타로봇을 찾을 수 없습니다."));
+            List<Review> reviews = reviewRepository.findByTarotBot_Id(tarotBotId, Sort.by(Sort.Direction.DESC, "id"));
+            List<ReviewRes> response = reviews.stream().map(ReviewRes::of).toList();
+            return ResponseEntity.ok(response);
+        }
+
+        // 파라미터가 없으면 전체 리뷰 내림차순 정렬하여 조회
+        List<Review> reviews = reviewRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         List<ReviewRes> response = reviews.stream().map(ReviewRes::of).toList();
         return ResponseEntity.ok(response);
     }
 
-    // 특정 리뷰 조회 (단일 리뷰)
-    @GetMapping("/{reviewId}")
-    @Operation(summary = "특정 리뷰 조회", description = "특정 리뷰 ID에 해당하는 리뷰를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    public ResponseEntity<ReviewRes> getReviewById(@PathVariable Long reviewId) {
-        Optional<Review> review = reviewRepository.findById(reviewId);
-        return review.map(r -> ResponseEntity.ok(ReviewRes.of(r)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
+
 
     // 리뷰 수정 API
     @PutMapping("/{reviewId}")
