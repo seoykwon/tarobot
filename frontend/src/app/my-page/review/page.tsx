@@ -1,100 +1,94 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { LoadingSpinner } from "@/components/Loading";
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/Card";
+import { API_URLS } from "@/config/api";
 
 interface Review {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: string;
+  id: number; // 리뷰 ID
+  createdAt: string; // 리뷰 생성 날짜 (ISO 형식)
+  updatedAt: string; // 리뷰 수정 날짜 (ISO 형식)
+  author: string; // 작성자 이름
+  rating: number; // 평점
+  content: string; // 리뷰 내용
+  date: string; // 리뷰 작성 날짜 (YYYY-MM-DD 형식)
 }
 
 export default function ReviewPage() {
-  const [reviews, setReviews] = useState<Review[]>([]); // 리뷰 데이터
-  const [loading, setLoading] = useState(false); // 로딩 상태
-  const [hasMore, setHasMore] = useState(true); // 더 가져올 데이터가 있는지 여부
-  const [page, setPage] = useState(1); // 현재 페이지 번호
-  const loader = useRef<HTMLDivElement | null>(null); // Intersection Observer를 위한 Ref
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 백엔드에서 리뷰 데이터를 가져오는 함수
-  const fetchReviews = async (page: number) => {
+  const fetchReviews = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/reviews?page=${page}&pageSize=10`);
+      const response = await fetch(API_URLS.REVIEW.ALL, {
+        method: "GET",
+        credentials: "include", // 쿠키 포함
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
+        throw new Error(`Failed to fetch reviews: ${response.statusText}`);
       }
 
-      const data = await response.json();
-
-      // 새로 가져온 데이터를 기존 리뷰에 추가
-      setReviews((prev) => [...prev, ...data.reviews]);
-      setHasMore(data.reviews.length > 0); // 더 이상 데이터가 없으면 hasMore를 false로 설정
+      const data: Review[] = await response.json();
+      setReviews(data); // 리뷰 데이터를 상태에 저장
     } catch (error) {
-      console.error("Error fetching reviews:", error);
+      console.error("리뷰 데이터를 가져오는 중 오류 발생:", error);
+      setError("리뷰 데이터를 불러오는 중 문제가 발생했습니다.");
     } finally {
-      setLoading(false);
+      setLoading(false); // 로딩 상태 해제
     }
   };
 
-  // Intersection Observer 설정 (무한 스크롤)
+  // 컴포넌트 마운트 시 리뷰 데이터를 가져옴
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const firstEntry = entries[0];
-        if (firstEntry.isIntersecting && hasMore && !loading) {
-          setPage((prevPage) => prevPage + 1); // 다음 페이지 요청
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (loader.current) observer.observe(loader.current);
-
-    return () => {
-      if (loader.current) observer.unobserve(loader.current);
-    };
-  }, [hasMore, loading]);
-
-  // 페이지 번호가 변경될 때마다 데이터 가져오기
-  useEffect(() => {
-    fetchReviews(page);
-  }, [page]);
+    fetchReviews();
+  }, []);
 
   return (
     <main className="min-h-screen bg-background p-4">
       <h1 className="font-page-title mb-4">내가 작성한 리뷰</h1>
 
-      {/* 리뷰 목록 */}
-      <div className="space-y-4">
-        {reviews.map((review) => (
-          <Card key={review.id}>
-            <CardHeader>
-              <h2 className="font-tarobot-title">{review.title}</h2>
-              <p className="text-sm text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
-            </CardHeader>
-            <CardContent>
-              <p className="font-tarobot-description">{review.content}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* 로딩 상태 표시 */}
+      {loading && <p className="text-center text-muted-foreground">로딩 중...</p>}
 
-      {/* 로딩 상태 */}
-      {loading && (
-        <div className="flex justify-center mt-4">
-          <LoadingSpinner />
+      {/* 에러 메시지 표시 */}
+      {error && <p className="text-center text-red-500">{error}</p>}
+
+      {/* 리뷰 목록이 없을 경우 메시지 표시 */}
+      {!loading && reviews.length === 0 && !error && (
+        <div className="text-center text-muted-foreground p-4">
+          지금 점을 보고 리뷰를 작성해보세요!
         </div>
       )}
 
-      {/* Intersection Observer를 위한 로더 */}
-      <div ref={loader} className="h-10"></div>
-
-      {/* 더 이상 데이터가 없을 경우 메시지 표시 */}
-      {!hasMore && !loading && (
-        <p className="text-center text-muted-foreground mt-4">더 이상 리뷰가 없습니다.</p>
+      {/* 리뷰 목록 렌더링 */}
+      {!loading && !error && reviews.length > 0 && (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <Card key={review.id}>
+              <CardContent>
+                <div className="flex flex-col space-y-2">
+                  <span className="font-bold text-lg">⭐ {review.rating}</span>
+                  <p>{review.content}</p>
+                  <span className="text-sm text-muted-foreground">
+                    작성일: {new Date(review.date).toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </main>
   );

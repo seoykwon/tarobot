@@ -41,9 +41,6 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private int likeCount = 0; // 좋아요 수
 
-    @CreationTimestamp
-    private LocalDateTime createdAt; // 생성 시간
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt; // 수정 시간
+    @Version
+    private Integer version = 0; // 동시성 제어를 위한 낙관적 락 필드
 }

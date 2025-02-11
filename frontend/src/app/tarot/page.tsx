@@ -54,6 +54,7 @@
 //   );
 // }
 import { TarotGame } from "@/components/TarotGame";
+import { API_URLS } from "@/config/api";
 
 interface TarotBot {
   // id: string;
@@ -73,7 +74,7 @@ const dummyBots: TarotBot[] = [
     description: "An ancient tarot master who sees the unseen.",
     mbti: "INFJ",
     concept: "임시",
-    profileImage: "임시",
+    profileImage: "/target.svg",
   },
   {
     id: 2,
@@ -81,7 +82,7 @@ const dummyBots: TarotBot[] = [
     description: "A cosmic seer who reads the fate through the constellations.",
     mbti: "ENFP",
     concept: "임시",
-    profileImage: "임시",
+    profileImage: "/target.svg",
   },
   {
     id: 3,
@@ -89,13 +90,13 @@ const dummyBots: TarotBot[] = [
     description: "A mysterious fortune teller who uncovers hidden truths.",
     mbti: "INTP",
     concept: "임시",
-    profileImage: "임시",
+    profileImage: "/target.svg",
   },
 ];
 
 async function fetchTarotBots(): Promise<TarotBot[]> {
   try {
-    const response = await fetch("http://localhost:8080/api/v1/tarot-bots", {
+    const response = await fetch(API_URLS.TAROTBOTS.LIST, {
       cache: "no-store", // 최신 데이터를 가져오기 위해 캐싱 비활성화
     });
 

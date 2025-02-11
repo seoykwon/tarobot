@@ -17,6 +17,9 @@ class AppSettings(BaseSettings):
     
     # ✅ 4o-mini API 추가
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
+    
+    openvidu_url: str = Field(..., env="OPENVIDU_URL")
+    openvidu_secret: str = Field(..., env="OPENVIDU_SECRET")
 
     class Config:
         env_file = ".env"

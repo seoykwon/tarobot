@@ -19,7 +19,7 @@ export default function DarkModeToggle({ initialTheme }: { initialTheme: string 
     <button
       onClick={handleToggle}
       disabled={isPending}
-      className="p-2 rounded-md bg-gray-800 text-white dark:bg-gray-200 dark:text-black"
+      className="p-2 rounded-md bg-gray-800 text-white dark:bg-gray-200 dark:text-black flex items-center justify-center w-10 h-10 text-xl"
     >
       {isDark ? "☀️" : "🌙"}
     </button>

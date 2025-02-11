@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 public class TarotBot extends BaseEntity {
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "bot_name", length = 100, nullable = false)
     private String name;
 
     @Column(length = 255)
@@ -40,10 +40,4 @@ public class TarotBot extends BaseEntity {
     @OneToMany(mappedBy = "tarotBot", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("tarotBot")  // Review의 JSON에서 tarotBot을 무시하도록 설정
     private List<Review> reviews = new ArrayList<>();
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 }

@@ -19,6 +19,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -63,7 +65,8 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않음 (JWT 기반 인증)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/users/me", "/api/v1/user-profiles/me").authenticated() // 인증이 필요한 URL 설정
+                        .requestMatchers("/api/v1/users/me", "/api/v1/user-profiles/me",
+                                "/api/v1/chat/*").authenticated() // 인증이 필요한 URL 설정
                         .anyRequest().permitAll()                           // 나머지 요청은 모두 허용
                 )
                 .authenticationProvider(authenticationProvider()) // Authentication Provider 등록
@@ -94,5 +97,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    // SecurityContextHolder를 통해 인증 정보 저장
+    @Bean
+    public SecurityContextHolderStrategy securityContextHolderStrategy() {
+        return SecurityContextHolder.getContextHolderStrategy();
     }
 }
