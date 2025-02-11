@@ -116,7 +116,7 @@
 @media (max-width: 1024px) {
   .card {
     --angle: calc(180deg / (var(--total) - 1) * var(--index) - 90deg);
-    --radius: 240px;
+    --radius: 200px;
     width: 70px;
     height: 105px;
   }
