@@ -7,8 +7,6 @@ sonarqube_check_fastapi:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
   stage: test
-  tags:
-    - fastapi  # ✅ FastAPI 전용 Runner에서 실행
   before_script:
     - cd rag_pipeline
     - pip install -r requirements.txt  # FastAPI 의존성 설치
@@ -32,8 +30,6 @@ sonarqube_check_nextjs:
     name: node:18
     entrypoint: [""]
   stage: test
-  tags:
-    - nextjs  # ✅ Next.js 전용 Runner에서 실행
   before_script:
     - cd frontend
     - npm install  # Next.js 의존성 설치
@@ -55,8 +51,6 @@ sonarqube_check_nextjs:
 sonarqube-check:
   stage: test  # ❗누락된 stage 추가
   image: gradle:jre11-slim
-  tags:
-    - springboot  # ✅ Spring Boot 전용 Runner에서 실행
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
     GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
