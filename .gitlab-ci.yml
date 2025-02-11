@@ -18,7 +18,7 @@ sonarqube_check_fastapi:
       -Dsonar.sources=.
   allow_failure: true
   only:
-    - main
+    - master
 
 # 🟢 Next.js (Node.js 18)
 sonarqube_check_nextjs:
@@ -37,7 +37,7 @@ sonarqube_check_nextjs:
       -Dsonar.sources=.
   allow_failure: true
   only:
-    - main
+    - master
 
 sonarqube-check:
   image: gradle:jre11-slim
@@ -53,4 +53,4 @@ sonarqube-check:
     - gradle sonar
   allow_failure: true
   only: 
-    - main
+    - master
