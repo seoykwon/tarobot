@@ -23,7 +23,7 @@ sonarqube_check_fastapi:
     refs:
       - master
     changes:
-      - rag_pipeline/**  # FastAPI 코드 변경 시만 실행
+      - rag_pipeline/**/*  # FastAPI 코드 변경 시만 실행
 
 # 🟢 Next.js (Node.js 18)
 sonarqube_check_nextjs:
@@ -47,7 +47,7 @@ sonarqube_check_nextjs:
     refs:
       - master
     changes:
-      - frontend/**  # Next.js 코드 변경 시만 실행
+      - frontend/**/*  # Next.js 코드 변경 시만 실행
 
 sonarqube-check:
   image: gradle:jre11-slim
@@ -68,4 +68,4 @@ sonarqube-check:
     refs:
       - master
     changes:
-      - backend/**  # Spring Boot 코드 변경 시만 실행
+      - backend/**/*  # Spring Boot 코드 변경 시만 실행
