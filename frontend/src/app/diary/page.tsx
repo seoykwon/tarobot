@@ -187,7 +187,8 @@ export default function CalendarPage() {
           <span className="text-lg font-bold">{day}</span>
           {/* 운세 점수 */}
           <span className="text-sm text-red-500 mt-1">
-            {daysInfo.find((d) => d.day === day)?.luckyScore ?? "❓"}
+            {daysInfo.find((d) => d.day === day)?.luckyScore ?? ""}
+            {/* {daysInfo.find((d) => d.day === day)?.luckyScore ?? "❓"} */}
           </span>
         </>
       )}

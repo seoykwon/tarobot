@@ -13,6 +13,7 @@ from app.utils.response_utils import response_generator  # ✅ Streaming import
 from app.core.openvidu_api import create_openvidu_session, create_openvidu_connection
 from app.utils.fo_mini_api import call_4o_mini
 from app.services.redis_utils import get_recent_history
+from app.utils.sys_prompt_dict import sys_prompt
 
 app = FastAPI()
 
@@ -162,23 +163,20 @@ async def chat(request: CloseChatRequest):
         raise HTTPException(status_code=404, detail="No chat logs found")
     
     # 대화 기록 요약 (여기서는 간단한 요약 예시)
-    summary = await call_4o_mini(
-        f"""
-        채팅 로그를 300자 이내로 요약하세요.
-        - 타로 점에 관한 내용이 있다면, 해당 내용을 중점적으로 요약하세요.
-        - 사용자의 고민과 타로 결과, 타로 결과에 따라 사용자가 어떻게 행동해야 할지를 빠뜨리지 마세요.
-        - 클라이언트에게 보일 내용이므로, 사용자는~ 이라고 대답하지 말고, 당신은~ 이라고 대답하세요.
-
-        채팅 로그:
-        {chat_logs}
-        """,
-        max_tokens=400
+    summary_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["text"], max_tokens=400))
+    title_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["title"], max_tokens=30))
+    tag_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["tag"], max_tokens=30))
+    cardImageUrl_t = asyncio.create_task(call_4o_mini(f"{chat_logs}", system_prompt=sys_prompt["summary"]["card"], max_tokens=50))
+    summary, title, tag, cardImageUrl = await asyncio.gather(
+        summary_t, title_t, tag_t, cardImageUrl_t,
+        return_exceptions=True  # ✅ 하나의 태스크가 실패해도 나머지 태스크 실행 유지
     )
+
     return {
         "summary": summary,
-        "title": "타로 상담 결과",  # ✅ 실제 타이틀 값
-        "tag": "타로, 테스트",  # ✅ 적절한 태그 추가
-        "cardImageUrl": "/images/dummy1.png"  # ✅ 이미지 URL
+        "title": title,  # ✅ 실제 타이틀 값
+        "tag": tag,  # ✅ 적절한 태그 추가
+        "cardImageUrl": cardImageUrl  # ✅ 이미지 URL
     }
 
 @app.post("/chat/stream")
