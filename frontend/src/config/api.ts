@@ -13,7 +13,8 @@ export const API_URLS = {
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
     STREAM: (sessionId: string, userInput: string, type?: string) =>
       `${FASTAPI_BASE_URL}/chat?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
-    CLOSE: `${FASTAPI_BASE_URL}/chat/close`,
+    ENTER: `${BASE_URL}/api/v1/chat/session/enter`,
+    CLOSE: `${BASE_URL}/api/v1/chat/session/close`,
   },
   TAROT: {
     RECORDS: `${BASE_URL}/tarot-records`,

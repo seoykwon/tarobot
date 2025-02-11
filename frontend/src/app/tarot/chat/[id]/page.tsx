@@ -51,50 +51,6 @@ export default function ChatPage() {
     setShowTarotButton(false); // 인풋이 들어가면 타로 보기 버튼 비활성화
 
     try {
-      // fetch를 사용하여 POST 요청
-      // const response = await fetch("http://127.0.0.1:8000/chat", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({ session_id: sessionId, user_input: input }),
-      // });
-      // console.log(typeof input, input);
-      // if (!response.ok) {
-      //   throw new Error("Failed to fetch response from server");
-      // }
-      // const data = await response.json();
-      // const botMessage = { sender: "bot", text: data.reply };
-
-      // 챗봇 쪽을 바꿔야 할 거 같긴 한데, 일단 테스트 용으로 query로 보내기
-      // 쿼리 스트링으로 session_id와 user_input을 포함
-
-      /*
-        현재 수정 사항
-
-        요청의 쿼리에 chatTag 속성 추가
-          - string, 기본값 ""
-          - "tarot" 일 경우 FastAPI에서 로직을 바꿔 처리하도록 설정하기
-
-        응답 받은 chatTag가 tarot일 경우
-          - showTarotButton을 활성화 해 버튼 표시
-            - 일반 챗 입력 시 버튼 비활성화
-          - 버튼 클릭 시 showCardSelector를 활성화 해 카드 선택
-            - 카드 선택 시 뽑은 카드 정보와 함께 sendMessage 함수 재시작
-
-        FastAPI 측 수정 사항
-          - /chat/close API 추가 ( 종료 신호 수신 )
-            - API 만 추가하고 기능은 딱히 없음
-          - /chat API에 chatTag를 반환하도록 함
-            - chatTag을 tarot으로 설정하는 로직 추가
-      */
-
-      // const queryParams = new URLSearchParams({
-      //   session_id: sessionId,
-      //   user_input: message,
-      //   type: chatType,
-      // }).toString();
-
       const response = await fetch(`${API_URLS.CHAT.STREAM(sessionId, message, chatType)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
