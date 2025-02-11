@@ -60,10 +60,19 @@ export default async function TarobotDetailsPage({ params }: TarobotDetailsPageP
 
       {/* 리뷰 섹션 */}
       <section className="mb-6">
-        <h2 className="font-tarobot-title mb-4">Consultation Reviews</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-tarobot-title">Consultation Reviews</h2>
+          {tarobotDetails.reviews.length > 2 && (
+            <Link href={`/tarot/bots/${tarobotDetails.id}/reviews`}>
+              <Button variant="link" className="text-sm">
+                더보기
+              </Button>
+            </Link>
+          )}
+        </div>
         {tarobotDetails.reviews.length > 0 ? (
           <div className="space-y-4">
-            {tarobotDetails.reviews.map((review) => (
+            {tarobotDetails.reviews.slice(0, 2).map((review) => (
               <div key={review.id} className="bg-gray-700 text-white p-4 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-tarobot-subtitle">{review.author}</h3>
@@ -83,28 +92,28 @@ export default async function TarobotDetailsPage({ params }: TarobotDetailsPageP
         )}
       </section>
 
-      {/* 소통하기 버튼 섹션 수정 */}
-    <section className="grid grid-cols-3 gap-4">
-      <Link href={`/tarot/bots/${tarobotDetails.id}/chat_s`}>
-        <Button
-          size="lg"
-          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
-        >
-          선택지 상담
-        </Button>
-      </Link>
-      
-      <Link href={`/tarot/bots/${tarobotDetails.id}/chat_c`}>
-        <Button
-          size="lg"
-          className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
-        >
-          대화 상담
-        </Button>
-      </Link>
-      
-      <FriendChatOverlay />
-    </section>
+      {/* 소통하기 버튼 섹션 */}
+      <section className="grid grid-cols-3 gap-4">
+        <Link href={`/tarot/bots/${tarobotDetails.id}/chat_s`}>
+          <Button
+            size="lg"
+            className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
+          >
+            선택지 상담
+          </Button>
+        </Link>
+
+        <Link href={`/tarot/bots/${tarobotDetails.id}/chat_c`}>
+          <Button
+            size="lg"
+            className="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white"
+          >
+            대화 상담
+          </Button>
+        </Link>
+
+        <FriendChatOverlay />
+      </section>
     </main>
   );
 }

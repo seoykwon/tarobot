@@ -36,6 +36,20 @@ const dummyTarobotDetails: TarobotDetails = {
       content: "정말 도움이 많이 되었습니다!",
       date: "2024-02-07",
     },
+    {
+      id: 2,
+      author: "테스트 유저",
+      rating: 5,
+      content: "정말 도움이 많이 되었습니다!",
+      date: "2024-02-07",
+    },
+    {
+      id: 3,
+      author: "테스트 유저",
+      rating: 5,
+      content: "정말 도움이 많이 되었습니다!",
+      date: "2024-02-07",
+    },
   ],
 };
 

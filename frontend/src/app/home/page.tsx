@@ -45,6 +45,30 @@ const defaultFortune: Fortune = {
   luckyNumber: 0,
 };
 
+const defaultTarotbots: Tarotbot[] = [
+  {
+    id: 1,
+    name: "Tarot Master A",
+    description: "연애와 인간관계에 특화된 마스터",
+    rating: 4.5,
+    profileImage: "/example.jpg",
+  },
+  {
+    id: 2,
+    name: "Tarot Master B",
+    description: "커리어와 직업 상담에 능한 마스터",
+    rating: 4.7,
+    profileImage: "/example.jpg",
+  },
+  {
+    id: 3,
+    name: "Tarot Master C",
+    description: "재정과 투자 분석에 전문가",
+    rating: 4.3,
+    profileImage: "/example.jpg",
+  },
+];
+
 const defaultMiniGames: MiniGame[] = [
   { gameId: 1, name: "타로 맞추기", description: "타로 카드를 맞춰보세요!" },
   { gameId: 2, name: "점성술 퀴즈", description: "점성술 관련 퀴즈를 풀어보세요!" },
@@ -53,7 +77,7 @@ const defaultMiniGames: MiniGame[] = [
 export default async function HomePage() {
   // 서버에서 데이터 가져오기
   const fortune = (await fetchData<Fortune>(API_URLS.FORTUNE)) ?? defaultFortune;
-  const tarotbots = (await fetchData<Tarotbot[]>(API_URLS.TAROTBOTS.LIST)) ?? []; // ✅ 기본값 빈 배열
+  const tarotbots = (await fetchData<Tarotbot[]>(API_URLS.TAROTBOTS.LIST)) ?? defaultTarotbots; // ✅ 기본값 빈 배열
   const miniGames = (await fetchData<MiniGame[]>(API_URLS.GAME.LIST)) ?? defaultMiniGames;
 
   return (

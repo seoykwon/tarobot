@@ -59,10 +59,11 @@ export default function CommunityClient({
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  // 검색 타입 상태: "title" (제목) 또는 "content" (내용)
+  const [searchType, setSearchType] = useState<"title" | "content">("title");
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-  // 데이터를 가져오는 함수는 useCallback으로 감싸서 메모화
-  // (setState 함수들은 안정적인 reference라 별도의 deps는 없어도 경고가 없습니다.)
+  // 데이터를 가져오는 함수는 useCallback으로 감싸 메모이제이션 처리
   const fetchPosts = useCallback(async (filter: string, pageNum: number) => {
     setLoading(true);
     try {
@@ -81,12 +82,10 @@ export default function CommunityClient({
 
       const data = await response.json();
 
-      // 데이터가 없으면 hasMore를 false로 설정
       if (!data || data.length === 0) {
         setHasMore(false);
       } else {
         setPosts((prev) =>
-          // pageNum이 1이면 새 배열로 대체, 그렇지 않으면 이어 붙이기
           pageNum === 1 ? data : [...prev, ...data]
         );
       }
@@ -98,23 +97,25 @@ export default function CommunityClient({
     }
   }, []);
 
-  // ❗ 필터가 변경되면 페이지, posts, hasMore 상태를 리셋
   useEffect(() => {
     setPage(1);
     setPosts([]);
     setHasMore(true);
   }, [selectedFilter]);
 
-  // ❗ page나 selectedFilter가 바뀔 때마다 fetch
   useEffect(() => {
     fetchPosts(selectedFilter, page);
   }, [fetchPosts, selectedFilter, page]);
 
-  // 검색 제출 핸들러
+  // 수정된 검색 제출 핸들러: 선택된 검색 타입(searchType) 추가
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/community/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(
+        `/community/search?type=${searchType}&q=${encodeURIComponent(
+          searchQuery.trim()
+        )}`
+      );
       setShowSearchOverlay(false);
       setSearchQuery("");
     }
@@ -162,7 +163,9 @@ export default function CommunityClient({
           announcements.map((announcement) => (
             <Card key={announcement.announcementId} className="mb-4">
               <div className="p-4">
-                <h3 className="font-tarobot-title">{announcement.title}</h3>
+                <h3 className="font-tarobot-title">
+                  {announcement.title}
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   {announcement.content}
                 </p>
@@ -173,7 +176,9 @@ export default function CommunityClient({
             </Card>
           ))
         ) : (
-          <p className="text-muted-foreground">등록된 공지사항이 없습니다.</p>
+          <p className="text-muted-foreground">
+            등록된 공지사항이 없습니다.
+          </p>
         )}
       </section>
 
@@ -206,6 +211,33 @@ export default function CommunityClient({
       {showSearchOverlay && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            {/* 검색 타입 선택 버튼 */}
+            <div className="mb-4 flex justify-center space-x-2">
+              <button
+                type="button"
+                onClick={() => setSearchType("title")}
+                className={`px-4 py-2 rounded-lg ${
+                  searchType === "title"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-black"
+                }`}
+              >
+                제목
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchType("content")}
+                className={`px-4 py-2 rounded-lg ${
+                  searchType === "content"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-black"
+                }`}
+              >
+                내용
+              </button>
+            </div>
+
+            {/* 검색창 */}
             <form onSubmit={handleSearchSubmit} className="space-y-4">
               <input
                 type="text"
@@ -215,6 +247,7 @@ export default function CommunityClient({
                 className="w-full p-3 border rounded-lg"
                 autoFocus
               />
+              {/* 취소 / 검색 버튼 */}
               <div className="flex justify-end space-x-2">
                 <Button
                   type="button"
@@ -223,7 +256,9 @@ export default function CommunityClient({
                 >
                   취소
                 </Button>
-                <Button type="submit">검색</Button>
+                <Button type="submit">
+                  검색
+                </Button>
               </div>
             </form>
           </div>
@@ -237,9 +272,10 @@ export default function CommunityClient({
             <Link key={post.id} href={`/community/${post.id}`}>
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                 <div className="p-4 flex justify-between gap-4">
-                  {/* 왼쪽: 제목, 내용 등 */}
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-tarobot-title">{post.title}</h2>
+                    <h2 className="font-tarobot-title">
+                      {post.title}
+                    </h2>
                     <p className="font-tarobot-description mb-2 line-clamp-2">
                       {post.content}
                     </p>
@@ -257,7 +293,6 @@ export default function CommunityClient({
                       <span>by {post.userId}</span>
                     </div>
                   </div>
-                  {/* 오른쪽: 썸네일 */}
                   <Image
                     src={post.imageUrl || "/images/dummy1.png"}
                     alt={post.title}
@@ -270,9 +305,12 @@ export default function CommunityClient({
             </Link>
           ))
         ) : (
-          !loading && <p className="text-muted-foreground">게시글이 없습니다.</p>
+          !loading && (
+            <p className="text-muted-foreground">
+              게시글이 없습니다.
+            </p>
+          )
         )}
-        {/* 무한 스크롤 관찰 대상 */}
         <div ref={observerRef} className="h-10 flex items-center justify-center">
           {loading && <p>Loading...</p>}
         </div>
