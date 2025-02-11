@@ -10,7 +10,7 @@ import lombok.Setter;
 @Schema(description = "ChatSession Register Request")
 public class ChatSessionRegisterReq {
 
-    @NotNull(message = "봇 ID는 필수 항목 입니다.")
-    @Schema(description = "봇 ID", example = "1")
+    @NotNull(message = "봇 ID는 필수 입력 항목입니다.")
+    @Schema(description = "세션에 참여할 봇 ID", example = "1")
     private Long botId;
 }
