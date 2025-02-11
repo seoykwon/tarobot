@@ -1,26 +1,20 @@
 package com.ssafy.api.service;
 
 import com.ssafy.db.entity.ChatSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
     private final WebClient webClient;
-
-    // fastapi.base.url: 예) http://localhost:8000
-    public ChatServiceImpl(@Value("${fastapi.base.url}") String fastApiBaseUrl,
-                       WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl(fastApiBaseUrl).build();
-    }
-
 
     @Override
     public String processMessage(String userInput, ChatSession session, String type) {

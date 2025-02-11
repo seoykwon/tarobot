@@ -9,4 +9,5 @@ public interface ChatSessionService {
     ChatSession findBySessionId(UUID sessionId);
     void updateLastAccessed(ChatSession session);
     void deleteChatSession(UUID sessionId);
+    void asyncSummaryAndDiarySave(UUID sessionId, String userId);
 }

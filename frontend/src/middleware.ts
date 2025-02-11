@@ -82,6 +82,16 @@ async function validateAndRefresh(req: NextRequest) {
     if (!refreshResponse.ok) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
+
+    // 백엔드가 새 access token을 쿠키에 설정한 Set-Cookie 헤더 추출
+    const setCookieHeader = refreshResponse.headers.get("set-cookie");
+
+    // Edge에서 최종 응답에 쿠키 헤더를 포함시켜 브라우저에 전달
+    const response = NextResponse.next();
+    if (setCookieHeader) {
+      response.headers.append("set-cookie", setCookieHeader);
+    }
+    return response;
   }
 
   return null; // 토큰이 유효한 경우 그대로 진행

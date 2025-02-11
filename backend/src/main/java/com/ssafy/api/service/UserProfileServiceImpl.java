@@ -15,7 +15,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserProfileServiceImpl implements UserProfileService {
     private final UserRepository userRepository;
-
     private final UserProfileRepository userProfileRepository;
 
     @Override

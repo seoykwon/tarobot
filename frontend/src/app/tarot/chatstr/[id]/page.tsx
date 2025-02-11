@@ -97,21 +97,17 @@ export default function ChatPage() {
     try {
       // ✅ JSON Body로 요청 전송 (쿼리 파라미터 제거)
       const response = await fetch("http://127.0.0.1:8000/chat/stream", {
-      // const response = await fetch("http://127.0.0.1:8080/api/v1/chat/stream", { // Spring
         method: "POST",
         headers: { 
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            // sessionId: sessionId, // Spring
-            // userInput: message, // Spring
             session_id: sessionId,
             user_input: message,
             user_id: userId,
             bot_id: botId,
             type: gotype
         }),
-        // credentials: "include", // Spring
     });
   
       const chatTag = response.headers.get("ChatTag") || "none";
@@ -184,35 +180,72 @@ export default function ChatPage() {
     
     sendMessage(selectedCard); // 뽑은 카드 정보를 담아 요청
   };
-
-  // // ✅ 세션 종료 함수 - 백엔드 경유
-  // const endSession = async () => {
-  //   if (!sessionId) return;
-
+  
+  // // 상담 종료하기 버튼 클릭 핸들러 -> FastAPI 직접 연결 버전
+  // const handleEndChat = async () => {
   //   try {
-  //     await fetch("http://localhost:8080/api/v1/chat/session/exit", {
+  //     const response = await fetch(`http://127.0.0.1:8000/chat/close`, {
   //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ sessionId }),
-  //       credentials: "include",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ sessionId }), // 세션 ID 전송
   //     });
-
+      
+  //     if (!response.ok) {
+  //       throw new Error("Failed to close chat session");
+  //     }
+      
+  //     const data = await response.json();
+  //     console.log(data.message); // 성공 메시지 출력
+      
   //     // ✅ localStorage에서 삭제
   //     localStorage.removeItem("sessionId");
   //     localStorage.removeItem("userId");
-
+      
   //     setSessionId("");
   //     setUserId("");
+      
+  //     // 상담 종료 후 처리 (예: 홈 화면으로 이동)
+  //     alert("디버그:: 상담이 종료되었습니다.");
+  //     router.push("/home"); // 홈 페이지로 리다이렉트
   //   } catch (error) {
-  //     console.error("세션 종료 에러:", error);
+  //     console.error("Error closing chat session:", error);
+  //     alert("상담 종료 중 오류가 발생했습니다.");
   //   }
   // };
 
+  // 채팅 종료 버튼 Spring 연결 핸들러
+  const handleEndChat = async () => {
+    try {
+      // 스프링 서버로 종료 요청 (응답은 기다리지 않거나 간단한 성공/실패만 확인)
+      fetch("http://localhost:8080/api/v1/chat/session/close", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, sessionId }),
+        credentials: "include",
+      });
+
+      // ✅ localStorage에서 삭제
+      localStorage.removeItem("sessionId");
+      localStorage.removeItem("userId");
+      
+      setSessionId("");
+      setUserId("");
+
+      // 클라이언트에서는 별도의 응답 처리가 필요없도록 처리
+      alert("채팅 종료 요청을 보냈습니다.");
+      router.push("/home");
+    } catch (error) {
+      console.error("채팅 종료 요청 에러:", error);
+    }
+  };
+
+  
   // // ✅ 페이지 떠날 때 세션 자동 종료
   // useEffect(() => {
   //   const handleBeforeUnload = () => {
-  //     // endSession(); // Spring과 연결
-  //     handleEndChat(); // FastAPI와 연결
+  //     handleEndChat();
   //   };
 
   //   window.addEventListener("beforeunload", handleBeforeUnload);
@@ -220,40 +253,6 @@ export default function ChatPage() {
   //     window.removeEventListener("beforeunload", handleBeforeUnload);
   //   };
   // }, [sessionId]);
-
-  // 상담 종료하기 버튼 클릭 핸들러
-  const handleEndChat = async () => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/chat/close`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sessionId }), // 세션 ID 전송
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to close chat session");
-      }
-
-      const data = await response.json();
-      console.log(data.message); // 성공 메시지 출력
-
-      // ✅ localStorage에서 삭제
-      localStorage.removeItem("sessionId");
-      localStorage.removeItem("userId");
-
-      setSessionId("");
-      setUserId("");
-
-      // 상담 종료 후 처리 (예: 홈 화면으로 이동)
-      alert("디버그:: 상담이 종료되었습니다.");
-      router.push("/home"); // 홈 페이지로 리다이렉트
-    } catch (error) {
-      console.error("Error closing chat session:", error);
-      alert("상담 종료 중 오류가 발생했습니다.");
-    }
-  };
 
   // 새로운 메시지가 추가될 때 자동으로 스크롤 하단으로 이동
   useEffect(() => {
