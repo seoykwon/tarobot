@@ -3,11 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { API_URLS } from "@/config/api";
+import { useParams } from "next/navigation";
+
 
 export default function FriendChatOverlay() {
   const router = useRouter();
   const [showOverlay, setShowOverlay] = useState(false);
   const [joinSessionId, setJoinSessionId] = useState("");
+  const { id: tarobotId } = useParams(); // [id] 값 가져오기
 
   // 6자리 랜덤 세션 ID 생성 함수
   const generateRandomSessionId = () => {
@@ -18,7 +21,7 @@ export default function FriendChatOverlay() {
   const handleCreateRoom = () => {
     const sessionId = generateRandomSessionId();
     setShowOverlay(false);
-    router.push(API_URLS.WEBRTC.ROOM(sessionId));
+    router.push(API_URLS.WEBRTC.ROOM(tarobotId as string, sessionId));
   };
 
   // 방 참여하기 폼 제출 시: 입력한 세션 번호로 이동
@@ -26,7 +29,7 @@ export default function FriendChatOverlay() {
     e.preventDefault();
     if (joinSessionId.trim()) {
       setShowOverlay(false);
-      router.push(API_URLS.WEBRTC.ROOM(joinSessionId.trim()));
+      router.push(API_URLS.WEBRTC.ROOM(tarobotId as string, joinSessionId.trim()));
     }
   };
 
