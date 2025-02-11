@@ -93,8 +93,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<BaseResponseBody> logout(HttpServletRequest request, HttpServletResponse response) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	public ResponseEntity<BaseResponseBody> logout(HttpServletRequest request, HttpServletResponse response,
+			Authentication auth) {
 		if (auth != null) {
 			new SecurityContextLogoutHandler().logout(request, response, auth);
 		}

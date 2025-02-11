@@ -48,7 +48,8 @@ export default function LoginPage() {
   // Google 로그인 핸들러
   const handleGoogleLogin = async () => {
     try {
-      const loginUrl = `${API_URLS.AUTH.GOOGLE}?prompt=select_account`;
+      // const loginUrl = `${API_URLS.AUTH.GOOGLE}?authuser=0&prompt=select_account+consent`;
+      const loginUrl = `${API_URLS.AUTH.GOOGLE}?authuser=0&prompt=select_account&service_logout`;
       const loginWindow = window.open(loginUrl, "_blank", "width=500,height=600");
   
       const checkPopup = setInterval(() => {
