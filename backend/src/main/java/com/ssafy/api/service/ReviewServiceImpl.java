@@ -38,7 +38,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review review = new Review();
         review.setTarotBot(tarotBot);
-        review.setAuthor(currentUser);
+        review.setUser(currentUser);
         review.setRating(request.getRating());
         review.setContent(request.getContent());
         review.setDate(LocalDate.now());
@@ -53,7 +53,7 @@ public class ReviewServiceImpl implements ReviewService {
         User currentUser = securityUtil.getCurrentUser();
 
         // 본인 작성 여부 검사; 현재 사용자와 작성자가 다르면 권한 없음
-        if (!review.getAuthor().getId().equals(currentUser.getId())) {
+        if (!review.getUser().getId().equals(currentUser.getId())) {
             throw new SecurityException("수정 권한이 없습니다.");
         }
 
@@ -68,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("Review not found"));
         User currentUser = securityUtil.getCurrentUser();
 
-        if (!review.getAuthor().getId().equals(currentUser.getId())) {
+        if (!review.getUser().getId().equals(currentUser.getId())) {
             throw new SecurityException("삭제 권한이 없습니다.");
         }
         reviewRepository.delete(review);
@@ -79,7 +79,7 @@ public class ReviewServiceImpl implements ReviewService {
         User currentUser = securityUtil.getCurrentUser();
         Long userId = currentUser.getId();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Review> reviewPage = reviewRepository.findByAuthor_Id(userId, pageable);
+        Page<Review> reviewPage = reviewRepository.findByUser_Id(userId, pageable);
 // Page 객체의 컨텐트만 추출하여 ReviewRes 리스트로 변환 후 반환
         return reviewPage.getContent()
                 .stream()
