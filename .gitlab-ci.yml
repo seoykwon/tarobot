@@ -13,11 +13,12 @@ sonarqube_check_fastapi:
     - cd rag_pipeline
     - pip install -r requirements.txt  # FastAPI 의존성 설치
   script:
-    - sonar-scanner
-      -Dsonar.projectKey=$SONAR_PROJECT_KEY
-      -Dsonar.host.url=$SONAR_HOST_URL
-      -Dsonar.login=$SONAR_TOKEN
-      -Dsonar.sources=.
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login=$SONAR_TOKEN \
+        -Dsonar.sources=.
   allow_failure: true
   only:
     refs:
@@ -37,11 +38,12 @@ sonarqube_check_nextjs:
     - cd frontend
     - npm install  # Next.js 의존성 설치
   script:
-    - npx sonar-scanner
-      -Dsonar.projectKey=$SONAR_PROJECT_KEY
-      -Dsonar.host.url=$SONAR_HOST_URL
-      -Dsonar.login=$SONAR_TOKEN
-      -Dsonar.sources=.
+    - |
+      npx sonar-scanner \
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login=$SONAR_TOKEN \
+        -Dsonar.sources=.
   allow_failure: true
   only:
     refs:
@@ -49,7 +51,9 @@ sonarqube_check_nextjs:
     changes:
       - frontend/**/*  # Next.js 코드 변경 시만 실행
 
+# 🟢 Spring Boot (Java Gradle)
 sonarqube-check:
+  stage: test  # ❗누락된 stage 추가
   image: gradle:jre11-slim
   tags:
     - springboot-runner  # ✅ Spring Boot 전용 Runner에서 실행
