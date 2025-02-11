@@ -7,22 +7,22 @@ import { Textarea } from "@/components/ui/Textarea"
 import { toast } from "sonner"
 
 interface ReviewComponentProps {
-  onSubmit: (data: { rating: number; review: string }) => Promise<void>
+  onSubmit: (data: { rating: number; content: string }) => Promise<void>
 }
 
 export default function ReviewComponent({ onSubmit }: ReviewComponentProps) {
   const [rating, setRating] = useState(0)
-  const [review, setReview] = useState("")
+  const [content, setcontent] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (rating === 0 || !review.trim()) {
+    if (rating === 0 || !content.trim()) {
       toast.error("별점과 리뷰를 모두 작성해주세요.")
       return
     }
-    await onSubmit({ rating, review })
+    await onSubmit({ rating, content })
     setRating(0)
-    setReview("")
+    setcontent("")
   }
 
   return (
@@ -41,8 +41,8 @@ export default function ReviewComponent({ onSubmit }: ReviewComponentProps) {
       </div>
 
       <Textarea 
-        value={review} 
-        onChange={(e) => setReview(e.target.value)} 
+        value={content} 
+        onChange={(e) => setcontent(e.target.value)} 
         placeholder="리뷰를 작성해주세요..." 
       />
 
