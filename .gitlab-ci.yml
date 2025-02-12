@@ -2,7 +2,7 @@ stages:
   - test
 
 variables:
-  GIT_DEPTH: "0"  # ✅ Git 전체 히스토리 가져오기 (SonarQube blame 문제 해결)
+  GIT_DEPTH: "0"
 
 # 🔵 FastAPI (Python 3.12)
 sonarqube_check_fastapi:
@@ -12,11 +12,12 @@ sonarqube_check_fastapi:
   stage: test
   tags:
     - fastapi
+  only:
+    - master  # ✅ 이 Job이 `master` 브랜치에서만 실행됨
   before_script:
     - cd rag_pipeline
     - pip install --upgrade pip
     - pip install -r requirements.txt
-    # ✅ SonarQube CLI 설치
     - |
       curl -fsSL -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
       unzip sonar-scanner.zip
@@ -30,10 +31,6 @@ sonarqube_check_fastapi:
         -Dsonar.sources=. 
         -Dsonar.qualitygate.wait=true
   allow_failure: true
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      # changes:
-      #   - rag_pipeline/**/*
 
 # 🟢 Next.js (Node.js 18)
 sonarqube_check_nextjs:
@@ -43,6 +40,8 @@ sonarqube_check_nextjs:
   stage: test
   tags:
     - nextjs
+  only:
+    - master
   before_script:
     - cd frontend
     - npm ci
@@ -55,10 +54,6 @@ sonarqube_check_nextjs:
         -Dsonar.sources=. 
         -Dsonar.qualitygate.wait=true
   allow_failure: true
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      # changes:
-      #   - frontend/**/*
 
 # 🟢 Spring Boot (Gradle 8.3 + JDK 17)
 sonarqube_check_springboot:
@@ -66,6 +61,8 @@ sonarqube_check_springboot:
   image: gradle:8.3-jdk17
   tags:
     - springboot
+  only:
+    - master
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   cache:
@@ -74,7 +71,6 @@ sonarqube_check_springboot:
       - .sonar/cache
   before_script:
     - cd backend
-    # ✅ SonarQube CLI 설치
     - |
       curl -fsSL -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
       unzip sonar-scanner.zip
@@ -87,7 +83,3 @@ sonarqube_check_springboot:
         -Dsonar.login="$SONAR_TOKEN"
         -Dsonar.qualitygate.wait=true
   allow_failure: true
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      # changes:
-      #   - backend/**/*
