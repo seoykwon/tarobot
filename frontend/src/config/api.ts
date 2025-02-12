@@ -10,9 +10,10 @@ export const API_URLS = {
     LOGOUT: `${BASE_URL}/api/v1/auth/logout`,
   },
   CHAT: {
+    GET_SESSION: `${BASE_URL}/api/v1/chat/session/enter`,       // GET - 채팅 세션 획득
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
     STREAM: (sessionId: string, userInput: string, type?: string) =>
-      `${FASTAPI_BASE_URL}/chat?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
+      `${FASTAPI_BASE_URL}/chat/stream?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
     ENTER: `${BASE_URL}/api/v1/chat/session/enter`,
     CLOSE: `${BASE_URL}/api/v1/chat/session/close`,
   },
@@ -80,7 +81,7 @@ export const API_URLS = {
   FORTUNE: `${BASE_URL}/api/main/fortune`,
    // WebRTC 관련 URL
   WEBRTC: {
-    ROOM: (sessionId: string) => `/webRTC_test/${sessionId}`,
+    ROOM: (tarobotId: string, sessionId: string) => `/tarot/bots/${tarobotId}/chat_w/${sessionId}`,
   },
   OPENVIDU: {
     SESSIONS: `${FASTAPI_BASE_URL}/openvidu/sessions`, // OpenVidu 세션 생성

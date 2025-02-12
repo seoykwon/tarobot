@@ -27,11 +27,25 @@ const dummyTarobotDetails: TarobotDetails = {
   description: "당신의 고민을 함께 나눌 준비가 되어있습니다.",
   concept: "따뜻한 상담가",
   mbti: "INFJ",
-  profileImage: "/images/tarobot1.jpg",
+  profileImage: "/example.jpg",
   expertise: ["연애", "진로", "인간관계"],
   reviews: [
     {
       id: 1,
+      author: "테스트 유저",
+      rating: 5,
+      content: "정말 도움이 많이 되었습니다!",
+      date: "2024-02-07",
+    },
+    {
+      id: 2,
+      author: "테스트 유저",
+      rating: 5,
+      content: "정말 도움이 많이 되었습니다!",
+      date: "2024-02-07",
+    },
+    {
+      id: 3,
       author: "테스트 유저",
       rating: 5,
       content: "정말 도움이 많이 되었습니다!",
