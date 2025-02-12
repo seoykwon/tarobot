@@ -1,4 +1,55 @@
+stages:
+  - test
+
+# 🔵 FastAPI (Python)
+sonarqube_check_fastapi:
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  stage: test
+  before_script:
+    - cd rag_pipeline
+    - pip install -r requirements.txt  # FastAPI 의존성 설치
+  script:
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login=$SONAR_TOKEN \
+        -Dsonar.sources=.
+  allow_failure: true
+  only:
+    refs:
+      - master
+    changes:
+      - rag_pipeline/**/*  # FastAPI 코드 변경 시만 실행
+
+# 🟢 Next.js (Node.js 18)
+sonarqube_check_nextjs:
+  image: 
+    name: node:18
+    entrypoint: [""]
+  stage: test
+  before_script:
+    - cd frontend
+    - npm install  # Next.js 의존성 설치
+  script:
+    - |
+      npx sonar-scanner \
+        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+        -Dsonar.host.url=$SONAR_HOST_URL \
+        -Dsonar.login=$SONAR_TOKEN \
+        -Dsonar.sources=.
+  allow_failure: true
+  only:
+    refs:
+      - master
+    changes:
+      - frontend/**/*  # Next.js 코드 변경 시만 실행
+
+# 🟢 Spring Boot (Java Gradle)
 sonarqube-check:
+  stage: test  # ❗누락된 stage 추가
   image: gradle:jre11-slim
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
@@ -12,4 +63,7 @@ sonarqube-check:
     - gradle sonar
   allow_failure: true
   only: 
-    - main
+    refs:
+      - master
+    changes:
+      - backend/**/*  # Spring Boot 코드 변경 시만 실행
