@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import CardSelector from "@/app/chat_test/card-selector";
+import CardSelector from "@/app/tarot/bots/[id]/chat_s/card-selector";
 import Image from "next/image";
 import { tarotCards } from "@/utils/tarotCards";
 import { useParams } from "next/navigation";

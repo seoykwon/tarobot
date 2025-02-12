@@ -61,8 +61,11 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
             print(f'📌 after_parsing: {keywords}')  # ✅ 로그 추가
 
         ### context 생성 관련 작업 수행
-        # 요약 불러오기
-        recent_history_task = asyncio.create_task(get_summary_history(session_id))
+        # 세션 전체 기억 불러오기
+        recent_history_task = asyncio.create_task(get_recent_history(session_id))
+
+        # # 요약 불러오기
+        # recent_summary_task = asyncio.create_task(get_summary_history(session_id))
         
         # Pinecone RAG 검색
         retrieve_task = asyncio.create_task(retrieve_documents(user_id, user_input, keywords, top_k=3))

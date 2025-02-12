@@ -33,7 +33,9 @@ async def response_generator(session_id: str, user_input: str, context: str, bot
 
         llm_answer = ""  # ✅ 모든 chunk를 저장할 변수
 
-        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concepts[names[bot_id]], stream=True):  
+        print(context)
+
+        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=512, system_prompt=concepts[names[bot_id]], stream=True):  
             if not chunk:  
                 break
             llm_answer += chunk  
