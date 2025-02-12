@@ -74,7 +74,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <DarkModeToggle initialTheme={theme} />
           </div>
         </header>
-        <main className="p-6">{children}</main>
+        {/* <main className="p-6">{children}</main> */}
+        <main className="">{children}</main>
         <BottomNav currentPath={currentPath} />
       </body>
     </html>

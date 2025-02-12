@@ -19,26 +19,26 @@ public class ChatSession {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    private UUID sessionId;  // °íÀ¯ ¼¼¼Ç ½Äº°ÀÚ
+    private UUID sessionId;  // ê³ ìœ  ì„¸ì…˜ ì‹ë³„ì
 
-    // ¼¼¼Ç¿¡ Âü¿©ÇÑ ¸ŞÀÎ »ç¿ëÀÚÀÇ Id
+    // ì„¸ì…˜ì— ì°¸ì—¬í•œ ë©”ì¸ ì‚¬ìš©ìì˜ Id
     @Column(nullable = false)
     private String userId;
 
-    // ¼¼¼Ç¿¡ Âü¿©ÇÑ º¿ÀÇ Id
+    // ì„¸ì…˜ì— ì°¸ì—¬í•œ ë´‡ì˜ Id
     @Column(nullable = false)
     private Long botId;
 
-    // ¼¼¼Ç »óÅÂ (¿¹: "ACTIVE", "EXPIRED", "CLOSED")
+    // ì„¸ì…˜ ìƒíƒœ (ì˜ˆ: "ACTIVE", "EXPIRED", "CLOSED")
     @Column(nullable = false)
     private String status;
 
-    // BaseEntity¿Í id ¹æ½ÄÀÌ ´Ş¶ó µû·Î ±¸Çö
-    // ¼¼¼Ç »ı¼º ½Ã°¢
+    // BaseEntityì™€ id ë°©ì‹ì´ ë‹¬ë¼ ë”°ë¡œ êµ¬í˜„
+    // ì„¸ì…˜ ìƒì„± ì‹œê°
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    // ¸¶Áö¸· Á¢±Ù ½Ã°¢ (¼¼¼Ç È°µ¿ÀÌ ÀÖÀ» ¶§¸¶´Ù ¾÷µ¥ÀÌÆ®)
+    // ë§ˆì§€ë§‰ ì ‘ê·¼ ì‹œê° (ì„¸ì…˜ í™œë™ì´ ìˆì„ ë•Œë§ˆë‹¤ ì—…ë°ì´íŠ¸)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }
