@@ -32,8 +32,8 @@ sonarqube_check_fastapi:
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-      changes:
-        - rag_pipeline/**/*
+      # changes:
+      #   - rag_pipeline/**/*
 
 # 🟢 Next.js (Node.js 18)
 sonarqube_check_nextjs:
@@ -57,8 +57,8 @@ sonarqube_check_nextjs:
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-      changes:
-        - frontend/**/*
+      # changes:
+      #   - frontend/**/*
 
 # 🟢 Spring Boot (Gradle 8.3 + JDK 17)
 sonarqube_check_springboot:
@@ -89,5 +89,5 @@ sonarqube_check_springboot:
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-      changes:
-        - backend/**/*
+      # changes:
+      #   - backend/**/*
