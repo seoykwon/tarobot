@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CardSelector from "@/app/tarot/bots/[id]/chat_s/card-selector";
-import { majorTarotCards } from "@/utils/tarotCards";
+import { tarotCards } from "@/utils/tarotCards";
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
 
@@ -92,7 +92,7 @@ export default function ChatPage() {
   // 🔹 카드 선택 핸들러
   const handleCardSelect = (cardId: string) => {
     setShowCardSelector(false); // 카드 선택 창 종료
-    const selectedCard = majorTarotCards[Number(cardId)];
+    const selectedCard = tarotCards[Number(cardId)];
     setMessages((prev) => [...prev, { sender: "bot", text: `"${selectedCard}" 카드를 선택했어!` },
       {
         sender: "bot",
