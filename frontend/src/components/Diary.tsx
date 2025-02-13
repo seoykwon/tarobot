@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { API_URLS } from "@/config/api";
 import Calendar from "./Calendar";
 import RecordList from "./RecordList";
@@ -16,19 +16,8 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
     return `${year}-${month}-${day}`;
   };
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    fetchTarotData(getSeoulDate());
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, []);
-
-  useEffect(() => {
-    fetchTarotData(selectedDate);
-  }, [selectedDate]);
-
-  const fetchTarotData = async (date: Date) => {
+  /** ✅ useCallback을 사용하여 fetchTarotData를 메모이제이션 */
+  const fetchTarotData = useCallback(async (date: Date) => {
     setIsLoading(true);
     try {
       const formattedDate = formatDateLocal(date);
@@ -42,7 +31,19 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    fetchTarotData(getSeoulDate());
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [fetchTarotData]);
+
+  useEffect(() => {
+    fetchTarotData(selectedDate);
+  }, [selectedDate, fetchTarotData]);
 
   return (
     <div
@@ -59,7 +60,8 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* 상담 기록 영역은 남은 공간을 채우며 스크롤 */}
-        <div className="w-full md:w-2/3 lg:w-3/4 flex-1 max-h-[50vh] overflow-y-auto">
+        <div className="w-full md:w-2/3 lg:w-3/4 flex-1 max-h-[54vh] overflow-y-auto
+        bg-gray-100 mt-4 md:mt-0 md:ml-4 p-2 md:p-4 shadow-md rounded-lg">
           <RecordList selectedDate={selectedDate} tarotData={tarotData} isLoading={isLoading} />
         </div>
       </div>

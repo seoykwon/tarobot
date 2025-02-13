@@ -114,6 +114,36 @@ export default function ChatWindow() {
 
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
   const handleSendMessage = async (message: string) => {
+    if (message.trim() === "세션종료") {
+      try {
+        const response = await fetch(API_URLS.CHAT.CLOSE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: sessionId,
+            userId: userId,
+          }),
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("세션 종료 실패");
+        localStorage.removeItem("sessionId");
+        localStorage.removeItem("userId");
+        setSessionId("");
+        setUserId("");
+        setMessages((prev) => [
+          ...prev,
+          { text: "세션이 종료되었습니다.", isUser: false },
+        ]);
+      } catch (error) {
+        console.error("세션 종료 에러:", error);
+        setMessages((prev) => [
+          ...prev,
+          { text: "세션 종료에 실패했습니다.", isUser: false },
+        ]);
+      }
+      return;
+    }
+
     // 사용자의 메시지를 채팅에 추가
     setMessages((prev) => [...prev, { text: message, isUser: true }]);
     // 봇 응답 자리로 "입력중...."를 먼저 보여줌
