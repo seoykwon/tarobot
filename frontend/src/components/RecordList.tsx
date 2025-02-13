@@ -28,40 +28,36 @@ export default function RecordList({ selectedDate, tarotData, isLoading }: Recor
 
   return (
     <div className="w-full overflow-y-auto px-4 h-full">
-      <h3 className="text-lg font-semibold mt-4 text-center">
+      <h3 className="text-base md:text-lg font-semibold mt-4 mb-4 text-center">
         📆 {formatDateLocal(selectedDate)}
       </h3>
 
       {isLoading ? (
-        <p className="text-center">Loading...</p>
+        <p className="text-center text-sm md:text-base">Loading...</p>
       ) : tarotData.length > 0 ? (
         tarotData.map((tarot, index) => (
-          <div key={index} className="border rounded-lg shadow-md p-4 mb-4 bg-white">
-            <h3 className="text-lg font-bold mb-2">{tarot.title}</h3>
-
-            <div className="flex items-start gap-4">
-              <Image
-                src={tarot.cardImageUrl}
-                alt={tarot.title}
-                width={140}
-                height={210}
-                className="object-cover rounded-lg shadow-md"
-              />
-
+          <div key={index} className="border rounded-lg shadow-md p-2 md:p-4 mb-4 bg-white">
+            <div className="flex items-start gap-2 md:gap-4">
+              {/* 반응형 이미지 컨테이너: width에 따른 3:5 비율 유지 */}
+              <div className="relative w-24 md:w-[140px] aspect-[3/5] flex-shrink-0">
+                <Image
+                  src={tarot.cardImageUrl}
+                  alt={tarot.title}
+                  fill
+                  className="object-cover rounded-lg shadow-md"
+                />
+              </div>
               <div className="flex-1">
-                <p className="text-sm text-gray-500 mb-2">
-                  <span className="font-semibold">Tag:</span> {tarot.tag}
-                </p>
-                <p className="text-gray-700">{tarot.summary}</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Date of Fortune: {tarot.consultDate}
-                </p>
+                <h3 className="text-sm md:text-lg font-bold mb-1 md:mb-2">{tarot.title}</h3>
+                <p className="text-xs md:text-sm text-gray-700">{tarot.summary}</p>
               </div>
             </div>
           </div>
         ))
       ) : (
-        <p className="text-gray-500 text-center">선택한 날짜에 대한 데이터가 없습니다.</p>
+        <p className="text-gray-500 text-center text-sm md:text-base">
+          선택한 날짜에 대한 데이터가 없습니다.
+        </p>
       )}
     </div>
   );

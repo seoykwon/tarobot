@@ -9,7 +9,6 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
   const [tarotData, setTarotData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 로컬 날짜 포맷 함수 (YYYY-MM-DD)
   const formatDateLocal = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -47,19 +46,20 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl h-[90vh] flex"
+        className="bg-white p-6 rounded-lg shadow-lg w-full max-w-[80vw] max-h-[90vh] md:max-h-[85vh] lg:max-h-[80vh] flex flex-col md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-1/3">
-          {/* 캘린더 너비 33% */}
+        {/* 모바일에서는 캘린더가 세로로 배치 */}
+        <div className="w-full md:w-1/3 lg:w-1/4 flex-none overflow-hidden max-h-[none]">
           <Calendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
         </div>
-        <div className="w-2/3">
-          {/* 상담 기록 너비 66% */}
+
+        {/* 상담 기록 영역은 남은 공간을 채우며 스크롤 */}
+        <div className="w-full md:w-2/3 lg:w-3/4 flex-1 max-h-[60vh] overflow-y-auto">
           <RecordList selectedDate={selectedDate} tarotData={tarotData} isLoading={isLoading} />
         </div>
       </div>
