@@ -11,14 +11,16 @@ export default function ClientLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)
   const [isMobile, setIsMobile] = useState(false)
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true)
     const handleResize = () => {
       const mobileView = window.innerWidth < 768
       setIsMobile(mobileView)
-      setIsSidebarOpen(!mobileView)
+      if (mobileView) {
+        setIsSidebarOpen(false)
+      }
     }
 
     handleResize()
@@ -26,8 +28,12 @@ export default function ClientLayout({
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev)
+  }
+
   if (!mounted) {
-    return null;
+    return null
   }
 
   return (
@@ -38,9 +44,10 @@ export default function ClientLayout({
           isMobile ? "w-full ml-0" : isSidebarOpen ? "ml-[240px]" : "ml-[72px]"
         }`}
       >
-        <Header isSidebarOpen={isSidebarOpen} />
+        <Header isSidebarOpen={isSidebarOpen} isMobile={isMobile} toggleSidebar={toggleSidebar} />
         <div className="flex-1 pt-14 overflow-hidden">{children}</div>
       </div>
     </div>
   )
 }
+
