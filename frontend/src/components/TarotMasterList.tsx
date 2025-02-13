@@ -18,11 +18,11 @@ export default function TarotMasterList() {
   return (
     <ul className="space-y-4">
       {tarotMasters.map(master => (
-        <li key={master.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 cursor-pointer">
+        <li key={master.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-[#0D0D0D] cursor-pointer">
           👤 <span>{master.name}</span>
         </li>
       ))}
-      <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 cursor-pointer">
+      <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer">
         🔍 <span>다른 타로 마스터 찾기</span>
       </li>
     </ul>
