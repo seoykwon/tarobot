@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { API_URLS } from "@/config/api";
 import Image from "next/image";
 
@@ -87,30 +86,40 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
             <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))} className="text-xl p-2">▶</button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-lg font-bold">
+          {/* ✅ 캘린더 UI */}
+          <div className="grid grid-cols-7 text-center text-lg font-bold border-t border-l">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, idx) => (
-              <div key={idx} className={`py-2 ${day === "Sun" ? "text-red-500" : day === "Sat" ? "text-blue-500" : "text-gray-700"} bg-yellow-200 rounded-lg`}>
+              <div
+                key={idx}
+                className={`p-2 border-r border-b ${
+                  day === "Sun" ? "text-red-500" : day === "Sat" ? "text-blue-500" : "text-gray-700"
+                } bg-yellow-200`}
+              >
                 {day}
               </div>
             ))}
-          </div>
 
-          <div className="grid grid-cols-7 gap-1 mt-2 text-center">
-            {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).getDay() }).map((_, idx) => (
-              <div key={`prev-${idx}`} className="text-gray-400">{new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 0).getDate() - idx}</div>
-            ))}
+            {/* 빈 칸 (이전 달 마지막 날짜) */}
+            {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).getDay() }).map(
+              (_, idx) => (
+                <div key={`prev-${idx}`} className="p-4 text-gray-400 border-r border-b bg-gray-50" />
+              )
+            )}
 
-            {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate() }).map((_, day) => (
-              <div
-                key={day}
-                className={`relative p-2 border rounded-lg cursor-pointer ${
-                  selectedDate.getDate() === day + 1 ? "bg-blue-500 text-white" : "hover:bg-gray-200"
-                }`}
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day + 1))}
-              >
-                {day + 1}
-              </div>
-            ))}
+            {/* 이번 달 날짜 */}
+            {Array.from({ length: new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate() }).map(
+              (_, day) => (
+                <div
+                  key={day}
+                  className={`p-4 text-center border-r border-b cursor-pointer transition ${
+                    selectedDate.getDate() === day + 1 ? "bg-blue-500 text-white font-bold" : "hover:bg-gray-200"
+                  }`}
+                  onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day + 1))}
+                >
+                  {day + 1}
+                </div>
+              )
+            )}
           </div>
         </div>
 
@@ -122,39 +131,34 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
             <p className="text-center">Loading...</p>
           ) : tarotData.length > 0 ? (
             tarotData.map((tarot, index) => (
-              <Card key={index} className="p-1 mb-2"> 
-                <CardHeader>
-                  <CardTitle className="font-tarobot-title">{tarot.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-start gap-4"> 
+              <div key={index} className="border rounded-lg shadow-md p-4 mb-4 bg-white">
+                <h3 className="text-lg font-bold mb-2">{tarot.title}</h3>
+
+                <div className="flex items-start gap-4">
                   {/* 좌측: 카드 이미지 */}
                   <Image
                     src={tarot.cardImageUrl}
                     alt={tarot.title}
-                    width={140} 
-                    height={210} 
+                    width={140}
+                    height={210}
                     className="object-cover rounded-lg shadow-md"
                   />
 
-                  {/* 우측: 제목 + 내용 */}
+                  {/* 우측: 내용 */}
                   <div className="flex-1 text-left">
-                    <p className="font-tarobot-tag text-sm text-muted-foreground mb-2">
-                      Tag: {tarot.tag}
+                    <p className="text-sm text-gray-500 mb-2">
+                      <span className="font-semibold">Tag:</span> {tarot.tag}
                     </p>
-                    <p className="font-tarobot-description text-muted-foreground">
-                      {tarot.summary}
-                    </p>
+                    <p className="text-gray-700">{tarot.summary}</p>
                     <p className="text-xs text-gray-500 mt-2">
                       Date of Fortune: {tarot.consultDate}
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))
           ) : (
-            <p className="font-tarobot-description text-muted-foreground text-center">
-              선택한 날짜에 대한 데이터가 없습니다.
-            </p>
+            <p className="text-gray-500 text-center">선택한 날짜에 대한 데이터가 없습니다.</p>
           )}
 
           {/* ✅ 닫기 버튼 */}
@@ -164,7 +168,6 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );

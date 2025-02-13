@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { API_URLS } from "@/config/api";
-import ChatInput from "./ChatInput";
+import ChatInput from "@/components/ChatInput";
 
 export default function ChatWindow() {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
