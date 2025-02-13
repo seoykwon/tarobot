@@ -30,13 +30,13 @@ export default function ClientSidebar({
   return (
     <>
       <div
-        className={`fixed top-0 left-0 h-full bg-[#ffffff] shadow-md transition-all duration-300 z-50 flex flex-col
+        className={`fixed top-0 left-0 h-full bg-[#f0f4f9] shadow-md transition-all duration-300 z-50 flex flex-col
           ${isMobile ? (isOpen ? "w-64" : "w-0") : isOpen ? "w-64" : "w-16"}
           ${!isOpen && isMobile ? "opacity-0 pointer-events-none" : "opacity-100"}
         `}
       >
         <button
-          className="text-2xl p-4 focus:outline-none hover:bg-[#ece6f0] transition rounded-lg shrink-0"
+          className="text-2xl focus:outline-none hover:bg-[#ece6f0] transition rounded-lg shrink-0"
           onClick={() => setIsOpen(!isOpen)}
         >
           ☰

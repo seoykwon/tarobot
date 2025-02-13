@@ -1,35 +1,33 @@
-// app/page.tsx
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+// app/page.tsx (서버 컴포넌트)
+import Image from "next/image";
+import GoogleLoginButton from "@/components/Login/GoogleLoginButton";
 
-export default async function Page() {
-  const cookieStore = cookies();
-  const isVisited = cookieStore.get('isVisited')?.value;
-
-  // 이미 방문한 경우 /home으로 리다이렉트
-  if (isVisited) {
-    redirect('/home'); // redirect는 예외를 던지므로 이후 코드가 실행되지 않음
-  }
-
-  // 첫 방문 화면 렌더링
+export default function WelcomePage() {
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-[320px] flex flex-col items-center gap-6">
-        <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-zinc-900 flex items-center justify-center">
-          <div className="text-6xl">🔮</div>
+    <div className="flex min-h-screen items-center justify-center bg-[#f8f9fa] px-4">
+      <div className="flex flex-col items-center gap-10 max-w-lg mx-auto text-center">
+        {/* 캐릭터 이미지 */}
+        <div>
+          <Image
+            src="/cardcat.avif"
+            alt="캐릭터 이미지"
+            width={200}
+            height={200}
+            className="mx-auto"
+          />
         </div>
 
-        <div className="text-center space-y-2">
-          <h1 className="font-login-title">Tarot Journey</h1>
-          <p className="font-tarobot-title">Explore the mystical</p>
+        {/* 텍스트와 버튼 */}
+        <div>
+          <h1 className="text-3xl font-bold mb-4 leading-relaxed">
+            안녕하세요! <br /> 미루에 온 것을 환영합니다!
+          </h1>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            당신의 고민을 해결해드리기 위한 타로 마스터들이 기다리고 있어요.
+          </p>
+          {/* CSR 컴포넌트로 분리된 구글 로그인 버튼 */}
+          <GoogleLoginButton />
         </div>
-
-        {/* 쿠키 설정을 위한 POST 요청 */}
-        <form action="/chat">
-          <button type="submit" className="bfont-chat-button px-4 py-2 rounded-lg">
-            Start
-          </button>
-        </form>
       </div>
     </div>
   );
