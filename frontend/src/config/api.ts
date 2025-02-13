@@ -12,8 +12,7 @@ export const API_URLS = {
   CHAT: {
     GET_SESSION: `${BASE_URL}/api/v1/chat/session/enter`,       // GET - 채팅 세션 획득
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
-    STREAM: (sessionId: string, userInput: string, type?: string) =>
-      `${FASTAPI_BASE_URL}/chat/stream?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
+    STREAM: `${FASTAPI_BASE_URL}/chat/stream`,
     ENTER: `${BASE_URL}/api/v1/chat/session/enter`,
     CLOSE: `${BASE_URL}/api/v1/chat/session/close`,
   },

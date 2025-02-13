@@ -5,7 +5,7 @@ import RecordList from "./RecordList";
 
 export default function DiaryModal({ onClose }: { onClose: () => void }) {
   const getSeoulDate = () => new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
-  const [selectedDate, setSelectedDate] = useState<Date>(getSeoulDate());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [tarotData, setTarotData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,7 +59,7 @@ export default function DiaryModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* 상담 기록 영역은 남은 공간을 채우며 스크롤 */}
-        <div className="w-full md:w-2/3 lg:w-3/4 flex-1 max-h-[60vh] overflow-y-auto">
+        <div className="w-full md:w-2/3 lg:w-3/4 flex-1 max-h-[50vh] overflow-y-auto">
           <RecordList selectedDate={selectedDate} tarotData={tarotData} isLoading={isLoading} />
         </div>
       </div>
