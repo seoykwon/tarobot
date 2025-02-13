@@ -24,8 +24,8 @@ export default function Hoon() {
     </div>
       </div>
 
-      {/* ✅ 우측 ChatWindow (PC에서는 고정된 위치, 모바일에서는 풀스크린) */}
-      <div className="flex-1 md:col-span-2">
+      {/* ✅ 우측 ChatWindow */}
+      <div className="col-span-2 flex-1">
         <ChatWindow />
       </div>
     </div>
