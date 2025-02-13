@@ -5,8 +5,8 @@ import Header from "@/app/khoon/components/Header";
 import { useState, useEffect } from "react";
 
 export default function KhoonLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true); // ✅ null이 아니라 true로 설정
-  const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true); // ✅ 기본값 true
+  const [isMobile, setIsMobile] = useState<boolean | null>(null); // ✅ 초기 값 null (Hydration 방지)
 
   useEffect(() => {
     const handleResize = () => {
@@ -20,22 +20,25 @@ export default function KhoonLayout({ children }: { children: React.ReactNode })
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // ✅ Hydration 오류 방지: isMobile이 `null`일 경우 아무것도 렌더링하지 않음
+  if (isMobile === null) return null;
+
   return (
     <html lang="ko">
-      <body className="flex h-screen bg-gray-100">
-        {/* 🟢 Sidebar */}
+      <body className="flex min-h-screen bg-gray-100">
+        {/* ✅ Sidebar */}
         <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-        {/* 🟢 우측 컨텐츠 */}
+        {/* ✅ Main Content */}
         <div
-          className={`flex flex-col transition-all duration-300 ${
+          className={`flex flex-col flex-1 transition-all duration-300 ${
             isMobile ? "w-full ml-0" : isSidebarOpen ? "ml-64 w-[calc(100%-16rem)]" : "ml-16 w-[calc(100%-4rem)]"
           }`}
         >
-          {/* 🟢 Header */}
+          {/* ✅ Header */}
           <Header isSidebarOpen={isSidebarOpen} />
 
-          {/* 🟢 Main Content */}
+          {/* ✅ Content */}
           <div className="flex-1 bg-purple-50 pt-14 overflow-hidden">{children}</div>
         </div>
       </body>

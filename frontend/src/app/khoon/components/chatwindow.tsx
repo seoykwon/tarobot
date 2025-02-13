@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import ChatInput from "@/app/khoon/components/ChatInput"; // ✅ ChatInput 컴포넌트 추가
+import ChatInput from "@/app/khoon/components/ChatInput";
 
 export default function ChatWindow() {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
@@ -18,14 +18,12 @@ export default function ChatWindow() {
     }, 500);
   };
 
-  // ✅ 채팅이 추가될 때 자동 스크롤 (사용자가 스크롤하면 유지)
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-purple-100">
-      {/* ✅ 채팅 로그 (독립적인 스크롤 컨테이너) */}
+    <div className="flex flex-col h-full md:h-screen bg-purple-100">
       <div ref={chatContainerRef} className="flex-1 px-6 py-4 space-y-2 overflow-auto">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.isUser ? "justify-end" : "justify-start"}`}>

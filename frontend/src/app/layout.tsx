@@ -76,7 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </header>
         {/* <main className="p-6">{children}</main> */}
         <main className="">{children}</main>
-        <BottomNav currentPath={currentPath} />
+        {/* <BottomNav currentPath={currentPath} /> */}
       </body>
     </html>
   )
