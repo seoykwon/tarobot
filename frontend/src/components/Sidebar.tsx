@@ -1,7 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import DiaryModal from "@/components/Diary";
+import TarotMasterList from './TarotMasterList'
+import ClientSidebar from './ClientSidebar'
 
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void }) {
   const [isMobile, setIsMobile] = useState(false);
