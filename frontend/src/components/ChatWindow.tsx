@@ -14,7 +14,7 @@ export default function ChatWindow() {
   // 봇 아이디를 할당 받는 방식 설정 ( /[id] 형태면 좋을 듯 )
   const botId = 1;
   
-  // ========== 추가 된 변수 ==========
+  // ========== 추가 된 변수 시작==========
   // 세션 및 사용자 정보 상태
   const [sessionId, setSessionId] = useState("");
   const [userId, setUserId] = useState("");
@@ -24,7 +24,7 @@ export default function ChatWindow() {
   // 타로 버튼 및 카드 선택창 표시 상태
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
-  // ========== 추가 된 변수 ==========
+  // ========== 추가 된 변수 끝 ==========
 
 
   // 메시지 타입에 선택 카드 이미지를 위한 optional content 필드 추가
@@ -34,7 +34,7 @@ export default function ChatWindow() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
 
-  // ========== 추가 된 함수 ==========
+  // ========== 추가 된 함수 시작 ==========
   // 페이지 진입 시 localStorage에 저장된 세션 정보가 없으면 새 세션 생성
   useEffect(() => {
     const storedSessionId = localStorage.getItem("sessionId");
@@ -110,10 +110,11 @@ export default function ChatWindow() {
     // 선택한 카드 이름을 서버에 전송
     handleSendMessage(selectedCard);
   };
-  // ========== 추가 된 함수 ==========
+  // ========== 추가 된 함수 끝 ==========
 
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
   const handleSendMessage = async (message: string) => {
+    // "세션종료" 입력 시 세션 종료 트리거 발동 (임시)
     if (message.trim() === "세션종료") {
       try {
         const response = await fetch(API_URLS.CHAT.CLOSE, {
@@ -143,6 +144,7 @@ export default function ChatWindow() {
       }
       return;
     }
+    // 세션 종료 트리거 끝 (임시 코드이므로 나중에 버튼을 만들거나 트리거를 기획할 것)
 
     // 사용자의 메시지를 채팅에 추가
     setMessages((prev) => [...prev, { text: message, isUser: true }]);
