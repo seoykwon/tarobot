@@ -1,6 +1,5 @@
 // pages/index.tsx
-import Layout from "@/app/khoon/layout";
-import Greeting from "@/app/khoon/components/greeting";
+import Greeting from "@/app/khoon/components/Greeting";
 
 export default function Hoon() {
   return (
@@ -9,8 +8,3 @@ export default function Hoon() {
     </div>
   );
 }
-
-// 이 페이지에서만 Layout 적용
-Hoon.getLayout = function getLayout(page: React.ReactNode) {
-    return <Layout>{page}</Layout>;
-  };
