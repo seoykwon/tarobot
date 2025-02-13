@@ -46,11 +46,25 @@ export default function ClientSidebar({ isOpen, setIsOpen, children }: {
         )}
       </div>
 
-      {isDiaryOpen && <DiaryModal onClose={() => setIsDiaryOpen(false)} />}
+      {/* 다이어리 모달: 배경 오버레이와 모달 컨테이너로 분리 */}
+      {isDiaryOpen && (
+        <>
+          {/* 풀스크린 배경 오버레이 (z-index 99) */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-[99]"
+            onClick={() => setIsDiaryOpen(false)}
+          ></div>
+  
+          {/* 모달 컨테이너: 오버레이보다 높은 z-index (100) */}
+          <div className="fixed inset-0 flex items-center justify-center z-[100]">
+            <DiaryModal onClose={() => setIsDiaryOpen(false)} />
+          </div>
+        </>
+      )}
 
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-[40]"
           onClick={() => setIsOpen(false)}
         ></div>
       )}
