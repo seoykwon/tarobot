@@ -25,7 +25,7 @@ export default async function Page() {
         </div>
 
         {/* 쿠키 설정을 위한 POST 요청 */}
-        <form action="/api/set-cookie" method="POST">
+        <form action="/chat">
           <button type="submit" className="bfont-chat-button px-4 py-2 rounded-lg">
             Start
           </button>
