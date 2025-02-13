@@ -1,44 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import DiaryModal from "@/components/Diary";
 
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void }) {
   const [isMobile, setIsMobile] = useState(false);
+  const [isDiaryOpen, setIsDiaryOpen] = useState(false); // ✅ selectedDate 제거
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768); // md 이하일 때 true
-      if (window.innerWidth < 768) setIsOpen(false); // 모바일 환경에서는 자동으로 닫힘
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) setIsOpen(false);
     };
 
-    handleResize(); // 초기 실행
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [setIsOpen]);
 
   return (
     <>
-      {/* 사이드바 (오버레이 모드) */}
+      {/* ✅ PC: 고정 사이드바, 모바일: 오버레이 */}
       <div
         className={`fixed top-0 left-0 h-full bg-white shadow-md transition-all duration-300 z-50 ${
           isMobile ? (isOpen ? "w-64" : "w-0 opacity-0") : isOpen ? "w-64" : "w-16"
-        }`}
+        } overflow-y-auto`}
       >
-        <button className="text-2xl p-2 focus:outline-none" onClick={() => setIsOpen(!isOpen)}>
+        <button className="text-2xl p-4 focus:outline-none hover:bg-gray-800 transition" onClick={() => setIsOpen(!isOpen)}>
           ☰
         </button>
 
-        {/* 사이드바 내용 (모바일에서는 오버레이처럼 동작) */}
         {isOpen && (
-          <div className="p-4">
-            <ul>
-              <li className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer">👤 타로 마스터 1</li>
-              <li className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer">👤 타로 마스터 2</li>
-              <li className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer">🔍 다른 타로 마스터 찾기</li>
+          <div className="p-4 flex flex-col justify-between h-full">
+            <ul className="space-y-4">
+              <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 cursor-pointer">
+                👤 <span>타로 마스터 1</span>
+              </li>
+              <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 cursor-pointer">
+                👤 <span>타로 마스터 2</span>
+              </li>
+              <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700 cursor-pointer">
+                🔍 <span>다른 타로 마스터 찾기</span>
+              </li>
             </ul>
+
+            {/* ✅ 다이어리 버튼 */}
+            <button
+              className="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg flex items-center justify-center mt-auto transition"
+              onClick={() => setIsDiaryOpen(true)}
+            >
+              📖 <span className="ml-2">다이어리</span>
+            </button>
           </div>
         )}
       </div>
+
+      {/* ✅ 다이어리 모달 (selectedDate 제거) */}
+      {isDiaryOpen && <DiaryModal onClose={() => setIsDiaryOpen(false)} />}
 
       {/* 오버레이 배경 (모바일에서만 활성화) */}
       {isMobile && isOpen && (
