@@ -12,8 +12,10 @@ export default function RootLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleResize = () => {
       const mobileView = window.innerWidth < 768
       setIsMobile(mobileView)
@@ -24,6 +26,9 @@ export default function RootLayout({
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <html lang="ko">
