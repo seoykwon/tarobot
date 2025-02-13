@@ -1,4 +1,4 @@
-import ChatWindow from "@/app/khoon/components/chatwindow";
+import ChatWindow from "@/components/ChatWindow";
 import Image from "next/image";
 
 export default function Hoon() {
