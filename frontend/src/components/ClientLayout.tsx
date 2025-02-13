@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation" // 현재 경로 확인
 import Sidebar from "@/components/Sidebar"
 import Header from "@/components/Header"
 
@@ -12,6 +13,12 @@ export default function ClientLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mounted, setMounted] = useState(false)
+
+  // 현재 경로 가져오기
+  const pathname = usePathname()
+
+  // 헤더와 사이드바를 숨길 경로 정의 (예: 로그인 페이지)
+  const hideLayout = pathname === "/" || pathname === "/signup"
 
   useEffect(() => {
     setMounted(true)
@@ -36,6 +43,11 @@ export default function ClientLayout({
     return null
   }
 
+  // 특정 경로에서는 헤더와 사이드바를 숨김
+  if (hideLayout) {
+    return <div>{children}</div>
+  }
+
   return (
     <div className="flex min-h-screen bg-[#f8f9fa]">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
@@ -50,4 +62,3 @@ export default function ClientLayout({
     </div>
   )
 }
-
