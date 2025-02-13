@@ -1,24 +1,31 @@
 "use client";
 
-import Sidebar from "@/app/khoon/components/Sidebar";
-import Header from "@/app/khoon/components/Header";
+import Sidebar from "@/app/khoon/components/sidebar";
+import Header from "@/app/khoon/components/header";
 import { useState, useEffect } from "react";
 
 export default function KhoonLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true); // ✅ null이 아니라 true로 설정
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleResize = () => {
       const mobileView = window.innerWidth < 768;
       setIsMobile(mobileView);
-      setIsSidebarOpen(!mobileView); // ✅ 모바일이면 사이드바 자동 닫힘
+      setIsSidebarOpen(!mobileView);
     };
 
-    handleResize(); // ✅ 초기 실행 시 화면 크기 체크
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // 서버와 클라이언트 간 HTML 차이를 방지하기 위해 마운트 전에는 null 혹은 로딩 상태를 반환
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <html lang="ko">
