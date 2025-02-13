@@ -1,31 +1,32 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Sidebar from "@/components/Sidebar"
-import Header from "@/components/Header"
-import "./globals.css"
+import { useState, useEffect } from "react";
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
+import "./globals.css";
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const handleResize = () => {
-      const mobileView = window.innerWidth < 768
-      setIsMobile(mobileView)
-      setIsSidebarOpen(!mobileView)
-    }
+      const mobileView = window.innerWidth < 768;
+      setIsMobile(mobileView);
+      setIsSidebarOpen(!mobileView);
+    };
 
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  
   if (!mounted) {
     return null;
   }
@@ -46,10 +47,9 @@ export default function RootLayout({
           <Header isSidebarOpen={isSidebarOpen} />
 
           {/* Content Area */}
-          <div className="flex-1 pt-14 overflow-hidden">{children}</div>
+          <div className="flex-1 pt-14 overflow-hidden z-[10]">{children}</div>
         </div>
       </body>
     </html>
-  )
+  );
 }
-

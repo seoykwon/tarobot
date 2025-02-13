@@ -5,7 +5,7 @@ import DiaryModal from "@/components/Diary";
 
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void }) {
   const [isMobile, setIsMobile] = useState(false);
-  const [isDiaryOpen, setIsDiaryOpen] = useState(false); // ✅ selectedDate 제거
+  const [isDiaryOpen, setIsDiaryOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -20,7 +20,7 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsO
 
   return (
     <>
-      {/* ✅ PC: 고정 사이드바, 모바일: 오버레이 */}
+      {/* 사이드바 */}
       <div
         className={`fixed top-0 left-0 h-full bg-white shadow-md transition-all duration-300 z-50 ${
           isMobile ? (isOpen ? "w-64" : "w-0 opacity-0") : isOpen ? "w-64" : "w-16"
@@ -44,7 +44,7 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsO
               </li>
             </ul>
 
-            {/* ✅ 다이어리 버튼 */}
+            {/* 다이어리 버튼 */}
             <button
               className="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg flex items-center justify-center mt-auto transition"
               onClick={() => setIsDiaryOpen(true)}
@@ -55,14 +55,27 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsO
         )}
       </div>
 
-      {/* ✅ 다이어리 모달 (selectedDate 제거) */}
-      {isDiaryOpen && <DiaryModal onClose={() => setIsDiaryOpen(false)} />}
+      {/* 다이어리 모달 오버레이 */}
+      {isDiaryOpen && (
+        <>
+          {/* 배경 오버레이 */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-[99]"
+            onClick={() => setIsDiaryOpen(false)} // 배경 클릭 시 닫힘
+          ></div>
 
-      {/* 오버레이 배경 (모바일에서만 활성화) */}
+          {/* 다이어리 모달 */}
+          <div className="fixed inset-0 flex items-center justify-center z-[100]">
+            <DiaryModal onClose={() => setIsDiaryOpen(false)} />
+          </div>
+        </>
+      )}
+
+      {/* 모바일 오버레이 배경 */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsOpen(false)} // 클릭 시 닫힘
+          className="fixed inset-0 bg-black bg-opacity-50 z-[40]"
+          onClick={() => setIsOpen(false)} // 클릭 시 사이드바 닫힘
         ></div>
       )}
     </>
