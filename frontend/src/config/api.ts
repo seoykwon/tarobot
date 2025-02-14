@@ -51,6 +51,7 @@ export const API_URLS = {
     ME: `${BASE_URL}/api/v1/user-profiles/me`,    // GET - 회원 본인 프로필 조회
     BY_ID: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,    // GET - 이름 기반 프로필 검색
     UPDATE: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,   // PATCH - 유저 프로필 수정
+    SESSIONLIST: `${BASE_URL}/api/v1/chat/session/me`
   },
   REVIEW: {
     BY_ID: (reviewId: string) => `${BASE_URL}/api/review/${reviewId}`,         // GET - 특정 리뷰 조회

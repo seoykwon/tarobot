@@ -8,13 +8,14 @@ export default function WelcomePage() {
       <div className="flex flex-col items-center gap-10 max-w-lg mx-auto text-center">
         {/* 캐릭터 이미지 */}
         <div>
-          <Image
-            src="/cardcat.avif"
-            alt="캐릭터 이미지"
-            width={200}
-            height={200}
-            className="mx-auto"
-          />
+        <Image
+          src="/cardcat.avif"
+          alt="캐릭터 이미지"
+          width={400} // 300(height) * (3/2 비율) = 450
+          height={200}
+          priority
+          className="mx-auto w-auto" // ✅ CSS로 width: auto 적용
+        />
         </div>
 
         {/* 텍스트와 버튼 */}
