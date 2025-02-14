@@ -8,10 +8,10 @@ import ChatInput from "@/components/ChatInput";
 export default function ChatStandby() {
   const router = useRouter();
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
+  const botId = localStorage.getItem("botId");
 
   const handleFirstMessage = async (message: string) => {
     try {
-      const botId = localStorage.getItem("botId");
       const response = await fetch(API_URLS.CHAT.ENTER, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -24,6 +24,7 @@ export default function TarotMasterList() {
     const fetchTarotMasters = async () => {
       try {
         const masters = await getTarotMasters();
+        // setTarotMasters(masters);
         // 상위 3개만 사용
         setTarotMasters(masters.slice(0, 3));
       } catch (error) {

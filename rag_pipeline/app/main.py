@@ -151,6 +151,11 @@ async def chat(session_id: str, user_input: str, type: str = ""):
     result, tag = await rag_pipeline(session_id, user_input, type, stream=False)
     return {"answer": result, "chatTag": tag}
 
+@app.post("/chat/session/load")
+async def sessionload(request: CloseChatRequest):
+    log = await get_recent_history(session_id=request.sessionId, count=0)
+    return log
+
 # 상담 종료 신호 수신
 @app.post("/chat/close", response_model=ChatSummaryResponse)
 async def chat(request: CloseChatRequest):
