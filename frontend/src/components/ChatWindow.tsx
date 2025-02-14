@@ -12,6 +12,12 @@ interface ChatWindowProps {
   sessionIdParam?: string;
 }
 
+interface MessageForm {
+  message: string;
+  role: string;
+  content?: React.ReactNode;
+}
+
 export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   // 요청에 필요한 데이터 설정
   // ========== 임시 값 설정 ==========
@@ -36,13 +42,44 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   >([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-
   // ========== 추가 된 함수 시작 =========
-  // 페이지 진입 시 localStorage에 저장된 세션 정보가 없으면 새 세션 생성
+  // 페이지 진입 시 저장된 세션 정보가 없으면 새 세션 생성
   useEffect(() => {
-    const storedSessionId = localStorage.getItem("sessionId");
-    if (storedSessionId) {
-      setSessionId(storedSessionId);
+    // 세션 진입 시 이전 대화 기록을 불러오는 함수
+    const loadSessionMessages = async () => {
+      try {
+        const response = await fetch(API_URLS.CHAT.LOAD_SESSION, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+          credentials: "include",
+        });
+
+        if (!response.ok) throw new Error("이전 대화 기록 불러오기 실패");
+
+        const data = await response.json();
+
+        // 서버에서 가져온 이전 대화 기록을 메시지 상태에 설정
+        setMessages(data.map((msg: MessageForm) => ({
+          text: msg.message,
+          isUser: msg.role === "user",
+          content: msg.content ? (
+            <Image
+              src={`/basic/${msg.content}.svg`}
+              alt={`Selected tarot card ${msg.message}`}
+              width={96}
+              height={134}
+              className="mt-2 mx-auto"
+            />
+          ) : undefined,
+        })));
+      } catch (error) {
+        console.error("이전 대화 기록 불러오기 에러:", error);
+      }
+    };
+
+    if (sessionId) {
+      loadSessionMessages(); // 세션 진입 시 이전 대화 기록을 불러오는 함수 호출
       return;
     }
 
@@ -66,7 +103,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
     };
 
     createSession();
-  }, [botId]);
+  }, [botId, sessionId]);
 
   // chatType(=chatTag) 변경에 따라 타로 버튼 노출 여부 결정
   useEffect(() => {
