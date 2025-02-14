@@ -18,6 +18,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [tailwindScrollbar,],
+  plugins: [tailwindScrollbar,
+  ],
 };
 export default config;
