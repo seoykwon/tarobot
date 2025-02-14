@@ -53,9 +53,13 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
       console.log(`📜 Scroll 방향: ${direction}`)
       setStartIndex((prevIndex) => {
         if (direction === "left") {
-          return (prevIndex - 1 + randomizedCards.length) % randomizedCards.length
+          // 왼쪽 끝에 도달하면 더 이상 스크롤하지 않음
+          if (prevIndex === 0) return prevIndex
+          return prevIndex - 1
         } else {
-          return (prevIndex + 1) % randomizedCards.length
+          // 오른쪽 끝에 도달하면 더 이상 스크롤하지 않음
+          if (prevIndex >= randomizedCards.length - visibleCards) return prevIndex
+          return prevIndex + 1
         }
       })
     },
@@ -66,7 +70,8 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     if (randomizedCards.length === 0) return []
     const cards = []
     for (let i = 0; i < visibleCards; i++) {
-      const cardIndex = (startIndex + i) % randomizedCards.length
+      const cardIndex = startIndex + i
+      if (cardIndex >= randomizedCards.length) break
       cards.push(randomizedCards[cardIndex])
     }
     console.log("📌 현재 화면에 보이는 카드들:", cards)
