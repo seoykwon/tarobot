@@ -36,6 +36,39 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   >([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // // 세션 진입 시 이전 대화 기록을 불러오는 함수
+  // const loadSessionMessages = async () => {
+  //   try {
+  //     const response = await fetch(API_URLS.CHAT.LOAD_SESSION, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ sessionId }),
+  //       credentials: "include",
+  //     });
+
+  //     if (!response.ok) throw new Error("이전 대화 기록 불러오기 실패");
+
+  //     const data = await response.json();
+
+  //     // 서버에서 가져온 이전 대화 기록을 메시지 상태에 설정
+  //     setMessages(data.messages.map((msg: any) => ({
+  //       text: msg.text,
+  //       isUser: msg.isUser,
+  //       content: msg.content ? (
+  //         <Image
+  //           src={`/basic/${msg.content}.svg`}
+  //           alt={`Selected tarot card ${msg.text}`}
+  //           width={96}
+  //           height={134}
+  //           className="mt-2 mx-auto"
+  //         />
+  //       ) : undefined,
+  //     })));
+  //   } catch (error) {
+  //     console.error("이전 대화 기록 불러오기 에러:", error);
+  //   }
+  // };
+
 
   // ========== 추가 된 함수 시작 =========
   // 페이지 진입 시 localStorage에 저장된 세션 정보가 없으면 새 세션 생성
@@ -43,6 +76,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
     const storedSessionId = localStorage.getItem("sessionId");
     if (storedSessionId) {
       setSessionId(storedSessionId);
+      // loadSessionMessages(); // 세션 진입 시 이전 대화 기록을 불러오는 함수 호출
       return;
     }
 
