@@ -12,10 +12,11 @@ export default function ChatStandby() {
 
   const handleFirstMessage = async (message: string) => {
     try {
+      const title = message;
       const response = await fetch(API_URLS.CHAT.ENTER, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ botId }),
+        body: JSON.stringify({ botId, title }),
         credentials: "include",
       });
 

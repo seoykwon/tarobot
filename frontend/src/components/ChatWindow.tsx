@@ -22,6 +22,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   // 요청에 필요한 데이터 설정
   // ========== 임시 값 설정 ==========
   const botId = localStorage.getItem("botId");
+  const [newSession, setNewSession] = useState(true);
   
   // ========== 추가 된 변수 시작==========
   // 세션 정보 상태
@@ -48,6 +49,10 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
     // 세션 진입 시 이전 대화 기록을 불러오는 함수
     const loadSessionMessages = async () => {
       try {
+        // ==========================================
+        // 이 위치에서 본인의 세션이 맞는 지 확인하는 isMySession 로직을 수행해야함!!!
+
+        // ==========================================
         const response = await fetch(API_URLS.CHAT.LOAD_SESSION, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -78,32 +83,33 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
       }
     };
 
-    if (sessionId) {
+    if (sessionId && !newSession) {
       loadSessionMessages(); // 세션 진입 시 이전 대화 기록을 불러오는 함수 호출
       return;
     }
 
-    const createSession = async () => {
-      try {
-        const response = await fetch(API_URLS.CHAT.ENTER, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ botId }),
-          credentials: "include",
-        });
+    // const createSession = async () => {
+    //   try {
+    //     const title = "잘못된 접근"
+    //     const response = await fetch(API_URLS.CHAT.ENTER, {
+    //       method: "POST",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({ botId, title }),
+    //       credentials: "include",
+    //     });
 
-        if (!response.ok) throw new Error("세션 생성 실패");
+    //     if (!response.ok) throw new Error("세션 생성 실패");
 
-        const data = await response.json();
-        setSessionId(data.sessionId);
-        localStorage.setItem("sessionId", data.sessionId);
-      } catch (error) {
-        console.error("세션 생성 에러:", error);
-      }
-    };
+    //     const data = await response.json();
+    //     setSessionId(data.sessionId);
+    //     localStorage.setItem("sessionId", data.sessionId);
+    //   } catch (error) {
+    //     console.error("세션 생성 에러:", error);
+    //   }
+    // };
 
-    createSession();
-  }, [botId, sessionId]);
+    // createSession();
+  }, [botId, sessionId, newSession]);
 
   // chatType(=chatTag) 변경에 따라 타로 버튼 노출 여부 결정
   useEffect(() => {
@@ -158,7 +164,6 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
           credentials: "include",
         });
         if (!response.ok) throw new Error("세션 종료 실패");
-        localStorage.removeItem("sessionId");
         setSessionId("");
         setMessages((prev) => [
           ...prev,
@@ -231,8 +236,13 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   useEffect(() => {
     const storedMessage = localStorage.getItem("firstMessage");
     if (storedMessage) {
-      handleSendMessage(storedMessage);
+      setNewSession(true);
+      handleSendMessage(storedMessage).then(() => {
+        setNewSession(false); // 첫 메시지 전송 후 세션 데이터 로드
+      });
       localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
+    } else {
+      setNewSession(false);
     }
   }, [handleSendMessage]);
 

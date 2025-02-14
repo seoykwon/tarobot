@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,12 +36,12 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 
     // 채팅방 입장 시 세션 생성 (생성시간은 @CreationTimestamp가 자동 할당)
     @Override
-    public ChatSession createChatSession(Long botId) {
+    public ChatSession createChatSession(Long botId, String title) {
         ChatSession session = new ChatSession();
 
         // 인증 객체로 부터 유저를 불러와 Id 입력
         User currentUser = securityUtil.getCurrentUser();
-
+        session.setTitle(title);
         session.setUserId(currentUser.getUserId());
         session.setBotId(botId);
         session.setStatus("ACTIVE");
@@ -52,6 +53,13 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     public ChatSession findBySessionId(UUID sessionId) {
         return chatSessionRepository.findById(sessionId).orElse(null);
     }
+
+    @Override
+    public List<ChatSession> findAllByUserId() {
+        User currentUser = securityUtil.getCurrentUser();
+        String userId = currentUser.getUserId();
+        return chatSessionRepository.findAllByUserIdOrderByUpdatedAtDesc(userId);
+    };
 
     // 저장 시 updatedAt 스탬프가 자동 업데이트 됨
     @Override

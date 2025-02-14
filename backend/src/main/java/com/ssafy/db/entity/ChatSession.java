@@ -33,6 +33,10 @@ public class ChatSession {
     @Column(nullable = false)
     private String status;
 
+    // 세션의 제목
+    @Column(nullable = false)
+    private String title;
+
     // BaseEntity와 id 방식이 달라 따로 구현
     // 세션 생성 시각
     @CreationTimestamp

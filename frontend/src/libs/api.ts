@@ -19,3 +19,23 @@ export async function getTarotMasters() {
     return [];
   }
 }
+
+export async function getSessionList() {
+  try {
+    const response = await fetch(API_URLS.USER.SESSIONLIST, {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error("세션 리스트 데이터를 불러오지 못했습니다.");
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("세션 리스트 불러오기 에러:", error);
+    return [];
+  }
+}
