@@ -33,8 +33,22 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   // 타로 버튼 및 카드 선택창 표시 상태
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
+  
+  // 모바일 크기 확인하기 위한 변수
+  const [isMobile, setIsMobile] = useState(false);
   // ========== 추가 된 변수 끝 ==========
 
+
+// 특정 크기 이하로 내려갈 경우에 대한 상태를 반영하는 함수
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // 메시지 타입에 선택 카드 이미지를 위한 optional content 필드 추가
   const [messages, setMessages] = useState<
@@ -245,57 +259,82 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-purple-100">
-      {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
+    // 모바일일때와 아닐때 배경 분기
+    <div className={isMobile ? "relative h-screen" : "flex flex-col h-screen bg-purple-100"}>
+      {isMobile && (
+        <div className="absolute inset-0">
+          {/* 이미지 임시, 경로 수정 필요 */}
+          <Image
+            src="/images/dummy1.png"
+            alt="배경 이미지"
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
       <div
-        ref={chatContainerRef}
-        className="flex-1 px-6 py-4 space-y-4 overflow-auto"
-        style={{ marginBottom: "4rem" }} // 입력창 높이만큼 여백 추가
+        className={
+          isMobile
+            ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]"
+            : "flex flex-col h-screen"
+        }
       >
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${msg.isUser ? "justify-end" : "justify-start"} w-full`}
-          >
-            {msg.isUser ? (
-              // 사용자 메시지 (오른쪽 정렬)
-              <div className="px-4 py-2 rounded-l-lg rounded-br-lg max-w-xs bg-gray-800 text-white">
-                {msg.text}
-              </div>
-            ) : (
-              // 봇 메시지 (왼쪽 정렬)
-              <div className="px-4 py-2 rounded-r-lg rounded-bl-lg max-w-xs bg-purple-400 text-gray leading-relaxed">
-                {msg.text}
-                {msg.content && <div className="mt-2">{msg.content}</div>}
-              </div>
-            )}
+        {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
+        <div
+          ref={chatContainerRef}
+          className="flex-1 px-6 py-4 space-y-4 overflow-auto"
+          style={{ marginBottom: "4rem" }} // 입력창 높이만큼 여백 추가
+        >
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                msg.isUser ? "justify-end" : "justify-start"
+              } w-full`}
+            >
+              {msg.isUser ? (
+                // 사용자 메시지 (오른쪽 정렬)
+                <div className="px-4 py-2 rounded-l-lg rounded-br-lg max-w-xs bg-gray-800 text-white">
+                  {msg.text}
+                </div>
+              ) : (
+                // 봇 메시지 (왼쪽 정렬)
+                <div className="px-4 py-2 rounded-r-lg rounded-bl-lg max-w-xs bg-purple-400 text-gray leading-relaxed">
+                  {msg.text}
+                  {msg.content && <div className="mt-2">{msg.content}</div>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+  
+        {/* ============ 추가된 요소 ============ */}
+        {/* 타로 점 보기 버튼 (chatType이 "tarot"일 때) */}
+        {showTarotButton && (
+          <div className="flex justify-center p-2">
+            <button
+              onClick={handleShowCardSelector}
+              className="px-4 py-2 bg-yellow-500 text-white rounded"
+            >
+              타로 점 보기 🔮
+            </button>
           </div>
-        ))}
+        )}
+  
+        {/* 카드 선택 UI (CardSelector 컴포넌트) */}
+        {showCardSelector && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+            <CardSelector
+              onCardSelect={handleCardSelect}
+              onClose={() => setShowCardSelector(false)}
+            />
+          </div>
+        )}
+        {/* ============ 추가된 요소 ============ */}
+  
+        {/* 하단 입력창 */}
+        <ChatInput onSend={handleSendMessage} />
       </div>
-      
-      {/* ============ 추가된 요소 ============ */}
-      {/* 타로 점 보기 버튼 (chatType이 "tarot"일 때) */}
-      {showTarotButton && (
-        <div className="flex justify-center p-2">
-          <button
-            onClick={handleShowCardSelector}
-            className="px-4 py-2 bg-yellow-500 text-white rounded"
-          >
-            타로 점 보기 🔮
-          </button>
-        </div>
-      )}
-
-      {/* 카드 선택 UI (CardSelector 컴포넌트) */}
-      {showCardSelector && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <CardSelector onCardSelect={handleCardSelect} onClose={() => setShowCardSelector(false)} />
-        </div>
-      )}
-      {/* ============ 추가된 요소 ============ */}
-
-      {/* 하단 입력창 */}
-      <ChatInput onSend={handleSendMessage} />
     </div>
   );
 }
