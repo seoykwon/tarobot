@@ -11,6 +11,7 @@ interface CardSelectorProps {
 
 const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
+  const [movingCard, setMovingCard] = useState<string | null>(null)
   const [startIndex, setStartIndex] = useState(0)
   const [isSelecting, setIsSelecting] = useState(false)
   const [randomizedCards, setRandomizedCards] = useState<string[]>([])
@@ -39,11 +40,14 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const handleCardSelect = (cardId: string) => {
     if (isSelecting) return
     setIsSelecting(true)
-    setSelectedCard(cardId)
+    setMovingCard(cardId)
 
     setTimeout(() => {
-      onCardSelect(cardId)
-    }, 2000)
+      setSelectedCard(cardId)
+      setTimeout(() => {
+        onCardSelect(cardId)
+      }, 600) // 카드 뒤집기 애니메이션 시간
+    }, 600) // 카드 이동 애니메이션 시간
   }
 
   const handleScroll = useCallback(
@@ -177,9 +181,10 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
               <div
                 key={`${cardId}-${(startIndex + i) % randomizedCards.length}`}
                 style={getCardStyle(i)}
-                className={`${styles.card} ${selectedCard === cardId ? styles.selectedCard : ""} ${
-                  isSelecting && selectedCard !== cardId ? styles.nonSelectedCard : ""
-                }`}
+                className={`${styles.card} 
+                  ${movingCard === cardId ? styles.movingCard : ""} 
+                  ${selectedCard === cardId ? styles.selectedCard : ""} 
+                  ${isSelecting && movingCard !== cardId ? styles.nonSelectedCard : ""}`}
                 onClick={() => handleCardSelect(cardId)}
               >
                 <div
