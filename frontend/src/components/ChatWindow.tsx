@@ -8,16 +8,21 @@ import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
 
-export default function ChatWindow() {
+interface ChatWindowProps {
+  botIdParam?: string;
+  sessionIdParam?: string;
+}
+
+export default function ChatWindow({ botIdParam, sessionIdParam }: ChatWindowProps) {
   // 요청에 필요한 데이터 설정
   // ========== 임시 값 설정 ==========
-  // 봇 아이디를 할당 받는 방식 설정 ( /[id] 형태면 좋을 듯 )
-  const botId = 1;
+  // 봇 아이디를 할당 받는 방식 설정 ( /[id] 형태면 좋을 듯 상위 요소인 page.tsx로 부터 props로 받자자)
+  const botId = botIdParam || 1;
   
   // ========== 추가 된 변수 시작==========
-  // 세션 및 사용자 정보 상태
-  const [sessionId, setSessionId] = useState("");
-  const [userId, setUserId] = useState("");
+  // 세션 정보 상태
+  const [sessionId, setSessionId] = useState(sessionIdParam || "");
+  const userId = localStorage.getItem("userId");
   // 대화 타입 (요청에 포함할 정보)
   const [chatType, setChatType] = useState("none");
 
@@ -38,11 +43,9 @@ export default function ChatWindow() {
   // 페이지 진입 시 localStorage에 저장된 세션 정보가 없으면 새 세션 생성
   useEffect(() => {
     const storedSessionId = localStorage.getItem("sessionId");
-    const storedUserId = localStorage.getItem("userId");
 
-    if (storedSessionId && storedUserId) {
+    if (storedSessionId) {
       setSessionId(storedSessionId);
-      setUserId(storedUserId);
       return;
     }
 
@@ -59,9 +62,7 @@ export default function ChatWindow() {
 
         const data = await response.json();
         setSessionId(data.sessionId);
-        setUserId(data.userId);
         localStorage.setItem("sessionId", data.sessionId);
-        localStorage.setItem("userId", data.userId);
       } catch (error) {
         console.error("세션 생성 에러:", error);
       }
@@ -72,11 +73,7 @@ export default function ChatWindow() {
 
   // chatType(=chatTag) 변경에 따라 타로 버튼 노출 여부 결정
   useEffect(() => {
-    if (chatType === "tarot") {
-      setShowTarotButton(true);
-    } else {
-      setShowTarotButton(false);
-    }
+    setShowTarotButton(chatType === "tarot");
   }, [chatType]);
 
   // 타로 버튼 클릭 시 카드 선택창 호출
@@ -128,9 +125,7 @@ export default function ChatWindow() {
         });
         if (!response.ok) throw new Error("세션 종료 실패");
         localStorage.removeItem("sessionId");
-        localStorage.removeItem("userId");
         setSessionId("");
-        setUserId("");
         setMessages((prev) => [
           ...prev,
           { text: "세션이 종료되었습니다.", isUser: false },

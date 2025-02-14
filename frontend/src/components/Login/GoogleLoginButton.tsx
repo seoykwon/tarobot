@@ -31,8 +31,12 @@ export default function GoogleLoginButton() {
             },
           });
 
-          // 응답이 성공적이면 홈으로 리다이렉트
+          // 응답이 성공적이면 userId를 localStorage에 저장하고 홈으로 리다이렉트
           if (response.ok) {
+            const data = await response.json();
+            // 예시: data에 userId가 포함되어 있다고 가정
+            const userId = data.userId;
+            localStorage.setItem("userId", userId);
             router.push("/home");
           } else {
             alert("로그인에 실패했습니다. 다시 시도해주세요.");
