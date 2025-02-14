@@ -15,7 +15,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const [isSelecting, setIsSelecting] = useState(false)
   const [randomizedCards, setRandomizedCards] = useState<string[]>([]) // number → string
   const [isDragging, setIsDragging] = useState(false)
-  const visibleCards = 20
+  const visibleCards = 24
   const touchStartXRef = useRef<number | null>(null)
   const dragStartXRef = useRef<number | null>(null)
 
@@ -32,9 +32,9 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     })
 
     const allCards: string[] = [...majorCards, ...minorCards].sort(() => Math.random() - 0.5)
-    setRandomizedCards(allCards);
+    setRandomizedCards(allCards)
 
-    console.log("🃏 랜덤 카드 목록:", allCards); // 여기에 추가
+    console.log("🃏 랜덤 카드 목록:", allCards) // 여기에 추가
   }, [])
 
   const handleCardSelect = (cardId: string) => {
@@ -50,12 +50,16 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const handleScroll = useCallback(
     (direction: "left" | "right") => {
       if (isSelecting) return
-      console.log(`📜 Scroll 방향: ${direction}`);
+      console.log(`📜 Scroll 방향: ${direction}`)
       setStartIndex((prevIndex) => {
         if (direction === "left") {
-          return (prevIndex - 1 + randomizedCards.length) % randomizedCards.length
+          // 왼쪽 끝에 도달하면 더 이상 스크롤하지 않음
+          if (prevIndex === 0) return prevIndex
+          return prevIndex - 1
         } else {
-          return (prevIndex + 1) % randomizedCards.length
+          // 오른쪽 끝에 도달하면 더 이상 스크롤하지 않음
+          if (prevIndex >= randomizedCards.length - visibleCards) return prevIndex
+          return prevIndex + 1
         }
       })
     },
@@ -66,10 +70,11 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     if (randomizedCards.length === 0) return []
     const cards = []
     for (let i = 0; i < visibleCards; i++) {
-      const cardIndex = (startIndex + i) % randomizedCards.length
+      const cardIndex = startIndex + i
+      if (cardIndex >= randomizedCards.length) break
       cards.push(randomizedCards[cardIndex])
     }
-    console.log("📌 현재 화면에 보이는 카드들:", cards);
+    console.log("📌 현재 화면에 보이는 카드들:", cards)
     return cards
   }
 
@@ -117,7 +122,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   }
 
   useEffect(() => {
-    console.log("🔄 startIndex 변경됨:", startIndex);
+    console.log("🔄 startIndex 변경됨:", startIndex)
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isSelecting) return
       if (event.key === "ArrowLeft") {
@@ -131,7 +136,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [isSelecting, handleScroll])
+  }, [isSelecting, handleScroll, startIndex]) // Added startIndex to dependencies
 
   return (
     <div className={styles.overlay}>
@@ -151,7 +156,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
           {randomizedCards.length > 0 &&
             getVisibleCards().map((cardId, i) => (
               <div
-                key={`${cardId}-${i}`}
+                key={`${cardId}-${(startIndex + i) % randomizedCards.length}`}
                 className={`${styles.card} ${selectedCard === cardId ? styles.selected : ""}`}
                 style={
                   {
@@ -196,3 +201,4 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 }
 
 export default CardSelector
+

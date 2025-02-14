@@ -24,6 +24,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,7 +42,7 @@ public class ChatController {
     @PostMapping("/session/enter")
     public ResponseEntity<ChatSessionRes> createChatSession(@RequestBody @Valid ChatSessionRegisterReq request) {
         // 현재 request에는 botId만 전달. userId는 인증 객체에서 자동으로 불러옴
-        ChatSession session = chatSessionService.createChatSession(request.getBotId());
+        ChatSession session = chatSessionService.createChatSession(request.getBotId(), request.getTitle());
         return new ResponseEntity<>(ChatSessionRes.of(session), HttpStatus.CREATED);
     }
 
@@ -50,6 +51,13 @@ public class ChatController {
     public ResponseEntity<ChatSessionRes> getChatSession(@PathVariable UUID sessionId) {
         ChatSession session = chatSessionService.findBySessionId(sessionId);
         return ResponseEntity.ok(ChatSessionRes.of(session));
+    }
+
+    @Operation(summary = "본인 세션 전체 조회", description = "본인의 세션의 정보들을 조회합니다.")
+    @GetMapping("/session/me")
+    public ResponseEntity<List<ChatSession>> getMyChatSessions() {
+        List<ChatSession> sessions = chatSessionService.findAllByUserId();
+        return ResponseEntity.ok(sessions);
     }
 
     // 직접 수정할 일이 많이 있을까? 프론트에서 특정 동작을 했을 때 트리거를 다 따로 구현하기 때문에 의미가 많지 않을 듯 함
