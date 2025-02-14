@@ -10,7 +10,7 @@ export const API_URLS = {
     LOGOUT: `${BASE_URL}/api/v1/auth/logout`,
   },
   CHAT: {
-    GET_SESSION: `${BASE_URL}/api/v1/chat/session/enter`,       // GET - 채팅 세션 획득
+    LOAD_SESSION: `${FASTAPI_BASE_URL}/chat/session/load`,       // GET - 채팅 세션 대화 기록 불러오기
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
     STREAM: `${FASTAPI_BASE_URL}/chat/stream`,
     ENTER: `${BASE_URL}/api/v1/chat/session/enter`,

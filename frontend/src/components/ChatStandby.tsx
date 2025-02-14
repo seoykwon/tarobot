@@ -10,7 +10,8 @@ export default function ChatStandby() {
   const router = useRouter();
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const [isMobile, setIsMobile] = useState(false);
-
+  
+  const botId = localStorage.getItem("botId");
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -23,7 +24,6 @@ export default function ChatStandby() {
 
   const handleFirstMessage = async (message: string) => {
     try {
-      const botId = localStorage.getItem("botId");
       const response = await fetch(API_URLS.CHAT.ENTER, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

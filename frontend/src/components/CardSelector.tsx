@@ -15,7 +15,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const [isSelecting, setIsSelecting] = useState(false)
   const [randomizedCards, setRandomizedCards] = useState<string[]>([]) // number → string
   const [isDragging, setIsDragging] = useState(false)
-  const visibleCards = 8
+  const visibleCards = 20
   const touchStartXRef = useRef<number | null>(null)
   const dragStartXRef = useRef<number | null>(null)
 

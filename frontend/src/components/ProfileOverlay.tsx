@@ -24,14 +24,14 @@ export default function ProfileOverlay({
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await fetch(`${API_URLS.USER.ME}`, {
+        const response = await fetch(API_URLS.USER.ME, {
           method: "GET",
           credentials: "include", // 쿠키 포함
         });
 
         if (response.ok) {
           const data = await response.json();
-          setProfileImage(data.profileIcon || "/example.jpg"); // 프로필 이미지가 없으면 기본 이미지 사용
+          setProfileImage(data.profileImage || "/example.jpg"); // 프로필 이미지가 없으면 기본 이미지 사용
         } else {
           console.error("프로필 데이터를 불러오는 데 실패했습니다.");
         }
