@@ -40,10 +40,10 @@ export default function Hoon({ params }: { params: { sessionId: string } }) {
   }
 
   return (
-    <div className="grid grid-cols-3 h-screen bg-gray-100">
+    <div className="grid grid-cols-3 h-screen bg-purple-100">
       {/* 좌측 이미지 영역 - min-w 제거하고 w-full로 변경 */}
       <div className="col-span-1 w-full p-4 flex flex-col gap-4">
-        <div className="relative flex-1 bg-gray-300 rounded-lg flex items-center justify-center overflow-hidden aspect-[3/2]">
+        <div className="relative flex-1 bg-purple-100 rounded-lg flex items-center justify-center overflow-hidden aspect-[3/2]">
           <Image
             src="/images/dummy1.png"
             alt="이미지 1"
@@ -51,7 +51,7 @@ export default function Hoon({ params }: { params: { sessionId: string } }) {
             className="object-contain"
           />
         </div>
-        <div className="relative flex-1 bg-gray-300 rounded-lg flex items-center justify-center overflow-hidden aspect-[3/2]">
+        <div className="relative flex-1 bg-purple-100 rounded-lg flex items-center justify-center overflow-hidden aspect-[3/2]">
           <Image
             src="/images/dummy2.png"
             alt="이미지 2"

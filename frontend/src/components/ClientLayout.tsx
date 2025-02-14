@@ -49,7 +49,7 @@ export default function ClientLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f8f9fa]">
+    <div className="flex min-h-screen bg-purple-100">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div
         className={`flex flex-col flex-1 transition-all duration-300 ${

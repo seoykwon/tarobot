@@ -20,7 +20,7 @@ export default function ChatPage() {
   if (isMobile) {
     // 모바일 화면일 경우: 좌측 이미지 영역의 첫 번째 이미지를 ChatStandby 백그라운드로 사용
     return (
-      <div className="relative h-screen bg-gray-100">
+      <div className="relative h-screen bg-purple-100">
         {/* 백그라운드 이미지 */}
         <div className="absolute inset-0">
           <Image
@@ -40,11 +40,11 @@ export default function ChatPage() {
 
   // 데스크탑 등 모바일이 아닐 경우 기존 좌측, 우측 레이아웃 출력
   return (
-    <div className="grid grid-cols-3 h-screen bg-gray-100">
+    <div className="grid grid-cols-3 h-screen bg-purple-100">
       {/* 좌측 이미지 영역 - 최소 너비 제거 */}
       <div className="col-span-1 w-full p-4 flex flex-col gap-4">
         {/* 이미지 컨테이너에 aspect ratio 적용 */}
-        <div className="relative flex-1 bg-gray-300 rounded-lg overflow-hidden aspect-[3/2]">
+        <div className="relative flex-1 bg-purple-100 rounded-lg overflow-hidden aspect-[3/2]">
           <Image
             src="/images/dummy1.png"
             alt="이미지 1"
@@ -52,7 +52,7 @@ export default function ChatPage() {
             className="object-contain"
           />
         </div>
-        <div className="relative flex-1 bg-gray-300 rounded-lg overflow-hidden aspect-[3/2]">
+        <div className="relative flex-1 bg-purple-100 rounded-lg overflow-hidden aspect-[3/2]">
           <Image
             src="/images/dummy2.png"
             alt="이미지 2"

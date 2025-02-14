@@ -56,11 +56,13 @@ export default function TarotMasterList() {
               className="rounded-full"
             />
           )}
-          <span>{master.name || `타로마스터 ${master.id}`}</span>
+          <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
+            {master.name || `타로마스터 ${master.id}`}
+          </span>
         </li>
       ))}
-      <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer">
-        🔍 <span>다른 타로 마스터 찾기</span>
+      <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer flex-nowrap">
+        🔍 <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">다른 타로 마스터 찾기</span>
       </li>
     </ul>
   );

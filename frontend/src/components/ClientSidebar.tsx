@@ -55,7 +55,7 @@ export default function ClientSidebar({
               className="bg-[#f0f4f9] hover:bg-gray-200 text-[#0D0D0D] p-3 rounded-lg flex items-center justify-start w-full gap-2 transition"
               onClick={() => setIsDiaryOpen(true)}
             >
-              📖 <span className="ml-2">다이어리</span>
+              📖 <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">다이어리</span>
             </button>
           </div>
         </div>

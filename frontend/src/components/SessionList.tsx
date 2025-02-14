@@ -43,7 +43,7 @@ export default function SessionList() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h3 className="text-lg font-semibold mt-12 mb-4">최근 대화 기록</h3>
+      <h3 className="text-lg font-semibold mt-12 mb-4 truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">최근 대화 기록</h3>
       <ul className="space-y-4">
         {sessions.map((session) => (
           <li

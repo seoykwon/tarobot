@@ -4,7 +4,7 @@ import GoogleLoginButton from "@/components/Login/GoogleLoginButton";
 
 export default function WelcomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f8f9fa] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-purple-100 px-4">
       <div className="flex flex-col items-center gap-10 max-w-lg mx-auto text-center">
         {/* 캐릭터 이미지 */}
         <div>
