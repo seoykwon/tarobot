@@ -57,7 +57,7 @@ export default function ClientLayout({
         }`}
       >
         <Header isSidebarOpen={isSidebarOpen} isMobile={isMobile} toggleSidebar={toggleSidebar} />
-        <div className="flex-1 pt-14 overflow-hidden">{children}</div>
+        <div className="flex-1 pt-14 overflow-hidden max-h-[100vh]">{children}</div>
       </div>
     </div>
   )
