@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaCog, FaGem, FaSignOutAlt } from "react-icons/fa";
 import SettingModal from "./ProfileModal/SettingModal";
 import PlanUpgradeModal from "./ProfileModal/PlanUpgradeModal";
 import LogoutModal from "./ProfileModal/LogoutModal";
+import Image from "next/image";
+
 export default function ProfileOverlay({
   isActive,
   toggle,
@@ -12,10 +14,33 @@ export default function ProfileOverlay({
   isActive: boolean;
   toggle: () => void;
 }) {
-  // 각 모달의 열림 상태를 별도로 관리
   const [isSettingModalOpen, setSettingModalOpen] = useState(false);
   const [isPlanUpgradeModalOpen, setPlanUpgradeModalOpen] = useState(false);
   const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState<string>("/example.jpg"); // 기본 이미지 설정
+
+  // 백엔드에서 프로필 데이터 가져오기
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await fetch("/api/user/profile", {
+          method: "GET",
+          credentials: "include", // 쿠키 포함
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setProfileImage(data.profileIcon || "/example.jpg"); // 프로필 이미지가 없으면 기본 이미지 사용
+        } else {
+          console.error("프로필 데이터를 불러오는 데 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("프로필 데이터 요청 중 오류 발생:", error);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
 
   // 모달 열기 시 프로필 메뉴는 닫힘
   const openSetting = () => {
@@ -43,8 +68,14 @@ export default function ProfileOverlay({
   return (
     <div className="relative">
       {/* 프로필 버튼 */}
-      <button onClick={toggle} className="bg-gray-200 px-4 py-1 rounded-lg">
-        👤 Profile
+      <button onClick={toggle} className="w-10 h-10 rounded-full overflow-hidden bg-gray-300">
+        <Image
+          src={profileImage}
+          alt="Profile"
+          width={40}
+          height={40}
+          className="object-cover"
+        />
       </button>
 
       {/* 오버레이 메뉴 */}
