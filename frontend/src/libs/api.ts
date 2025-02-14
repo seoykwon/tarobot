@@ -1,12 +1,21 @@
+// libs/api.ts
+import { API_URLS } from "@/config/api";
+
 export async function getTarotMasters() {
-    // 실제 API 호출을 시뮬레이션하기 위해 setTimeout 사용
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          { id: 1, name: "타로 마스터 1" },
-          { id: 2, name: "타로 마스터 2" },
-          { id: 3, name: "타로 마스터 3" },
-        ]);
-      }, 1000); // 1초 지연
+  try {
+    const response = await fetch(API_URLS.TAROTBOTS.LIST, {
+      method: "GET",
+      credentials: "include", // 인증 쿠키 등을 사용한다면 필요
     });
+    
+    if (!response.ok) {
+      throw new Error("타로 마스터 데이터를 불러오지 못했습니다.");
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("타로 마스터 불러오기 에러:", error);
+    return [];
   }
+}
