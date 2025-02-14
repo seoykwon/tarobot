@@ -1,8 +1,8 @@
 import ChatWindow from "@/components/ChatWindow";
 import Image from "next/image";
 
-export default function Hoon({ params }: { params: { id: string; sessionId: string } }) {
-  const { id, sessionId } = params;
+export default function Hoon({ params }: { params: { sessionId: string } }) {
+  const { sessionId } = params;
 
   return (
     <div className="grid grid-cols-3 h-screen bg-gray-100">
@@ -28,7 +28,7 @@ export default function Hoon({ params }: { params: { id: string; sessionId: stri
 
       {/* ✅ 우측 ChatWindow */}
       <div className="col-span-2 flex-1">
-        <ChatWindow botIdParam={id} sessionIdParam={sessionId}/>
+        <ChatWindow sessionIdParam={sessionId} />
       </div>
     </div>
   );

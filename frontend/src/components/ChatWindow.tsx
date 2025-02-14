@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { API_URLS } from "@/config/api";
 import ChatInput from "@/components/ChatInput";
 // import 추가
@@ -9,15 +9,13 @@ import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
 
 interface ChatWindowProps {
-  botIdParam?: string;
   sessionIdParam?: string;
 }
 
-export default function ChatWindow({ botIdParam, sessionIdParam }: ChatWindowProps) {
+export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   // 요청에 필요한 데이터 설정
   // ========== 임시 값 설정 ==========
-  // 봇 아이디를 할당 받는 방식 설정 ( /[id] 형태면 좋을 듯 상위 요소인 page.tsx로 부터 props로 받자자)
-  const botId = botIdParam || 1;
+  const botId = localStorage.getItem("botId");
   
   // ========== 추가 된 변수 시작==========
   // 세션 정보 상태
@@ -39,11 +37,10 @@ export default function ChatWindow({ botIdParam, sessionIdParam }: ChatWindowPro
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
 
-  // ========== 추가 된 함수 시작 ==========
+  // ========== 추가 된 함수 시작 =========
   // 페이지 진입 시 localStorage에 저장된 세션 정보가 없으면 새 세션 생성
   useEffect(() => {
     const storedSessionId = localStorage.getItem("sessionId");
-
     if (storedSessionId) {
       setSessionId(storedSessionId);
       return;
@@ -110,7 +107,7 @@ export default function ChatWindow({ botIdParam, sessionIdParam }: ChatWindowPro
   // ========== 추가 된 함수 끝 ==========
 
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
-  const handleSendMessage = async (message: string) => {
+  const handleSendMessage = useCallback(async (message: string) => {
     // "세션종료" 입력 시 세션 종료 트리거 발동 (임시)
     if (message.trim() === "세션종료") {
       try {
@@ -191,7 +188,16 @@ export default function ChatWindow({ botIdParam, sessionIdParam }: ChatWindowPro
         return updated;
       });
     }
-  };
+  }, [sessionId, userId, botId, chatType, showTarotButton]);
+
+  // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
+  useEffect(() => {
+    const storedMessage = localStorage.getItem("firstMessage");
+    if (storedMessage) {
+      handleSendMessage(storedMessage);
+      localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
+    }
+  }, [handleSendMessage]);
 
   // 새로운 메시지가 추가될 때마다 스크롤을 자동으로 맨 아래로 이동
   useEffect(() => {
