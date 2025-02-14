@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSessionList } from '@/libs/api';
+import { useSession } from '@/context/SessionContext';
 
 interface SessionForm {
     sessionId: string;
@@ -15,6 +16,7 @@ interface SessionForm {
 export default function SessionList() {
   const [sessions, setSessions] = useState<SessionForm[]>([]); // 세션 데이터 상태
   const router = useRouter();
+  const { sessionUpdated } = useSession();
 
   useEffect(() => {
     // API 호출해서 세션 데이터 가져오기
@@ -28,7 +30,7 @@ export default function SessionList() {
         }
     };
     fetchSessions();
-  }, []);
+  }, [sessionUpdated]);
 
   // 세션의 createdAt에서 날짜 부분만 추출
   const formatDate = (dateString: string) => {

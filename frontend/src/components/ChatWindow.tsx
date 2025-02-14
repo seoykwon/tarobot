@@ -7,6 +7,7 @@ import ChatInput from "@/components/ChatInput";
 import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
+import { useSession } from '@/context/SessionContext';
 
 interface ChatWindowProps {
   sessionIdParam?: string;
@@ -23,7 +24,8 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   // ========== 임시 값 설정 ==========
   const botId = localStorage.getItem("botId");
   const [newSession, setNewSession] = useState(true);
-  
+  const { updateSession } = useSession();
+  updateSession();
   // ========== 추가 된 변수 시작==========
   // 세션 정보 상태
   const [sessionId, setSessionId] = useState(sessionIdParam || "");
