@@ -30,7 +30,7 @@ export default function ClientSidebar({
   return (
     <>
       <div
-        className={`fixed top-0 left-0 h-full bg-[#f0f4f9] shadow-md transition-all duration-300 z-50 flex flex-col
+        className={`fixed top-0 left-0 h-full bg-[#f0f4f9] transition-all duration-300 z-50 flex flex-col
           ${isMobile ? (isOpen ? "w-64" : "w-0") : isOpen ? "w-64" : "w-16"}
           ${!isOpen && isMobile ? "opacity-0 pointer-events-none" : "opacity-100"}
         `}
@@ -50,9 +50,9 @@ export default function ClientSidebar({
           </div>
 
           {/* 하단 고정 다이어리 버튼 */}
-          <div className="p-4 border-t border-gray-100 bg-[#ffffff]">
+          <div className="p-4 border-t border-gray-100 bg-[#f0f4f9]">
             <button
-              className="bg-[#ffffff] hover:bg-gray-100 text-[#0D0D0D] p-3 rounded-lg flex items-center justify-start w-full gap-2 transition"
+              className="bg-[#f0f4f9] hover:bg-gray-200 text-[#0D0D0D] p-3 rounded-lg flex items-center justify-start w-full gap-2 transition"
               onClick={() => setIsDiaryOpen(true)}
             >
               📖 <span className="ml-2">다이어리</span>

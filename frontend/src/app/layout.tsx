@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>
+      <body className="bg-purple-100">
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
