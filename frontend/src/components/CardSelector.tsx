@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import styles from "./CardSelector.module.css"
 
 interface CardSelectorProps {
-  onCardSelect: (cardId: string) => void // number → string
+  onCardSelect: (cardId: string) => void
   onClose: () => void
 }
 
@@ -13,13 +13,12 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
   const [startIndex, setStartIndex] = useState(0)
   const [isSelecting, setIsSelecting] = useState(false)
-  const [randomizedCards, setRandomizedCards] = useState<string[]>([]) // number → string
+  const [randomizedCards, setRandomizedCards] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const visibleCards = 24
   const touchStartXRef = useRef<number | null>(null)
   const dragStartXRef = useRef<number | null>(null)
 
-  // ✅ 카드 목록을 "maj0", "cups1" 형식으로 변환
   useEffect(() => {
     const majorCards = Array.from({ length: 22 }, (_, i) => `maj${i}`)
     const minorCards: string[] = []
@@ -34,7 +33,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     const allCards: string[] = [...majorCards, ...minorCards].sort(() => Math.random() - 0.5)
     setRandomizedCards(allCards)
 
-    console.log("🃏 랜덤 카드 목록:", allCards) // 여기에 추가
+    console.log("🃏 랜덤 카드 목록:", allCards)
   }, [])
 
   const handleCardSelect = (cardId: string) => {
@@ -53,11 +52,9 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
       console.log(`📜 Scroll 방향: ${direction}`)
       setStartIndex((prevIndex) => {
         if (direction === "left") {
-          // 왼쪽 끝에 도달하면 더 이상 스크롤하지 않음
           if (prevIndex === 0) return prevIndex
           return prevIndex - 1
         } else {
-          // 오른쪽 끝에 도달하면 더 이상 스크롤하지 않음
           if (prevIndex >= randomizedCards.length - visibleCards) return prevIndex
           return prevIndex + 1
         }
@@ -78,12 +75,33 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     return cards
   }
 
+  const isEdgePosition = () => {
+    return startIndex === 0 || startIndex >= randomizedCards.length - visibleCards
+  }
+
+  const getCardStyle = (index: number): React.CSSProperties => {
+    const angle = isEdgePosition() ? -30 + (60 / (visibleCards - 1)) * index : -105 + (210 / (visibleCards - 1)) * index
+
+    return {
+      position: "absolute",
+      width: "80px",
+      height: "120px",
+      cursor: "pointer",
+      transform: `rotate(${angle}deg) translateY(-280px)`,
+      transformOrigin: "bottom center",
+      transition: "all 0.6s cubic-bezier(0.23, 1, 0.32, 1)",
+      perspective: "1000px",
+      transformStyle: "preserve-3d",
+    }
+  }
+
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isSelecting) return
     touchStartXRef.current = e.touches[0].clientX
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null) return
+    if (isSelecting || touchStartXRef.current === null) return
     const touchEndX = e.changedTouches[0].clientX
     const diff = touchStartXRef.current - touchEndX
 
@@ -98,12 +116,13 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (isSelecting) return
     setIsDragging(true)
     dragStartXRef.current = e.clientX
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || dragStartXRef.current === null) return
+    if (isSelecting || !isDragging || dragStartXRef.current === null) return
     const diff = dragStartXRef.current - e.clientX
 
     if (Math.abs(diff) > 50) {
@@ -136,7 +155,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [isSelecting, handleScroll, startIndex]) // Added startIndex to dependencies
+  }, [isSelecting, handleScroll, startIndex])
 
   return (
     <div className={styles.overlay}>
@@ -157,13 +176,10 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
             getVisibleCards().map((cardId, i) => (
               <div
                 key={`${cardId}-${(startIndex + i) % randomizedCards.length}`}
-                className={`${styles.card} ${selectedCard === cardId ? styles.selected : ""}`}
-                style={
-                  {
-                    "--index": i,
-                    "--total": visibleCards,
-                  } as React.CSSProperties
-                }
+                style={getCardStyle(i)}
+                className={`${styles.card} ${selectedCard === cardId ? styles.selectedCard : ""} ${
+                  isSelecting && selectedCard !== cardId ? styles.nonSelectedCard : ""
+                }`}
                 onClick={() => handleCardSelect(cardId)}
               >
                 <div
