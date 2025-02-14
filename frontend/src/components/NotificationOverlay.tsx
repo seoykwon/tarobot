@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaBell } from "react-icons/fa";
 import Image from "next/image";
 
 interface Notification {
@@ -72,13 +72,16 @@ export default function NotificationOverlay({
   return (
     <div className="relative">
       {/* 알림 버튼 */}
-      <button onClick={toggle} className="bg-gray-200 px-4 py-1 rounded-lg">
-        🔔 알림
+      <button
+        onClick={toggle}
+        className="w-10 h-10 flex items-center justify-center focus:outline-none"
+      >
+        <FaBell className="w-6 h-6 text-gray-600" />
       </button>
 
       {/* 알림 오버레이 */}
       {isActive && (
-        <div className="absolute top-full right-10 mt-2 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-50 translate-x-4">
+        <div className="absolute top-full right-0 mt-2 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-50 translate-x-4">
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-2 border-b">
             <span className="font-bold">메시지</span>
@@ -90,9 +93,10 @@ export default function NotificationOverlay({
             </button>
           </div>
 
-          {/* 알림 리스트 */}
-          <ul className="max-h-64 overflow-y-auto scrollbar-none divide-y divide-gray-200">
-            {notifications.map((notification) => (
+        {/* 알림 리스트 */}
+        <ul className="max-h-64 overflow-y-auto scrollbar-none divide-y divide-gray-200">
+          {notifications.length > 0 ? (
+            notifications.map((notification) => (
               <li
                 key={notification.id}
                 className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -132,8 +136,12 @@ export default function NotificationOverlay({
                   </button>
                 </div>
               </li>
-            ))}
-          </ul>
+            ))
+          ) : (
+            // 알림이 없을 경우 표시할 문구
+            <li className="px-4 py-2 text-center text-gray-500">알림이 없습니다.</li>
+          )}
+        </ul>
         </div>
       )}
 
