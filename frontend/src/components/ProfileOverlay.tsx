@@ -6,6 +6,7 @@ import SettingModal from "./ProfileModal/SettingModal";
 import PlanUpgradeModal from "./ProfileModal/PlanUpgradeModal";
 import LogoutModal from "./ProfileModal/LogoutModal";
 import Image from "next/image";
+import { API_URLS } from "@/config/api";
 
 export default function ProfileOverlay({
   isActive,
@@ -23,7 +24,7 @@ export default function ProfileOverlay({
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await fetch("/api/user/profile", {
+        const response = await fetch(`${API_URLS.USER.ME}`, {
           method: "GET",
           credentials: "include", // 쿠키 포함
         });
