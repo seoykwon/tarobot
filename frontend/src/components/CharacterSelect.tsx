@@ -1,17 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Flame, Star, Target, X } from "lucide-react"
+import { useState } from "react";
+import { Flame, Star, Target, X } from "lucide-react";
 
 const characters = [
   {
     id: 1,
     name: "미루",
     role: "타로리스트",
-    description:
-      "캐릭터 설명",
-    roleDescription:
-      "어느 분야에 특화되어 있는지지",
+    description: "캐릭터 설명이 길어지면 스크롤이 가능해야 합니다.",
+    roleDescription: "어느 분야에 특화되어 있는지 설명하는 영역입니다.",
     image: "/images/dummy1.png",
     specialties: ["INFO", "C", "Q", "E", "X"],
     thumbnail: "/images/dummy1.png",
@@ -20,23 +18,22 @@ const characters = [
     id: 2,
     name: "소라",
     role: "타로리스트",
-    description:
-      "캐릭터 설명",
-    roleDescription:
-      "어느 부냥에 특화되어 있는지",
+    description: "이 캐릭터는 타로를 보는 특별한 능력을 가지고 있습니다.",
+    roleDescription: "어느 분야에 특화되어 있는지 설명하는 영역입니다.",
     image: "/images/dummy2.png",
     specialties: ["INFO", "C", "Q", "E", "X"],
     thumbnail: "/images/dummy2.png",
   },
-]
+];
 
 export default function CharacterSelect() {
-  const [selectedCharacter, setSelectedCharacter] = useState(characters[0])
+  const [selectedCharacter, setSelectedCharacter] = useState(characters[0]);
 
   return (
     <div className="flex h-full w-full bg-gray-900 text-white">
       {/* Left side - Character Display */}
       <div className="relative w-2/3 overflow-hidden">
+        {/* Character Image */}
         <div className="absolute inset-0">
           <img
             src={selectedCharacter.image || "/placeholder.svg"}
@@ -44,18 +41,37 @@ export default function CharacterSelect() {
             className="h-full w-full object-cover"
           />
         </div>
+
+        {/* Character Selection Buttons - 이동된 부분 */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-gray-900 bg-opacity-50 p-2 rounded-lg">
+          {characters.map((character) => (
+            <button
+              key={character.id}
+              onClick={() => setSelectedCharacter(character)}
+              className={`w-20 h-20 rounded-md overflow-hidden ${
+                selectedCharacter.id === character.id ? "ring-2 ring-yellow-300" : ""
+              }`}
+            >
+              <img
+                src={character.thumbnail || "/placeholder.svg"}
+                alt={character.name}
+                className="w-full h-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Right side - Character Info */}
-      <div className="flex w-1/3 flex-col p-6">
-        <div className="mb-8">
+      <div className="flex w-1/3 flex-col p-6 h-full">
+        <div className="mb-8 flex flex-col flex-grow">
           <h1 className="mb-1 text-sm font-medium text-gray-400">{selectedCharacter.role}</h1>
           <h2 className="mb-6 text-6xl font-bold text-yellow-300">{selectedCharacter.name}</h2>
 
-          {/* specialty icons */}
+          {/* Specialty icons */}
           <div className="mb-6 flex gap-4">
             {selectedCharacter.specialties.map((specialty, index) => (
-              <div key={index} className="flex h-12 w-12 items-center justify-center bg-gray-800 rounded-md">
+              <div key={index} className="flex h-12 w-12 items-center justify-center bg-transparent rounded-md">
                 {specialty === "INFO" && <Target className="h-6 w-6" />}
                 {specialty === "C" && <Flame className="h-6 w-6" />}
                 {specialty === "Q" && <Star className="h-6 w-6" />}
@@ -66,33 +82,14 @@ export default function CharacterSelect() {
           </div>
 
           {/* Character descriptions */}
-          <div className="space-y-4">
-            <p className="text-sm text-gray-300">{selectedCharacter.description}</p>
-            <div>
+          <div className="flex flex-col flex-grow">
+            <div className="flex-grow-[2] overflow-y-auto p-2 bg-transparent rounded-md">
+              <p className="text-sm text-gray-300">{selectedCharacter.description}</p>
+            </div>
+            <div className="flex-grow overflow-y-auto p-2 bg-transparent rounded-md mt-4">
               <h3 className="mb-2 text-sm font-medium text-gray-400">{selectedCharacter.role}</h3>
               <p className="text-sm text-gray-300">{selectedCharacter.roleDescription}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Character grid */}
-        <div className="mt-auto">
-          <div className="flex gap-2 justify-center">
-            {characters.map((character) => (
-              <button
-                key={character.id}
-                onClick={() => setSelectedCharacter(character)}
-                className={`w-20 h-20 rounded-md overflow-hidden ${
-                  selectedCharacter.id === character.id ? "ring-2 ring-yellow-300" : ""
-                }`}
-              >
-                <img
-                  src={character.thumbnail || "/placeholder.svg"}
-                  alt={character.name}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
           </div>
         </div>
 
@@ -102,6 +99,5 @@ export default function CharacterSelect() {
         </button>
       </div>
     </div>
-  )
+  );
 }
-
