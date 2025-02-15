@@ -23,14 +23,25 @@ export default function ChatInput({ onSend }: { onSend: (message: string) => voi
           className="w-full p-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
         />
         {/* 버튼은 input 값이 있을 때만 렌더링 */}
-        {input.trim() && (
+        {/* {input.trim() && (
           <button
             onClick={sendMessage}
             className="absolute top-1/2 right-2 transform -translate-y-1/2 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             ↑
           </button>
-        )}
+        )} */}
+        <button
+          onClick={input.trim() ? sendMessage : () => console.log("음성 입력 시작")}
+          className="absolute top-1/2 right-2 transform -translate-y-1/2 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200"
+        >
+          <span className={`transition-opacity duration-200 ${input.trim() ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}>
+            ↑
+          </span>
+          <span className={`transition-opacity duration-200 absolute inset-0 ${input.trim() ? "opacity-0 scale-75" : "opacity-100 scale-100"}`}>
+            🎤
+          </span>
+        </button>
       </div>
     </div>
   );
