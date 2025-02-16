@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { getTarotMasters } from "@/libs/api";
 import Image from "next/image";
 
-// TarotMaster 인터페이스 정의
 interface TarotMaster {
   id: number;
   name: string;
@@ -16,7 +15,6 @@ interface TarotMaster {
 }
 
 export default function TarotMasterList() {
-  // TarotMaster[] 타입을 사용
   const [tarotMasters, setTarotMasters] = useState<TarotMaster[]>([]);
   const router = useRouter();
 
@@ -24,7 +22,6 @@ export default function TarotMasterList() {
     const fetchTarotMasters = async () => {
       try {
         const masters = await getTarotMasters();
-        // 상위 3개만 사용
         setTarotMasters(masters.slice(0, 3));
       } catch (error) {
         console.error("타로 마스터 불러오기 실패:", error);
@@ -39,6 +36,10 @@ export default function TarotMasterList() {
     router.push("/chat");
   };
 
+  const handleFindMoreMasters = () => {
+    router.push("/character-select");
+  };
+
   return (
     <ul className="space-y-4">
       {tarotMasters.map((master) => (
@@ -49,7 +50,7 @@ export default function TarotMasterList() {
         >
           {master.profileImage && (
             <Image
-              src={master.profileImage}
+              src={master.profileImage || "/placeholder.svg"}
               alt={`타로 마스터 ${master.name}`}
               width={40}
               height={40}
@@ -61,7 +62,10 @@ export default function TarotMasterList() {
           </span>
         </li>
       ))}
-      <li className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer flex-nowrap">
+      <li 
+        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer flex-nowrap"
+        onClick={handleFindMoreMasters}
+      >
         🔍 <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">다른 타로 마스터 찾기</span>
       </li>
     </ul>
