@@ -30,7 +30,7 @@ export default function CharacterSelect() {
   const [selectedCharacter, setSelectedCharacter] = useState(characters[0]);
 
   return (
-    <div className="flex h-full w-full bg-gray-900 text-white">
+    <div className="flex w-full bg-gray-900 text-white" style={{ height: "calc(100dvh - 56px)" }}>
       {/* Left side - Character Display */}
       <div className="relative w-2/3 overflow-hidden">
         {/* Character Image */}
@@ -63,7 +63,7 @@ export default function CharacterSelect() {
       </div>
 
       {/* Right side - Character Info */}
-      <div className="flex w-1/3 flex-col p-6 h-full">
+      <div className="flex w-1/3 flex-col p-6" style={{ height: "calc(100dvh - 56px)" }}>
         <div className="mb-8 flex flex-col flex-grow">
           <h1 className="mb-1 text-sm font-medium text-gray-400">{selectedCharacter.role}</h1>
           <h2 className="mb-6 text-6xl font-bold text-yellow-300">{selectedCharacter.name}</h2>
