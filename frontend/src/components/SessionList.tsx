@@ -26,16 +26,11 @@ export default function SessionList() {
             // 상위 5개만 사용
             setSessions(sessionlist.slice(0, 5));
         } catch (error) {
-            console.error("타로 마스터 불러오기 실패:", error);
+            console.error("세션 리스트 불러오기 실패:", error);
         }
     };
     fetchSessions();
   }, [sessionUpdated]);
-
-  // 세션의 createdAt에서 날짜 부분만 추출
-  const formatDate = (dateString: string) => {
-    return dateString.slice(0, 10); // "2025-02-14" 형식으로 반환
-  };
 
   const handleSessionClick = (sessionId: string) => {
     router.push(`/chat/${sessionId}`);
@@ -52,7 +47,9 @@ export default function SessionList() {
             onClick={() => handleSessionClick(session.sessionId)}
           >
             <div className="flex items-center space-x-3">
-              <span className="text-sm text-gray-600">{formatDate(session.title)}</span>
+              <span className="text-sm text-gray-600">
+                {session.title.length > 10 ? session.title.slice(0, 10) + "..." : session.title}
+              </span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"

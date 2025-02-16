@@ -113,6 +113,7 @@ import { useRouter } from "next/navigation";
 import { Flame, Star, Target, X } from 'lucide-react';
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
+import { useSession } from "@/context/SessionContext";
 
 const characters = [
   {
@@ -140,6 +141,7 @@ const characters = [
 export default function CharacterSelect() {
   const [selectedCharacter, setSelectedCharacter] = useState(characters[0]);
   const router = useRouter();
+  const { triggerSessionUpdate } = useSession(); // ✅ 세션 업데이트 트리거 가져오기
 
   const handleStartChat = async () => {
     try {
@@ -157,9 +159,10 @@ export default function CharacterSelect() {
       if (!response.ok) throw new Error("세션 생성 실패");
 
       const data = await response.json();
-      localStorage.setItem("sessionId", data.sessionId);
       localStorage.setItem("firstMessage", initialMessage);
       localStorage.setItem("botId", selectedCharacter.id.toString());
+
+      triggerSessionUpdate(); // ✅ 새로운 세션이 생성되면 업데이트 트리거 실행
 
       router.push(`/chat/${data.sessionId}`);
     } catch (error) {

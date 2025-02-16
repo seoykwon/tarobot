@@ -7,7 +7,6 @@ import ChatInput from "@/components/ChatInput";
 import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
-import { useSession } from '@/context/SessionContext';
 
 interface ChatWindowProps {
   sessionIdParam?: string;
@@ -24,8 +23,6 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
   // ========== 임시 값 설정 ==========
   const botId = localStorage.getItem("botId");
   const [newSession, setNewSession] = useState(true);
-  const { updateSession } = useSession();
-  updateSession();
   // ========== 추가 된 변수 시작==========
   // 세션 정보 상태
   const [sessionId, setSessionId] = useState(sessionIdParam || "");
@@ -69,6 +66,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
         // 이 위치에서 본인의 세션이 맞는 지 확인하는 isMySession 로직을 수행해야함!!!
 
         // ==========================================
+        console.log("지금 메시지 로드");
         const response = await fetch(API_URLS.CHAT.LOAD_SESSION, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -103,28 +101,6 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
       loadSessionMessages(); // 세션 진입 시 이전 대화 기록을 불러오는 함수 호출
       return;
     }
-
-    // const createSession = async () => {
-    //   try {
-    //     const title = "잘못된 접근"
-    //     const response = await fetch(API_URLS.CHAT.ENTER, {
-    //       method: "POST",
-    //       headers: { "Content-Type": "application/json" },
-    //       body: JSON.stringify({ botId, title }),
-    //       credentials: "include",
-    //     });
-
-    //     if (!response.ok) throw new Error("세션 생성 실패");
-
-    //     const data = await response.json();
-    //     setSessionId(data.sessionId);
-    //     localStorage.setItem("sessionId", data.sessionId);
-    //   } catch (error) {
-    //     console.error("세션 생성 에러:", error);
-    //   }
-    // };
-
-    // createSession();
   }, [botId, sessionId, newSession]);
 
   // chatType(=chatTag) 변경에 따라 타로 버튼 노출 여부 결정
@@ -255,12 +231,13 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
       setNewSession(true);
       handleSendMessage(storedMessage).then(() => {
         setNewSession(false); // 첫 메시지 전송 후 세션 데이터 로드
+        console.log("지금 첫 메시지 제어");
+        localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
       });
-      localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
     } else {
       setNewSession(false);
     }
-  }, [handleSendMessage]);
+  }, []);
 
   // 새로운 메시지가 추가될 때마다 스크롤을 자동으로 맨 아래로 이동
   useEffect(() => {

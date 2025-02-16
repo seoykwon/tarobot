@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
 import ChatInput from "@/components/ChatInput";
 import Image from "next/image";
+import { useSession } from "@/context/SessionContext";
 
 export default function ChatStandby() {
   const router = useRouter();
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const { triggerSessionUpdate } = useSession(); // ✅ 세션 업데이트 트리거 가져오기
   
   const botId = localStorage.getItem("botId");
   useEffect(() => {
@@ -35,8 +37,10 @@ export default function ChatStandby() {
       if (!response.ok) throw new Error("세션 생성 실패");
 
       const data = await response.json();
-      localStorage.setItem("sessionId", data.sessionId);
       localStorage.setItem("firstMessage", message);
+
+      triggerSessionUpdate(); // ✅ 새로운 세션이 생성되면 업데이트 트리거 실행
+
       router.push(`/chat/${data.sessionId}`);
     } catch (error) {
       console.error("세션 생성 에러:", error);

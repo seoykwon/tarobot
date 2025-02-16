@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation" // 현재 경로 확인
 import Sidebar from "@/components/Sidebar"
 import Header from "@/components/Header"
+import { SessionProvider } from "@/context/SessionContext";
 
 export default function ClientLayout({
   children,
@@ -49,16 +50,18 @@ export default function ClientLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-purple-100">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <div
-        className={`flex flex-col flex-1 transition-all duration-300 ${
-          isMobile ? "w-full ml-0" : isSidebarOpen ? "ml-[240px]" : "ml-[72px]"
-        }`}
-      >
-        <Header isSidebarOpen={isSidebarOpen} isMobile={isMobile} toggleSidebar={toggleSidebar} />
-        <div className="flex-1 pt-14 overflow-hidden max-h-[100vh]">{children}</div>
+    <SessionProvider> {/* ✅ 모든 컴포넌트에서 세션 업데이트를 감지할 수 있도록 감싸줌 */}
+      <div className="flex min-h-screen bg-purple-100">
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        <div
+          className={`flex flex-col flex-1 transition-all duration-300 ${
+            isMobile ? "w-full ml-0" : isSidebarOpen ? "ml-[240px]" : "ml-[72px]"
+          }`}
+        >
+          <Header isSidebarOpen={isSidebarOpen} isMobile={isMobile} toggleSidebar={toggleSidebar} />
+          <div className="flex-1 pt-14 overflow-hidden max-h-[100vh]">{children}</div>
+        </div>
       </div>
-    </div>
+    </SessionProvider>
   )
 }

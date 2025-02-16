@@ -1,23 +1,24 @@
-// SessionContext.tsx
-import { createContext, useContext, useState } from 'react';
+import { createContext, useState, useContext } from "react";
 
-const SessionContext = createContext<{
-  sessionUpdated: number;
-  updateSession: () => void;
-}>({
-  sessionUpdated: 0,
-  updateSession: () => {},
+const SessionContext = createContext({
+  sessionUpdated: false,
+  triggerSessionUpdate: () => {},
 });
 
-export const useSession = () => useContext(SessionContext);
-
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [sessionUpdated, setSessionUpdated] = useState(0);
-  const updateSession = () => setSessionUpdated(prev => prev + 1);
+  const [sessionUpdated, setSessionUpdated] = useState(false);
+
+  const triggerSessionUpdate = () => {
+    setSessionUpdated((prev) => !prev);
+  };
 
   return (
-    <SessionContext.Provider value={{ sessionUpdated, updateSession }}>
+    <SessionContext.Provider value={{ sessionUpdated, triggerSessionUpdate }}>
       {children}
     </SessionContext.Provider>
   );
+}
+
+export function useSession() {
+  return useContext(SessionContext);
 }
