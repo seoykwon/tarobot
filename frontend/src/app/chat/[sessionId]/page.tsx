@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ChatWindow from "@/components/ChatWindow";
 import Image from "next/image";
+import ChatWindowWs from "@/components/ChatWindowWs";
 
 export default function Hoon({ params }: { params: { sessionId: string } }) {
   const { sessionId } = params;
@@ -63,7 +64,8 @@ export default function Hoon({ params }: { params: { sessionId: string } }) {
 
       {/* 우측 ChatWindow 영역 */}
       <div className="col-span-2 flex-1">
-        <ChatWindow sessionIdParam={sessionId} />
+        {/* <ChatWindow sessionIdParam={sessionId} /> */}
+        <ChatWindowWs sessionIdParam={sessionId} />
       </div>
     </div>
   );

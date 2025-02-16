@@ -82,7 +82,7 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
         # 요약 갱신
         save_summary_task = asyncio.create_task(save_summary_history(session_id, user_input))
         # Redis에 인풋 저장
-        save_task = asyncio.create_task(save_message(session_id, "user", user_input))
+        save_task = asyncio.create_task(save_message(session_id, user_id, user_input))
 
         if (type=="tarot"):
             try:
@@ -101,7 +101,7 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
     except Exception as e:
         print(f"❌ process_user_input 실패: {e}")  # ✅ 예외 출력
-        return None, None, None, None  # 예외 발생 시 None 반환
+        return None, None, None  # 예외 발생 시 None 반환
 
 def prepare_context(recent_history, pine_results, keywords):
     """
@@ -134,14 +134,14 @@ def prepare_context(recent_history, pine_results, keywords):
     return context.strip()  # ✅ 불필요한 공백 제거
 
 # 이 함수는 스트리밍을 지원하지 않습니다. 스트리밍 기능이 추가된 함수는 response_utils.py의 함수를 찾아가세요.
-async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream: bool = False):
+async def rag_pipeline(session_id: str, user_input: str, type: str, user_id: str, bot_id: int, stream: bool = False):
     """
     비동기 최적화된 RAG 기반 챗봇 파이프라인 (Streaming 지원)
     """
     print("🟢 rag_pipeline 시작")  # ✅ 로그 추가
-    # 업서트를 위해 keywords와 user_id도 리턴 받기
-    context, keywords, user_id, chat_tag = await process_user_input(session_id, user_input, type)
-    
+    # 업서트를 위해 keywords도 리턴 받기
+    context, keywords, chat_tag = await process_user_input(session_id, user_input, type, user_id, bot_id)
+    print("🟢 인풋 전처리 완료")  # ✅ 로그 추가
     # type에 따라 input과 chat_prompt 템플릿 분리
     if type == "tarot":
         chat_prompt = make_prompt_tarot(context, user_input)
@@ -157,7 +157,6 @@ async def rag_pipeline(session_id: str, user_input: str, type: str = "", stream:
 사용자가 타로 점을 보고 싶어하는 것 같습니다.
 이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
 """
-
 
     if stream:
         print("🟡 Streaming 모드로 실행")  # ✅ 로그 추가

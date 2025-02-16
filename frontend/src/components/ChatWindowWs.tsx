@@ -6,6 +6,7 @@ import ChatInput from "@/components/ChatInput";
 import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
+import { io, Socket } from "socket.io-client";
 
 interface ChatWindowProps {
   sessionIdParam?: string;
@@ -17,29 +18,53 @@ interface MessageForm {
   content?: React.ReactNode;
 }
 
-export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
-  // 요청에 필요한 데이터 설정
-  // ========== 임시 값 설정 ==========
+export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const botId = localStorage.getItem("botId");
   const userId = localStorage.getItem("userId");
-  // ========== 추가 된 변수 시작==========
-  // 세션 정보 상태
+  const sessionId = sessionIdParam;
   const [newSession, setNewSession] = useState(true);
-  const [sessionId, setSessionId] = useState(sessionIdParam || "");
-  // 대화 타입 (요청에 포함할 정보)
   const [chatType, setChatType] = useState("none");
-
-  // 타로 버튼 및 카드 선택창 표시 상태
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
-  
-  // 모바일 크기 확인하기 위한 변수
   const [isMobile, setIsMobile] = useState(false);
-  // ========== 추가 된 변수 끝 ==========
-  
-  // 메시지 타입에 선택 카드 이미지를 위한 optional content 필드 추가
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean; content?: React.ReactNode }[]>([]);
+  const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  // WebSocket 연결
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // ✅ Socket.IO 연결
+    const socket = io(`${API_URLS.SOCKET.BASE}`, {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+    });
+
+    socketRef.current = socket;
+
+    // ✅ 세션(Room) 참가
+    socket.emit("join_room", { room_id: sessionId });
+
+    socket.on("room_joined", (data) => {
+      console.log(`Room joined: ${data.room_id}`);
+    });
+
+    // ✅ 메시지 수신 처리 (사용자 + 챗봇 메시지 모두 포함)
+    socket.on("chat_message", (data) => {
+      console.log(`📩 사용자 메시지 수신: ${data}`);
+      setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
+    });
+
+    socket.on("chatbot_message", (data) => {
+      console.log(`🤖 챗봇 메시지 수신: ${data}`);
+      setMessages((prev) => [...prev, { text: data.message, isUser: "assistant" }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [sessionId]);
 
 // 특정 크기 이하로 내려갈 경우에 대한 상태를 반영하는 함수
   useEffect(() => {
@@ -52,7 +77,6 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ========== 추가 된 함수 시작 =========
   // 세션 진입 시 이전 대화 기록을 불러오는 함수
   useEffect(() => {
     const loadSessionMessages = async () => {
@@ -76,7 +100,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
         // 서버에서 가져온 이전 대화 기록을 메시지 상태에 설정
         setMessages(data.map((msg: MessageForm) => ({
           text: msg.message,
-          isUser: msg.role === "user",
+          isUser: msg.role,
           content: msg.content ? (
             <Image
               src={`/basic/${msg.content}.svg`}
@@ -119,7 +143,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
       ...prev,
       { 
         text: `"${selectedCard}" 카드를 선택했어!`, 
-        isUser: false,
+        isUser: "assistant",
         content: (
           <Image
             src={`/basic/${cardId}.svg`}
@@ -134,7 +158,6 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
     // 선택한 카드 이름을 서버에 전송
     handleSendMessage(selectedCard);
   };
-  // ========== 추가 된 함수 끝 ==========
 
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
   const handleSendMessage = useCallback(async (message: string) => {
@@ -151,72 +174,61 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
           credentials: "include",
         });
         if (!response.ok) throw new Error("세션 종료 실패");
-        setSessionId("");
         setMessages((prev) => [
           ...prev,
-          { text: "세션이 종료되었습니다.", isUser: false },
+          { text: "세션이 종료되었습니다.", isUser: "assistant" },
         ]);
       } catch (error) {
         console.error("세션 종료 에러:", error);
         setMessages((prev) => [
           ...prev,
-          { text: "세션 종료에 실패했습니다.", isUser: false },
+          { text: "세션 종료에 실패했습니다.", isUser: "assistant" },
         ]);
       }
       return;
     }
     // 세션 종료 트리거 끝 (임시 코드이므로 나중에 버튼을 만들거나 트리거를 기획할 것)
+    if (!socketRef.current) return;
 
-    // 사용자의 메시지를 채팅에 추가
-    setMessages((prev) => [...prev, { text: message, isUser: true }]);
-    // 봇 응답 자리로 "입력중...."를 먼저 보여줌
-    setMessages((prev) => [...prev, { text: "입력중....", isUser: false }]);
-    let botMessageText = "";
+    // ✅ Socket.IO를 통해 메시지 전송
+    socketRef.current.emit("chat_message", {
+      room_id: sessionId,
+      user_id: userId,
+      bot_id: botId,
+      user_input: message,
+      type: showTarotButton ? "none" : chatType,
+    });
+    
 
-    try {
-      // FastAPI 스트리밍 엔드포인트에 POST 요청 전송
+    //   // 응답 헤더에서 ChatTag 값을 가져와 대화 타입 갱신
+    //   const chatTag = response.headers.get("ChatTag") || "none";
+    //   setChatType(chatTag);
 
-      const response = await fetch(API_URLS.CHAT.STREAM, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          user_input: message,
-          user_id: userId,
-          bot_id: botId,
-          type: showTarotButton ? "none" : chatType,
-        }),
-      });
+    //   if (!response.body) throw new Error("Response body is null");
 
-      // 응답 헤더에서 ChatTag 값을 가져와 대화 타입 갱신
-      const chatTag = response.headers.get("ChatTag") || "none";
-      setChatType(chatTag);
+    //   const reader = response.body.getReader();
+    //   const decoder = new TextDecoder();
 
-      if (!response.body) throw new Error("Response body is null");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      // 스트리밍 응답을 읽어오면서 받은 청크를 누적하고 메시지 업데이트
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        botMessageText += chunk;
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { text: botMessageText, isUser: false };
-          return updated;
-        });
-      }
-    } catch (error) {
-      console.error("Streaming response error:", error);
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { text: "Error retrieving response", isUser: false };
-        return updated;
-      });
-    }
+    //   // 스트리밍 응답을 읽어오면서 받은 청크를 누적하고 메시지 업데이트
+    //   while (true) {
+    //     const { value, done } = await reader.read();
+    //     if (done) break;
+    //     const chunk = decoder.decode(value);
+    //     botMessageText += chunk;
+    //     setMessages((prev) => {
+    //       const updated = [...prev];
+    //       updated[updated.length - 1] = { text: botMessageText, isUser: false };
+    //       return updated;
+    //     });
+    //   }
+    // } catch (error) {
+    //   console.error("Streaming response error:", error);
+    //   setMessages((prev) => {
+    //     const updated = [...prev];
+    //     updated[updated.length - 1] = { text: "Error retrieving response", isUser: false };
+    //     return updated;
+    //   });
+    // }
   }, [sessionId, chatType, showTarotButton]);
 
   // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
@@ -273,19 +285,25 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
             <div
               key={index}
               className={`flex ${
-                msg.isUser ? "justify-end" : "justify-start"
+                // assistant 메시지는 왼쪽 정렬, 그 외는 오른쪽 정렬
+                msg.isUser === "assistant" ? "justify-start" : "justify-end"
               } w-full`}
             >
-              {msg.isUser ? (
-                // 사용자 메시지 (오른쪽 정렬)
-                <div className="px-4 py-2 rounded-l-lg rounded-br-lg max-w-xs bg-gray-800 text-white">
-                  {msg.text}
-                </div>
-              ) : (
-                // 봇 메시지 (왼쪽 정렬)
-                <div className="px-4 py-2 rounded-r-lg rounded-bl-lg max-w-xs bg-purple-400 text-gray leading-relaxed">
+              {msg.isUser === "assistant" ? (
+                // 봇 메시지 (왼쪽 정렬, text 클래스는 고정하거나 원하는 대로)
+                <div className="px-4 py-2 rounded-r-lg rounded-bl-lg max-w-xs bg-purple-400 text-gray-800 leading-relaxed">
                   {msg.text}
                   {msg.content && <div className="mt-2">{msg.content}</div>}
+                </div>
+              ) : (
+                // 사용자 메시지 (오른쪽 정렬)
+                <div
+                  className={`px-4 py-2 rounded-l-lg rounded-br-lg max-w-xs bg-gray-800 ${
+                    // 메시지의 isUser가 내 userId와 같으면 text-white, 아니면 text-blue 적용
+                    msg.isUser === userId ? "text-white bg-gray-800" : "text-pink-500 bg-blue-100"
+                  }`}
+                >
+                  {msg.text}
                 </div>
               )}
             </div>
