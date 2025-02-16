@@ -59,10 +59,28 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
     socket.on("chatbot_message", (data) => {
       console.log(`🤖 챗봇 메시지 수신: ${data}`);
-      setMessages((prev) => [...prev, { text: data.message, isUser: "assistant" }]);
+      setChatType(data.chat_tag);
+      // setMessages((prev) => [...prev, { text: data.message, isUser: "assistant" }]);
+      setMessages((prev) => {
+        // ✅ 가장 마지막 "입력 중..." 메시지를 찾아 제거
+        const updatedMessages = [...prev];
+        const lastBotIndex = updatedMessages.findLastIndex(
+          (msg) => msg.isUser === "assistant" && msg.text === "입력 중..."
+        );
+    
+        if (lastBotIndex !== -1) {
+          updatedMessages.splice(lastBotIndex, 1); // "입력 중..." 제거
+        }
+    
+        // ✅ 챗봇 응답 추가
+        updatedMessages.push({ text: data.message, isUser: "assistant" });
+    
+        return updatedMessages;
+      });
     });
 
     return () => {
+      console.log("소켓 연결 해제");
       socket.disconnect();
     };
   }, [sessionId]);
@@ -199,14 +217,10 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       user_input: message,
       type: showTarotButton ? "none" : chatType,
     });
+
+    // ✅ "입력 중..." 봇 메시지 추가
+    setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
     
-
-    //   // 응답 헤더에서 ChatTag 값을 가져와 대화 타입 갱신
-    //   const chatTag = response.headers.get("ChatTag") || "none";
-    //   setChatType(chatTag);
-
-    //   if (!response.body) throw new Error("Response body is null");
-
     //   const reader = response.body.getReader();
     //   const decoder = new TextDecoder();
 
@@ -237,11 +251,15 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     const storedMessage = localStorage.getItem("firstMessage");
     if (storedMessage) {
       setNewSession(true);
-      handleSendMessage(storedMessage).then(() => {
-        setNewSession(false); // 첫 메시지 전송 후 세션 데이터 로드
-        console.log("지금 첫 메시지 제어");
-        localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
-      });
+  
+      // ✅ 200ms 뒤에 첫 메시지 전송 (WebSocket 연결 보장)
+      setTimeout(() => {
+        handleSendMessage(storedMessage).then(() => {
+          setNewSession(false); // 첫 메시지 전송 후 세션 데이터 로드
+          console.log("지금 첫 메시지 제어");
+          localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
+        });
+      }, 200); // 🚀 WebSocket 안정성을 위해 200ms 대기
     } else {
       setNewSession(false);
     }
@@ -295,6 +313,17 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
                 <div className="px-4 py-2 rounded-r-lg rounded-bl-lg max-w-xs bg-purple-400 text-gray-800 leading-relaxed">
                   {msg.text}
                   {msg.content && <div className="mt-2">{msg.content}</div>}
+                  {/* ✅ 타로 메시지일 경우 버튼 추가 */}
+                  {index === messages.length - 1 && chatType === "tarot" && (
+                    <div className="mt-2">
+                      <button
+                        onClick={handleShowCardSelector}
+                        className="px-4 py-2 bg-yellow-500 text-white rounded"
+                      >
+                        타로 점 보기 🔮
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 // 사용자 메시지 (오른쪽 정렬)
@@ -312,18 +341,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         </div>
   
         {/* ============ 추가된 요소 ============ */}
-        {/* 타로 점 보기 버튼 (chatType이 "tarot"일 때) */}
-        {showTarotButton && (
-          <div className="flex justify-center p-2">
-            <button
-              onClick={handleShowCardSelector}
-              className="px-4 py-2 bg-yellow-500 text-white rounded"
-            >
-              타로 점 보기 🔮
-            </button>
-          </div>
-        )}
-  
         {/* 카드 선택 UI (CardSelector 컴포넌트) */}
         {showCardSelector && (
           <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">

@@ -68,7 +68,8 @@ async def chatbot_worker(room_id: str):
         # ✅ 챗봇 응답을 방에 브로드캐스트
         await sio.emit("chatbot_message", {
             "message": answer,
-            "role" : "assistant"
+            "role" : "assistant",
+            "chat_tag" : tag,
         }, room=room_id)
 
         print(f"🟣 현재 세션 ID: {room_id}")  # ✅ 로그 추가
@@ -121,7 +122,8 @@ async def handle_chat_message(sid, data):
     # 사용자 메시지 브로드캐스트
     await sio.emit("chat_message", {
         "message": data["user_input"],
-        "role": data["user_id"]
+        "role": data["user_id"],
+        "type" : data["type"],
         }, room=room_id)
 
     # 챗봇 Queue에 메시지 투입
