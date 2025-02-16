@@ -11,7 +11,6 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 from app.services.rag_pipeline import rag_pipeline, process_user_input
 from app.utils.response_utils import response_generator  # ✅ Streaming import
-from app.core.openvidu_api import create_openvidu_session, create_openvidu_connection
 from app.utils.fo_mini_api import call_4o_mini
 from app.services.redis_utils import get_recent_history
 from app.utils.sys_prompt_dict import sys_prompt
@@ -128,14 +127,35 @@ async def handle_chat_message(sid, data):
     # 챗봇 Queue에 메시지 투입
     if room_id in chatbot_queues:
         await chatbot_queues[room_id].put(data)
-        
-# OpenVidu API 라우트
-@app.post("/openvidu/sessions")
-def create_session(custom_session_id: str = None):
-    return create_openvidu_session(custom_session_id)
 
-class TokenRequest(BaseModel):
-    session_id: str
+# --- 아래는 WebRTC signaling 이벤트 추가 부분 ---
+
+@sio.on("offer")
+async def handle_offer(sid, data):
+    """
+    data = { "room_id": "some_room_id", "sdp": { ... } }
+    """
+    room_id = data.get("room_id")
+    print(f"[offer] {sid} sent offer for room {room_id}")
+    await sio.emit("offer", data, room=room_id, skip_sid=sid)
+
+@sio.on("answer")
+async def handle_answer(sid, data):
+    """
+    data = { "room_id": "some_room_id", "sdp": { ... } }
+    """
+    room_id = data.get("room_id")
+    print(f"[answer] {sid} sent answer for room {room_id}")
+    await sio.emit("answer", data, room=room_id, skip_sid=sid)
+
+@sio.on("ice-candidate")
+async def handle_ice_candidate(sid, data):
+    """
+    data = { "room_id": "some_room_id", "candidate": { ... } }
+    """
+    room_id = data.get("room_id")
+    print(f"[ice-candidate] {sid} sent ICE candidate for room {room_id}")
+    await sio.emit("ice-candidate", data, room=room_id, skip_sid=sid)
 
 class ChatRequest(BaseModel):
     session_id: str
@@ -143,9 +163,6 @@ class ChatRequest(BaseModel):
     user_id: str
     bot_id: int
     type: str
-
-class ChatResponse(BaseModel):
-    answer: str
 
 class CloseChatRequest(BaseModel):
     sessionId: str
@@ -155,13 +172,6 @@ class ChatSummaryResponse(BaseModel):
     title: str
     tag: List[str]
     cardImageUrl: str
-
-@app.post("/openvidu/connections")
-def create_connection(body: TokenRequest):
-    session_id = body.session_id
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    return create_openvidu_connection(session_id)
 
 @app.get("/", tags=["Health Check"])
 async def read_root():
