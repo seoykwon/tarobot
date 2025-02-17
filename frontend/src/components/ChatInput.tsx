@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import VoiceChat from "@/components/VoiceChat";
 
-export default function ChatInput({ onSend }: { onSend: (message: string) => void }) {
+interface ChatInputProps {
+  onSend: (message: string) => void;
+  sessionId: string;
+}
+
+export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
   const [input, setInput] = useState("");
 
   const sendMessage = () => {
@@ -39,7 +45,8 @@ export default function ChatInput({ onSend }: { onSend: (message: string) => voi
             ↑
           </span>
           <span className={`transition-opacity duration-200 absolute inset-0 ${input.trim() ? "opacity-0 scale-75" : "opacity-100 scale-100"}`}>
-            🎤
+            {/* 🎤 */}
+            <VoiceChat roomId={sessionId} />
           </span>
         </button>
       </div>

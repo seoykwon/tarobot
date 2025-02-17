@@ -22,7 +22,7 @@ interface MessageForm {
 export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const botId = localStorage.getItem("botId");
   const userId = localStorage.getItem("userId");
-  const sessionId = sessionIdParam;
+  const sessionId = sessionIdParam || "nosession";
   const [chatType, setChatType] = useState("none");
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
@@ -349,7 +349,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         {/* ============ 추가된 요소 ============ */}
   
         {/* 하단 입력창 */}
-        <ChatInput onSend={handleSendMessage} />
+        <ChatInput onSend={handleSendMessage} sessionId={sessionId}/>
       </div>
     </div>
   );
