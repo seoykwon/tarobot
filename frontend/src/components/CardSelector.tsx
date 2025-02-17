@@ -84,15 +84,15 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   }
 
   const getCardStyle = (index: number, cardId: string): React.CSSProperties => {
-    const angle = isEdgePosition() ? -30 + (60 / (visibleCards - 1)) * index : -105 + (210 / (visibleCards - 1)) * index
+    const angle = -105 + (210 / (visibleCards - 1)) * index
 
     return {
       position: "absolute",
       width: selectedCard === cardId ? "120px" : "80px",
-      height: selectedCard === cardId? "180px" : "120px",
+      height: selectedCard === cardId ? "180px" : "120px",
       cursor: "pointer",
-      transform: `rotate(${angle}deg) translateY(-280px)`,
-      transformOrigin: "bottom center",
+      transform: `rotate(${angle}deg) translateY(280px)`,
+      transformOrigin: "top center",
       transition: "all 0.6s cubic-bezier(0.23, 1, 0.32, 1)",
       perspective: "1000px",
       transformStyle: "preserve-3d",
@@ -111,9 +111,9 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
-        handleScroll("right")
-      } else {
         handleScroll("left")
+      } else {
+        handleScroll("right")
       }
     }
     touchStartXRef.current = null
@@ -131,9 +131,9 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
-        handleScroll("right")
-      } else {
         handleScroll("left")
+      } else {
+        handleScroll("right")
       }
       dragStartXRef.current = e.clientX
     }
@@ -162,20 +162,20 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   }, [isSelecting, handleScroll, startIndex])
 
   return (
-    <div className={styles.overlay}>
+    <div
+      className={styles.overlay}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
       <div className={styles.overlayContent}>
         <button className={styles.closeButton} onClick={onClose} disabled={isSelecting}>
           ✕
         </button>
-        <div
-          className={styles.cardSemiCircle}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
+        <div className={styles.cardSemiCircle}>
           {randomizedCards.length > 0 &&
             getVisibleCards().map((cardId, i) => (
               <div
@@ -222,4 +222,5 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 }
 
 export default CardSelector
+
 
