@@ -5,13 +5,13 @@ import { useSession } from '@/context/SessionContext';
 import { getBotName } from "@/utils/botNameMap";
 
 interface SessionForm {
-    sessionId: string;
-    userId: string;
-    botId: number;
-    status: string;
-    title: string;
-    createdAt: string;
-    updatedAt: string;
+  sessionId: string;
+  userId: string;
+  botId: number;
+  status: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function SessionList() {
@@ -40,7 +40,7 @@ export default function SessionList() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h3 className="text-lg font-semibold mt-12 mb-4 truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{botName} 대화 기록</h3>
+      <h3 className="text-lg font-semibold mt-12 mb-4 truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{botName}의 대화 기록</h3>
       <ul className="space-y-4">
         {sessions.map((session) => (
           <li
