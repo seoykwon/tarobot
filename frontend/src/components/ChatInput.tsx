@@ -59,7 +59,7 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지를 입력하세요..."
           className="w-full p-4 pr-16 
-                   rounded-xl focus:ring-4 focus:ring-gray-200 
+                   rounded-xl 
                    outline-none transition-all"
         />
         

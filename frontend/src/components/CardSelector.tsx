@@ -46,7 +46,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
       setSelectedCard(cardId)
       setTimeout(() => {
         onCardSelect(cardId)
-      }, 600) // 카드 뒤집기 애니메이션 시간
+      }, 1500) // 카드 뒤집기 애니메이션 시간(뒤집히면서 앞면보이는 시간)
     }, 600) // 카드 이동 애니메이션 시간
   }
 
@@ -83,13 +83,13 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     return startIndex === 0 || startIndex >= randomizedCards.length - visibleCards
   }
 
-  const getCardStyle = (index: number): React.CSSProperties => {
+  const getCardStyle = (index: number, cardId: string): React.CSSProperties => {
     const angle = isEdgePosition() ? -30 + (60 / (visibleCards - 1)) * index : -105 + (210 / (visibleCards - 1)) * index
 
     return {
       position: "absolute",
-      width: "80px",
-      height: "120px",
+      width: selectedCard === cardId ? "120px" : "80px",
+      height: selectedCard === cardId? "180px" : "120px",
       cursor: "pointer",
       transform: `rotate(${angle}deg) translateY(-280px)`,
       transformOrigin: "bottom center",
@@ -180,7 +180,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
             getVisibleCards().map((cardId, i) => (
               <div
                 key={`${cardId}-${(startIndex + i) % randomizedCards.length}`}
-                style={getCardStyle(i)}
+                style={getCardStyle(i, cardId)}
                 className={`${styles.card} 
                   ${movingCard === cardId ? styles.movingCard : ""} 
                   ${selectedCard === cardId ? styles.selectedCard : ""} 
