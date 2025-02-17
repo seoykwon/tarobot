@@ -1,27 +1,40 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { API_URLS } from "@/config/api";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { API_URLS } from "@/config/api";
 
 export default function ProfileSettings() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [nickname, setNickname] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [gender, setGender] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [nickname, setNickname] = useState<string>("");
+  const [birthDate, setBirthDate] = useState<string>("");
+  const [gender, setGender] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  // 로그인 시 localStorage에 저장된 userId를 state로 관리
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // userId는 실제 로그인정보 혹은 인증 토큰을 통해 가져오는 값으로 대체
-  const userId = "mgh123rg@gmail.com";
+  const router = useRouter();
 
-  // 내 프로필 데이터를 백엔드에서 가져오는 함수
-  const fetchProfileData = useCallback(async () => {
+  // 내 프로필 데이터를 백엔드에서 가져오는 함수 (localStorage의 userId 사용)
+  const fetchProfileData = useCallback(async (): Promise<void> => {
+    // localStorage는 브라우저에서만 사용 가능하므로 반드시 클라이언트에서 접근
+    const storedUserId = localStorage.getItem("userId");
+    if (!storedUserId) {
+      console.error("LocalStorage에 userId가 존재하지 않습니다.");
+      setLoading(false);
+      return;
+    }
+    setUserId(storedUserId);
+
+    // 내 프로필 정보 불러오기
     try {
-      const res = await fetch(API_URLS.USER.BY_ID(userId), {    // ME로 내 정보 가져오도록 바꿀 예정
+      const res = await fetch(API_URLS.USER.ME, {
         method: "GET",
         credentials: "include",
       });
+
       if (res.ok) {
         const data = await res.json();
         setProfileImage(data.profileIcon || null);
@@ -37,7 +50,7 @@ export default function ProfileSettings() {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   // 컴포넌트 마운트 시 프로필 데이터 불러오기
   useEffect(() => {
@@ -45,7 +58,7 @@ export default function ProfileSettings() {
   }, [fetchProfileData]);
 
   // 이미지 업로드 핸들러 (파일 선택 시 미리보기 표시)
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const imageUrl = URL.createObjectURL(file);
@@ -53,9 +66,15 @@ export default function ProfileSettings() {
     }
   };
 
-  // 저장 버튼 클릭 핸들러: PATCH 요청 후 최신 데이터를 다시 불러옴
-  const handleSaveChanges = async (event: React.FormEvent) => {
-    event.preventDefault();
+  // 저장 버튼 클릭 핸들러: PATCH 요청 후 페이지를 새로고침
+  const handleSaveChanges = async (event: React.FormEvent): Promise<void> => {
+    event.preventDefault(); // 폼 제출시 기본 동작(새로고침) 방지
+
+    // localStorage에서 읽은 userId를 사용
+    if (!userId) {
+      alert("사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
 
     try {
       const response = await fetch(API_URLS.USER.BY_ID(userId), {
@@ -69,8 +88,8 @@ export default function ProfileSettings() {
         throw new Error("프로필 업데이트 실패");
       }
       alert("프로필이 성공적으로 업데이트되었습니다!");
-      // 페이지 이동 없이 최신 데이터를 다시 불러와 컴포넌트를 새로고침
-      fetchProfileData();
+      // Next.js의 useRouter의 refresh 기능을 사용하여 페이지 새로고침
+      router.refresh();
     } catch (error) {
       console.error("프로필 업데이트 중 오류:", error);
       alert("프로필 업데이트 중 오류가 발생했습니다.");
@@ -93,12 +112,7 @@ export default function ProfileSettings() {
         <div className="flex flex-col items-center">
           <div className="relative w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mb-4">
             {profileImage ? (
-              <Image
-                src={profileImage}
-                alt="Profile"
-                fill
-                className="rounded-full object-cover"
-              />
+              <Image src={profileImage} alt="Profile" fill className="rounded-full object-cover" />
             ) : (
               <span className="text-gray-400">No Image</span>
             )}
@@ -109,13 +123,7 @@ export default function ProfileSettings() {
           >
             Change Image
           </label>
-          <input
-            type="file"
-            id="profile-image"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
+          <input type="file" id="profile-image" accept="image/*" onChange={handleImageChange} className="hidden" />
         </div>
         {/* 닉네임 입력 */}
         <div>
