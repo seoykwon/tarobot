@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ChatSessionRepository extends JpaRepository<ChatSession, UUID> {
     List<ChatSession> findAllByUserIdOrderByUpdatedAtDesc(String userId);
+    List<ChatSession> findAllByUserIdAndBotIdOrderByUpdatedAtDesc(String userId, Long BotId);
 }
