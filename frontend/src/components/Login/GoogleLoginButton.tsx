@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
 
-export default function GoogleLoginButton() {
+export default function GoogleLoginButton({ redirect }: { redirect: string }) {
   const router = useRouter();
 
   const handleGoogleLogin = () => {
@@ -20,9 +20,9 @@ export default function GoogleLoginButton() {
     const checkPopup = setInterval(async () => {
       if (popup.closed) {
         clearInterval(checkPopup);
-        
-        //access token 발급 후 검증된 토큰인지 확인하기
+
         try {
+          // Access Token 검증 요청
           const response = await fetch(API_URLS.TOKEN.VALIDATE, {
             method: "GET",
             credentials: "include",
@@ -31,13 +31,13 @@ export default function GoogleLoginButton() {
             },
           });
 
-          // 응답이 성공적이면 userId를 localStorage에 저장하고 홈으로 리다이렉트
           if (response.ok) {
             const data = await response.json();
-            // 예시: data에 userId가 포함되어 있다고 가정
-            const userId = data.userId;
+            const userId = data.userId; // 예시: userId가 포함된 응답
             localStorage.setItem("userId", userId);
-            router.push("/home");
+
+            // Redirect 경로가 있으면 해당 경로로 이동, 없으면 "/home"으로 이동
+            router.push(redirect);
           } else {
             alert("로그인에 실패했습니다. 다시 시도해주세요.");
           }

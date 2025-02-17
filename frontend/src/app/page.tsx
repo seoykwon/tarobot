@@ -2,20 +2,22 @@
 import Image from "next/image";
 import GoogleLoginButton from "@/components/Login/GoogleLoginButton";
 
-export default function WelcomePage() {
+export default function WelcomePage({ searchParams }: { searchParams: { redirect?: string } }) {
+  const redirect = searchParams?.redirect || "/home"; // 기본값으로 "/home" 설정
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="flex flex-col items-center gap-10 max-w-lg mx-auto text-center">
         {/* 캐릭터 이미지 */}
         <div>
-        <Image
-          src="/cardcat.avif"
-          alt="캐릭터 이미지"
-          width={400} // 300(height) * (3/2 비율) = 450
-          height={200}
-          priority
-          className="mx-auto w-auto" // ✅ CSS로 width: auto 적용
-        />
+          <Image
+            src="/cardcat.avif"
+            alt="캐릭터 이미지"
+            width={400}
+            height={200}
+            priority
+            className="mx-auto w-auto"
+          />
         </div>
 
         {/* 텍스트와 버튼 */}
@@ -26,8 +28,8 @@ export default function WelcomePage() {
           <p className="text-gray-600 mb-6 leading-relaxed">
             당신의 고민을 해결해드리기 위한 타로 마스터들이 기다리고 있어요.
           </p>
-          {/* CSR 컴포넌트로 분리된 구글 로그인 버튼 */}
-          <GoogleLoginButton />
+          {/* 구글 로그인 버튼에 redirect 경로 전달 */}
+          <GoogleLoginButton redirect={redirect} />
         </div>
       </div>
     </div>
