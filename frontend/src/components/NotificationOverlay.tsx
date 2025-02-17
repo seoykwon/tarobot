@@ -81,7 +81,7 @@ export default function NotificationOverlay({
 
       {/* 알림 오버레이 */}
       {isActive && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-50 translate-x-4">
+        <div className="absolute top-full right-0 mt-2 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-50 translate-x-14">
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-2 border-b">
             <span className="font-bold">메시지</span>

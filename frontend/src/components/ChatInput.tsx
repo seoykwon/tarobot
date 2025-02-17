@@ -39,7 +39,12 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
                    transition-all duration-200 w-12 h-12 flex 
                    items-center justify-center"
       >
-        <span className="text-2xl text-blue-600 font-bold">+</span>
+        {/* <span className="text-2xl text-blue-600 font-bold">+</span> */}
+        <img
+          src="/kakao_logo.svg"
+          alt="카카오 초대 링크"
+          className="w-8 h-8"
+        />
       </button>
 
       {/* 오버레이 표시 */}

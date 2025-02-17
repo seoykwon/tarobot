@@ -289,6 +289,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
             ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]"
             : "flex flex-col h-screen"
         }
+        style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
       >
         {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
         <div

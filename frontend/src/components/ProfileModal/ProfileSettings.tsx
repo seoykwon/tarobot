@@ -105,7 +105,7 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       <h2 className="text-2xl font-bold mb-2">내 정보 수정</h2>
       <form onSubmit={handleSaveChanges} className="space-y-4">
         {/* 이미지 변경 영역 */}
