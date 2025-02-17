@@ -84,10 +84,6 @@ export const API_URLS = {
   WEBRTC: {
     ROOM: (tarobotId: string, sessionId: string) => `/tarot/bots/${tarobotId}/chat_w/${sessionId}`,
   },
-  OPENVIDU: {
-    SESSIONS: `${FASTAPI_BASE_URL}/openvidu/sessions`, // OpenVidu 세션 생성
-    CONNECTIONS: `${FASTAPI_BASE_URL}/openvidu/connections`, // OpenVidu 연결 요청
-  },
   USERNOW: {
     PROFILE: `${BASE_URL}/api/v1/user/me`, // 현재 로그인된 유저 정보 가져오기
   },

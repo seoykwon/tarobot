@@ -11,7 +11,6 @@
 - Pinecone 벡터 데이터베이스를 이용한 문서 검색(RAG)
 - OpenAI(또는 유사 API) 연동으로 LLM 답변 생성
 - Socket.IO를 통해 실시간 통신(챗봇 메시지 전달)
-- OpenVidu를 연동하여 화상 세션을 생성/연결 (실험용)
 
 **주의:**
 - 본 레포지토리는 **개발 중인 WIP(Work In Progress)** 상태이며, 일부 기능은 정상 동작하지 않거나 수정될 수 있습니다.
@@ -26,7 +25,6 @@
 - [Redis](https://redis.io/) 서버
 - [OpenAI API Key](https://platform.openai.com/) 또는 이에 준하는 호환 키
 - [Upstage Embeddings](https://github.com/upstage-co/langchain-upstage) 계정/키  
-- [OpenVidu](https://openvidu.io/) 서버(실행 중이어야 함)  
 - 그 외 `requirements.txt`(또는 직접 정의) 에 포함된 패키지들
 
 ### 설치 방법
@@ -57,8 +55,6 @@
      REDIS_PORT=6379
 
      OPENAI_API_KEY=YOUR_OPENAI_OR_4O_MINI_KEY
-     OPENVIDU_URL=https://localhost:4443
-     OPENVIDU_SECRET=MY_SECRET
      ```
    - 실제 서비스 환경에 맞춰 값을 수정하세요.
 
@@ -79,18 +75,12 @@
 - `main.py` 안에 Socket.IO 설정이 포함되어 있으며,  
   `/socket.io` 경로를 통해 웹소켓/폴링 방식으로 통신합니다.
 
-### OpenVidu 연동
-- `/openvidu/sessions` 또는 `/openvidu/connections` 라우트를 통해 세션 생성/토큰 발급 등을 합니다.  
-- 반드시 `OPENVIDU_URL`과 `OPENVIDU_SECRET` 값이 `.env`에 설정되어 있어야 합니다.  
-- 실제 OpenVidu 서버가 동작 중이어야 정상 작동합니다.
-
 ---
 
 ## 파일 구조 (간략 소개)
 ```
 .
 ├── main.py                # FastAPI 및 Socket.IO 서버 진입점
-├── openvidu_api.py        # OpenVidu 연동 함수
 ├── settings.py            # 환경 변수 로딩 & pydantic 설정
 ├── pinecone_integration.py# Pinecone 인덱스 초기화 & 업서트/검색
 ├── rag_pipeline.py        # RAG 주요 파이프라인 (챗봇 로직)
