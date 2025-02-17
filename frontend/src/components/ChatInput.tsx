@@ -20,7 +20,7 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
   };
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 bg-white px-6 py-3 border-t flex items-center relative">
+    <div className="sticky bottom-0 left-0 right-0 bg-white px-6 py-3 rounded-lg flex items-center relative">
       {/* 배경 클릭 시 오버레이 닫기 위한 Backdrop */}
       {showOverlay && (
         <div
@@ -35,7 +35,7 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
           e.stopPropagation(); // 이벤트 버블링 방지하여 backdrop과의 충돌 방지
           setShowOverlay((prev) => !prev);
         }}
-        className="mr-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-full 
+        className="mr-3 p-3 bg-transparent hover:bg-gray-200 rounded-full 
                    transition-all duration-200 w-12 h-12 flex 
                    items-center justify-center"
       >
@@ -58,8 +58,8 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="메시지를 입력하세요..."
-          className="w-full p-4 pr-16 border-2 border-gray-200 
-                   rounded-xl focus:ring-4 focus:ring-blue-300 
+          className="w-full p-4 pr-16 
+                   rounded-xl 
                    outline-none transition-all"
         />
         
@@ -67,8 +67,8 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
         <button
           onClick={input.trim() ? sendMessage : () => console.log("음성 입력")}
           className="absolute top-1/2 right-4 transform -translate-y-1/2 
-                   px-4 py-2 bg-blue-600 text-white rounded-xl 
-                   hover:bg-blue-700 transition-all duration-200
+                   px-4 py-2 bg-tranparent text-black rounded-xl 
+                   hover:bg-gray-200 transition-all duration-200
                    flex items-center justify-center w-12 h-12"
         >
           <span className={`transition-opacity ${input.trim() ? "opacity-100" : "opacity-0"}`}>
