@@ -59,7 +59,14 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         User currentUser = securityUtil.getCurrentUser();
         String userId = currentUser.getUserId();
         return chatSessionRepository.findAllByUserIdOrderByUpdatedAtDesc(userId);
-    };
+    }
+
+    @Override
+    public List<ChatSession> findAllByUserIdAndBotId(Long botId) {
+        User currentUser = securityUtil.getCurrentUser();
+        String userId = currentUser.getUserId();
+        return chatSessionRepository.findAllByUserIdAndBotIdOrderByUpdatedAtDesc(userId, botId);
+    }
 
     // 저장 시 updatedAt 스탬프가 자동 업데이트 됨
     @Override

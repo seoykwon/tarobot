@@ -2,27 +2,29 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSessionList } from '@/libs/api';
 import { useSession } from '@/context/SessionContext';
+import { getBotName } from "@/utils/botNameMap";
 
 interface SessionForm {
-    sessionId: string;
-    userId: string;
-    botId: number;
-    status: string;
-    title: string;
-    createdAt: string;
-    updatedAt: string;
+  sessionId: string;
+  userId: string;
+  botId: number;
+  status: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function SessionList() {
   const [sessions, setSessions] = useState<SessionForm[]>([]); // 세션 데이터 상태
   const router = useRouter();
-  const { sessionUpdated } = useSession();
+  const { botId, sessionUpdated } = useSession();
+  const botName = getBotName(botId);
 
   useEffect(() => {
     // API 호출해서 세션 데이터 가져오기
     const fetchSessions = async () => {
       try {
-            const sessionlist = await getSessionList();
+            const sessionlist = await getSessionList(botId || undefined);
             // 상위 5개만 사용
             setSessions(sessionlist.slice(0, 5));
         } catch (error) {
@@ -30,7 +32,7 @@ export default function SessionList() {
         }
     };
     fetchSessions();
-  }, [sessionUpdated]);
+  }, [sessionUpdated, botId]);
 
   const handleSessionClick = (sessionId: string) => {
     router.push(`/chat/${sessionId}`);
@@ -38,7 +40,7 @@ export default function SessionList() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h3 className="text-lg font-semibold mt-12 mb-4 truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">최근 대화 기록</h3>
+      <h3 className="text-lg font-semibold mt-12 mb-4 truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{botName}의 대화 기록</h3>
       <ul className="space-y-4">
         {sessions.map((session) => (
           <li

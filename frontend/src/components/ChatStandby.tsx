@@ -73,7 +73,7 @@ export default function ChatStandby() {
           onSend={(message) => {
             setMessages([...messages, { text: message, isUser: true }]);
             handleFirstMessage(message);
-          }}
+          }} sessionId="none"
         />
       </div>
     </div>

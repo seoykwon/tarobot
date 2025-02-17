@@ -20,9 +20,14 @@ export async function getTarotMasters() {
   }
 }
 
-export async function getSessionList() {
+export async function getSessionList(botId?: string) {
   try {
-    const response = await fetch(API_URLS.USER.SESSIONLIST, {
+    // botId가 전달되면 URL 쿼리 파라미터로 포함시킵니다.
+    const url = botId
+      ? `${API_URLS.USER.SESSIONLIST}/${botId}`
+      : API_URLS.USER.SESSIONLIST;
+
+    const response = await fetch(url, {
         method: "GET",
         credentials: "include",
       }

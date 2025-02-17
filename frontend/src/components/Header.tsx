@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import ProfileOverlay from "./ProfileOverlay";
 import NotificationOverlay from "./NotificationOverlay";
 import DiaryModal from "@/components/Diary";
+import { useSession } from "@/context/SessionContext";
+import { getBotName } from "@/utils/botNameMap";
 
 export default function Header({
   isSidebarOpen,
@@ -18,6 +20,12 @@ export default function Header({
   const [isDiaryOpen, setIsDiaryOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  // SessionContext에서 botId를 가져옵니다.
+  const { botId } = useSession();
+
+  // utils의 getBotName을 통해 botName을 결정합니다.
+  const botName = getBotName(botId);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -63,7 +71,7 @@ export default function Header({
               ☰
             </button>
           )}
-          <h1 className="text-xl font-bold text-[#1d1b20]">미루</h1>
+          <h1 className="text-xl font-bold text-[#1d1b20]">{botName}</h1>
         </div>
 
         {/* 우측: 알림 & 프로필 버튼 */}

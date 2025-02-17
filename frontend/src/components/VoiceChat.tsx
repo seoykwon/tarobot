@@ -34,6 +34,9 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
   const localStreamRef = useRef<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
+  // 통화 시작 여부를 state로 관리 (이 값이 변경되면 UI가 리렌더링됨)
+  const [callStarted, setCallStarted] = useState<boolean>(false);
+
   // 충돌 처리를 위한 플래그들
   const makingOfferRef = useRef<boolean>(false);
   const ignoreOfferRef = useRef<boolean>(false);
@@ -108,6 +111,7 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
       try {
         if (!pc) {
           await createPeerConnection();
+          setCallStarted(true);
         }
         // offer SDP를 remote description으로 설정
         await peerConnectionRef.current!.setRemoteDescription(data.sdp);
@@ -155,6 +159,7 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
         const offer = await peerConnectionRef.current!.createOffer();
         await peerConnectionRef.current!.setLocalDescription(offer);
         socketRef.current?.emit("offer", { room_id: roomId, sdp: offer });
+        setCallStarted(true);
       } catch (error) {
         console.error("Error starting call:", error);
       } finally {
@@ -178,11 +183,7 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
         // 통화 시작 전에는 버튼 활성화, 통화 중이면 항상 활성화 (mute 토글 기능 사용)
         className="transition-opacity duration-200 absolute inset-0"
       >
-        {peerConnectionRef.current
-          ? isMuted
-            ? "🎙️ Off"
-            : "🎤 On"
-          : "Start Call"}
+        {callStarted ? (isMuted ? "🎙️ Off" : "🎤 On") : "Start Call"}
       </button>
       <audio ref={remoteAudioRef} autoPlay />
     </>
