@@ -41,7 +41,11 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
      // PeerConnection 생성 및 로컬 오디오 스트림 가져오기
      const createPeerConnection = useCallback(async () => {
       const configuration = {
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        
+        iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },   // STUN 서버
+        { urls: "turn:openrelay.metered.ca:443", username: "5ef55293d496fc888b8dc0e8", credential: "/W8s7z8SH81ViigE" }   // TRUN 서버
+      ]
       };
       const pc = new RTCPeerConnection(configuration);
       peerConnectionRef.current = pc;
