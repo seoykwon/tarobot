@@ -106,18 +106,12 @@ export default function VoiceChat({ roomId }: VoiceChatProps) {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">음성 채팅</h2>
-      <button
-        onClick={startCall}
-        className="px-4 py-2 bg-green-500 text-white rounded"
-        disabled={streamStarted}
-      >
-        통화 시작
-      </button>
-      <div className="mt-4">
-        <audio ref={remoteAudioRef} autoPlay controls />
-      </div>
-    </div>
+    <button
+      onClick={startCall}
+      className="className={`transition-opacity duration-200 absolute inset-0"
+      disabled={streamStarted}
+    >
+      🎤
+    </button>
   );
 }

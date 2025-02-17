@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import VoiceChat from "@/components/VoiceChat";
 import InviteFriend from "./Chat/InviteFriend";
 
-export default function ChatInput({ onSend }: { onSend: (message: string) => void }) {
+interface ChatInputProps {
+  onSend: (message: string) => void;
+  sessionId: string;
+}
+
+export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [showOverlay, setShowOverlay] = useState(false);
 
@@ -68,8 +74,9 @@ export default function ChatInput({ onSend }: { onSend: (message: string) => voi
           <span className={`transition-opacity ${input.trim() ? "opacity-100" : "opacity-0"}`}>
             ↑
           </span>
-          <span className={`absolute transition-opacity ${input.trim() ? "opacity-0" : "opacity-100"}`}>
-            🎤
+          <span className={`transition-opacity duration-200 absolute inset-0 ${input.trim() ? "opacity-0 scale-75" : "opacity-100 scale-100"}`}>
+            {/* 🎤 */}
+            <VoiceChat roomId={sessionId} />
           </span>
         </button>
       </div>

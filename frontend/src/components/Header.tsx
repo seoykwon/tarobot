@@ -15,7 +15,7 @@ export default function Header({
   toggleSidebar: () => void;
 }) {
   const [activeOverlay, setActiveOverlay] = useState<"notification" | "profile" | null>(null);
-  const [isDiaryOpen, setIsDiaryOpen] = useState(false); // 다이어리 모달 상태 추가
+  const [isDiaryOpen, setIsDiaryOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -49,8 +49,8 @@ export default function Header({
     <>
       <div
         ref={containerRef}
-        className={`fixed top-0 right-0 h-14 bg-purple-100 flex items-center justify-between px-6 z-50 transition-all duration-300 ${
-          isMobile ? "w-full ml-0" : isSidebarOpen ? "w-[calc(100%-16rem)] ml-64" : "w-[calc(100%-4rem)] ml-16"
+        className={`fixed top-0 right-0 h-14 bg-purple-100 flex items-center justify-between pr-6 z-50 transition-all duration-300 ${
+    isMobile ? "w-full ml-0 pl-0" : isSidebarOpen ? "w-[calc(100%-16rem)] ml-64 pl-6" : "w-[calc(100%-4rem)] ml-16 pl-6"
         }`}
       >
         {/* 좌측: 로고 및 사이드바 토글 버튼 */}
@@ -58,7 +58,7 @@ export default function Header({
           {isMobile && (
             <button
               onClick={toggleSidebar}
-              className="text-2xl focus:outline-none hover:bg-[#ece6f0] rounded-lg p-2 transition"
+              className="text-2xl focus:outline-none hover:bg-gray-200 transition h-14 w-14 flex items-center justify-center rounded-full"
             >
               ☰
             </button>
@@ -93,10 +93,7 @@ export default function Header({
       {/* 다이어리 모달 */}
       {isDiaryOpen && (
         <>
-          {/* 풀스크린 배경 오버레이 */}
           <div className="fixed inset-0 bg-black bg-opacity-50 z-[99]" onClick={() => setIsDiaryOpen(false)} />
-
-          {/* 모달 컨테이너 */}
           <div className="fixed inset-0 flex items-center justify-center z-[100]">
             <DiaryModal onClose={() => setIsDiaryOpen(false)} />
           </div>

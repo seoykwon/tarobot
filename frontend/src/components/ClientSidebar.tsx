@@ -31,16 +31,19 @@ export default function ClientSidebar({
     <>
       <div
         className={`fixed top-0 left-0 h-full bg-[#f0f4f9] transition-all duration-300 z-50 flex flex-col
-          ${isMobile ? (isOpen ? "w-64" : "w-0") : isOpen ? "w-64" : "w-16"}
+          ${isMobile ? (isOpen ? "w-64" : "w-0") : isOpen ? "w-64" : "w-[54px]"}
           ${!isOpen && isMobile ? "opacity-0 pointer-events-none" : "opacity-100"}
         `}
       >
-        <button
-          className="text-2xl focus:outline-none hover:bg-[#ece6f0] transition rounded-lg shrink-0"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          ☰
-        </button>
+        <div className="flex h-14 items-center">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-2xl focus:outline-none hover:bg-gray-200 transition h-14 w-14 flex items-center justify-center rounded-full"
+          >
+            ☰
+          </button>
+          <span className="px-4 md:hidden">미루</span>
+        </div>
 
         {/* 컨텐츠 영역 - isOpen 상태와 관계없이 항상 렌더링하되 visibility로 제어 */}
         <div className={`flex flex-col flex-1 ${!isOpen ? "invisible" : ""}`}>
@@ -64,10 +67,7 @@ export default function ClientSidebar({
       {/* 다이어리 모달: 배경 오버레이와 모달 컨테이너로 분리 */}
       {isDiaryOpen && (
         <>
-          {/* 풀스크린 배경 오버레이 (z-index 99) */}
           <div className="fixed inset-0 bg-black bg-opacity-50 z-[99]" onClick={() => setIsDiaryOpen(false)} />
-
-          {/* 모달 컨테이너: 오버레이보다 높은 z-index (100) */}
           <div className="fixed inset-0 flex items-center justify-center z-[100]">
             <DiaryModal onClose={() => setIsDiaryOpen(false)} />
           </div>
@@ -81,4 +81,3 @@ export default function ClientSidebar({
     </>
   )
 }
-

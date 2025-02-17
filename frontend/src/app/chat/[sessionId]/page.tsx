@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import ChatWindowWs from "@/components/ChatWindowWs";
-import VoiceChat from "@/components/VoiceChat";
 import Image from "next/image";
 
 export default function ChatSessionPage({ params }: { params: { sessionId: string } }) {
@@ -37,9 +36,6 @@ export default function ChatSessionPage({ params }: { params: { sessionId: strin
           <div className="flex-1 overflow-auto">
             <ChatWindowWs sessionIdParam={sessionId} />
           </div>
-          <div className="border-t">
-            <VoiceChat roomId={sessionId} />
-          </div>
         </div>
       </div>
     );
@@ -69,17 +65,8 @@ export default function ChatSessionPage({ params }: { params: { sessionId: strin
       </div>
       {/* 우측 채팅 영역 */}
       <div className="col-span-2 flex-1">
-        {/* <ChatWindow sessionIdParam={sessionId} /> */}
         <ChatWindowWs sessionIdParam={sessionId} />
       </div>
-      {/* <div className="col-span-2 flex flex-col">
-        <div className="flex-1 overflow-auto">
-          <ChatWindowWs sessionIdParam={sessionId} />
-        </div>
-        <div className="h-40 border-t p-4">
-          <VoiceChat roomId={sessionId} />
-        </div>
-      </div> */}
     </div>
   );
 }

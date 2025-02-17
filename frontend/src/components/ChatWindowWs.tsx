@@ -22,8 +22,7 @@ interface MessageForm {
 export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const botId = localStorage.getItem("botId");
   const userId = localStorage.getItem("userId");
-  const sessionId = sessionIdParam;
-  const [newSession, setNewSession] = useState(true);
+  const sessionId = sessionIdParam || "nosession";
   const [chatType, setChatType] = useState("none");
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
@@ -164,6 +163,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
   // 세션 진입 시 이전 대화 기록을 불러오는 함수
   useEffect(() => {
+    const storedMessage = localStorage.getItem("firstMessage");
+    if (storedMessage) return;
     const loadSessionMessages = async () => {
       try {
         // ==========================================
@@ -201,11 +202,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       }
     };
 
-    if (sessionId && !newSession) {
+    if (sessionId) {
       loadSessionMessages(); // 세션 진입 시 이전 대화 기록을 불러오는 함수 호출
       return;
     }
-  }, [botId, sessionId, newSession]);
+  }, [botId, sessionId]);
 
   // chatType(=chatTag) 변경에 따라 타로 버튼 노출 여부 결정
   useEffect(() => {
@@ -244,23 +245,19 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     handleSendMessage(selectedCard);
   };
 
-
   // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
   useEffect(() => {
     const storedMessage = localStorage.getItem("firstMessage");
     if (storedMessage) {
-      setNewSession(true);
-  
       // ✅ 200ms 뒤에 첫 메시지 전송 (WebSocket 연결 보장)
       setTimeout(() => {
         handleSendMessage(storedMessage).then(() => {
-          setNewSession(false); // 첫 메시지 전송 후 세션 데이터 로드
           console.log("지금 첫 메시지 제어");
           localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
         });
       }, 200); // 🚀 WebSocket 안정성을 위해 200ms 대기
     } else {
-      setNewSession(false);
+      console.log("기존 세션 입장");
     }
   }, [handleSendMessage]);
 
@@ -352,7 +349,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         {/* ============ 추가된 요소 ============ */}
   
         {/* 하단 입력창 */}
-        <ChatInput onSend={handleSendMessage} />
+        <ChatInput onSend={handleSendMessage} sessionId={sessionId}/>
       </div>
     </div>
   );
