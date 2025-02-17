@@ -31,6 +31,61 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  
+  const [isRoomJoined, setIsRoomJoined] = useState(false);
+  const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
+  
+  // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
+  const handleSendMessage = useCallback(async (message: string) => {
+    // ✅ 방 입장이 완료되지 않았다면 메시지를 대기열에 추가
+    if (!isRoomJoined) {
+      console.warn("⚠️ 방 입장이 완료되지 않아 메시지를 대기열에 추가합니다.");
+      pendingMessageRef.current = message; // ✅ useRef에 저장
+      return;
+    }
+  
+    // "세션종료" 입력 시 세션 종료 트리거 발동 (임시)
+    if (message.trim() === "세션종료") {
+      try {
+        const response = await fetch(API_URLS.CHAT.CLOSE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: sessionId,
+            userId: userId,
+          }),
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("세션 종료 실패");
+        setMessages((prev) => [
+          ...prev,
+          { text: "세션이 종료되었습니다.", isUser: "assistant" },
+        ]);
+      } catch (error) {
+        console.error("세션 종료 에러:", error);
+        setMessages((prev) => [
+          ...prev,
+          { text: "세션 종료에 실패했습니다.", isUser: "assistant" },
+        ]);
+      }
+      return;
+    }
+    // 세션 종료 트리거 끝 (임시 코드이므로 나중에 버튼을 만들거나 트리거를 기획할 것)
+    if (!socketRef.current) return;
+  
+    // ✅ Socket.IO를 통해 메시지 전송
+    socketRef.current.emit("chat_message", {
+      room_id: sessionId,
+      user_id: userId,
+      bot_id: botId,
+      user_input: message,
+      type: showTarotButton ? "none" : chatType,
+    });
+  
+    setChatType("none"); // 보내고 난 뒤 초기화
+    
+
+  }, [sessionId, chatType, showTarotButton, botId, userId, isRoomJoined]);
 
   // WebSocket 연결
   useEffect(() => {
@@ -49,12 +104,14 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
     socket.on("room_joined", (data) => {
       console.log(`Room joined: ${data.room_id}`);
+      setIsRoomJoined(true); // ✅ 방 입장 완료 상태 변경
     });
 
     // ✅ 메시지 수신 처리 (사용자 + 챗봇 메시지 모두 포함)
     socket.on("chat_message", (data) => {
       console.log(`📩 사용자 메시지 수신: ${data}`);
       setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
+      setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
     });
 
     socket.on("chatbot_message", (data) => {
@@ -84,6 +141,15 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       socket.disconnect();
     };
   }, [sessionId]);
+
+  // pendingMessage를 감지해 전달
+  useEffect(() => {
+    if (isRoomJoined && pendingMessageRef.current) {
+      console.log("🔄 `isRoomJoined` 변경 감지, 대기 중이던 메시지 전송:", pendingMessageRef.current);
+      handleSendMessage(pendingMessageRef.current);
+      pendingMessageRef.current = null;
+    }
+  }, [isRoomJoined, handleSendMessage]);
 
 // 특정 크기 이하로 내려갈 경우에 대한 상태를 반영하는 함수
   useEffect(() => {
@@ -178,73 +244,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     handleSendMessage(selectedCard);
   };
 
-  // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
-  const handleSendMessage = useCallback(async (message: string) => {
-    // "세션종료" 입력 시 세션 종료 트리거 발동 (임시)
-    if (message.trim() === "세션종료") {
-      try {
-        const response = await fetch(API_URLS.CHAT.CLOSE, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: sessionId,
-            userId: userId,
-          }),
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error("세션 종료 실패");
-        setMessages((prev) => [
-          ...prev,
-          { text: "세션이 종료되었습니다.", isUser: "assistant" },
-        ]);
-      } catch (error) {
-        console.error("세션 종료 에러:", error);
-        setMessages((prev) => [
-          ...prev,
-          { text: "세션 종료에 실패했습니다.", isUser: "assistant" },
-        ]);
-      }
-      return;
-    }
-    // 세션 종료 트리거 끝 (임시 코드이므로 나중에 버튼을 만들거나 트리거를 기획할 것)
-    if (!socketRef.current) return;
-
-    // ✅ Socket.IO를 통해 메시지 전송
-    socketRef.current.emit("chat_message", {
-      room_id: sessionId,
-      user_id: userId,
-      bot_id: botId,
-      user_input: message,
-      type: showTarotButton ? "none" : chatType,
-    });
-
-    // ✅ "입력 중..." 봇 메시지 추가
-    setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
-    
-    //   const reader = response.body.getReader();
-    //   const decoder = new TextDecoder();
-
-    //   // 스트리밍 응답을 읽어오면서 받은 청크를 누적하고 메시지 업데이트
-    //   while (true) {
-    //     const { value, done } = await reader.read();
-    //     if (done) break;
-    //     const chunk = decoder.decode(value);
-    //     botMessageText += chunk;
-    //     setMessages((prev) => {
-    //       const updated = [...prev];
-    //       updated[updated.length - 1] = { text: botMessageText, isUser: false };
-    //       return updated;
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("Streaming response error:", error);
-    //   setMessages((prev) => {
-    //     const updated = [...prev];
-    //     updated[updated.length - 1] = { text: "Error retrieving response", isUser: false };
-    //     return updated;
-    //   });
-    // }
-  }, [sessionId, chatType, showTarotButton]);
 
   // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
   useEffect(() => {
@@ -263,7 +262,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     } else {
       setNewSession(false);
     }
-  }, []);
+  }, [handleSendMessage]);
 
   // 새로운 메시지가 추가될 때마다 스크롤을 자동으로 맨 아래로 이동
   useEffect(() => {

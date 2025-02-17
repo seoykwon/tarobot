@@ -68,14 +68,18 @@ export default function ChatSessionPage({ params }: { params: { sessionId: strin
         </div>
       </div>
       {/* 우측 채팅 영역 */}
-      <div className="col-span-2 flex flex-col">
+      <div className="col-span-2 flex-1">
+        {/* <ChatWindow sessionIdParam={sessionId} /> */}
+        <ChatWindowWs sessionIdParam={sessionId} />
+      </div>
+      {/* <div className="col-span-2 flex flex-col">
         <div className="flex-1 overflow-auto">
           <ChatWindowWs sessionIdParam={sessionId} />
         </div>
         <div className="h-40 border-t p-4">
           <VoiceChat roomId={sessionId} />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
