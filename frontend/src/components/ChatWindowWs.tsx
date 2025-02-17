@@ -294,8 +294,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
         <div
           ref={chatContainerRef}
-          className="flex-1 px-6 py-4 space-y-4 overflow-auto"
-          style={{ marginBottom: "4rem" }} // 입력창 높이만큼 여백 추가
+          className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
         >
           {messages.map((msg, index) => (
             <div
