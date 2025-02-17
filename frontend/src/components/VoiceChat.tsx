@@ -30,8 +30,9 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
   const socketRef = useRef<Socket | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
-  const [streamStarted, setStreamStarted] = useState<boolean>(false);
-
+  // 로컬 스트림을 저장할 ref 추가
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // 충돌 처리를 위한 플래그들
   const makingOfferRef = useRef<boolean>(false);
@@ -66,10 +67,12 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
       try {
         // 로컬 오디오 스트림 가져오기 (사용자 권한 요청)
         const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        // 로컬 스트림 저장
+        localStreamRef.current = localStream;
         localStream.getTracks().forEach((track) => {
           pc.addTrack(track, localStream);
         });
-        setStreamStarted(true);
+        setIsMuted(false); // 통화 시작 시 마이크는 기본 활성화
       } catch (error) {
         console.error("Error accessing local audio stream:", error);
       }
@@ -138,33 +141,44 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
     };
   }, [roomId, polite, createPeerConnection]);
 
-  // 사용자가 통화 시작 버튼을 누르면 Offer 생성 및 전송
-  const startCall = async () => {
+  // 통화 시작 또는 마이크 mute 토글 함수
+  const startCallOrToggleMute = async () => {
+    // 통화가 아직 시작되지 않은 경우, PeerConnection 생성 및 offer 전송
     if (!peerConnectionRef.current) {
       await createPeerConnection();
-    }
-    try {
-      makingOfferRef.current = true;
-      const offer = await peerConnectionRef.current!.createOffer();
-      await peerConnectionRef.current!.setLocalDescription(offer);
-      if (socketRef.current) {
-        socketRef.current.emit("offer", { room_id: roomId, sdp: offer });
+      try {
+        makingOfferRef.current = true;
+        const offer = await peerConnectionRef.current!.createOffer();
+        await peerConnectionRef.current!.setLocalDescription(offer);
+        socketRef.current?.emit("offer", { room_id: roomId, sdp: offer });
+      } catch (error) {
+        console.error("Error starting call:", error);
+      } finally {
+        makingOfferRef.current = false;
       }
-    } catch (error) {
-      console.error("Error starting call:", error);
-    } finally {
-      makingOfferRef.current = false;
+      return;
+    }
+    // 이미 통화 중이면, 마이크 토글 (mute/unmute)
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsMuted((prev) => !prev);
     }
   };
 
   return (
     <>
       <button
-        onClick={startCall}
-        disabled={streamStarted}
+        onClick={startCallOrToggleMute}
+        // 통화 시작 전에는 버튼 활성화, 통화 중이면 항상 활성화 (mute 토글 기능 사용)
         className="transition-opacity duration-200 absolute inset-0"
       >
-        🎤
+        {peerConnectionRef.current
+          ? isMuted
+            ? "🎙️ Off"
+            : "🎤 On"
+          : "Start Call"}
       </button>
       <audio ref={remoteAudioRef} autoPlay />
     </>
