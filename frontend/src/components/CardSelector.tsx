@@ -16,6 +16,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const [isSelecting, setIsSelecting] = useState(false)
   const [randomizedCards, setRandomizedCards] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [isInitial, setIsInitial] = useState(true) // 초기 애니메이션 상태 추가
   const visibleCards = 24
   const touchStartXRef = useRef<number | null>(null)
   const dragStartXRef = useRef<number | null>(null)
@@ -35,6 +36,11 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     setRandomizedCards(allCards)
 
     console.log("🃏 랜덤 카드 목록:", allCards)
+
+    // 2000ms (2초) 후 초기 애니메이션 종료
+    setTimeout(() => {
+      setIsInitial(false)
+    }, 2000)
   }, [])
 
   const handleCardSelect = (cardId: string) => {
@@ -91,9 +97,13 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
       width: selectedCard === cardId ? "120px" : "80px",
       height: selectedCard === cardId ? "180px" : "120px",
       cursor: "pointer",
-      transform: `rotate(${angle}deg) translateY(280px)`,
+      transform: isInitial
+        ? `rotate(-90deg) translateY(500px)` // 초기에 아래에서 시작
+        : `rotate(${angle}deg) translateY(280px)`, // 원래 반원형 정렬
       transformOrigin: "top center",
-      transition: "all 0.6s cubic-bezier(0.23, 1, 0.32, 1)",
+      transition: isInitial
+        ? `transform 1s ease-out ${index * 80}ms` // 애니메이션 시간을 1초로, 간격을 80ms로 늘림
+        : "all 0.6s cubic-bezier(0.23, 1, 0.32, 1)", // 기존 애니메이션 유지
       perspective: "1000px",
       transformStyle: "preserve-3d",
     }
@@ -222,5 +232,4 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 }
 
 export default CardSelector
-
 
