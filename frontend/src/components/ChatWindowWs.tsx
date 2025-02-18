@@ -48,34 +48,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       pendingMessageRef.current = message; // ✅ useRef에 저장
       return;
     }
-  
-    // "세션종료" 입력 시 세션 종료 트리거 발동 (임시)
-    if (message.trim() === "세션종료") {
-      try {
-        const response = await fetch(API_URLS.CHAT.CLOSE, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: sessionId,
-            userId: userId,
-          }),
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error("세션 종료 실패");
-        setMessages((prev) => [
-          ...prev,
-          { text: "세션이 종료되었습니다.", isUser: "assistant" },
-        ]);
-      } catch (error) {
-        console.error("세션 종료 에러:", error);
-        setMessages((prev) => [
-          ...prev,
-          { text: "세션 종료에 실패했습니다.", isUser: "assistant" },
-        ]);
-      }
-      return;
-    }
-    // 세션 종료 트리거 끝 (임시 코드이므로 나중에 버튼을 만들거나 트리거를 기획할 것)
+
     if (!socketRef.current) return;
   
     // ✅ Socket.IO를 통해 메시지 전송
@@ -88,7 +61,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     });
   
     setChatType("none"); // 보내고 난 뒤 초기화
-    
 
   }, [sessionId, chatType, showTarotButton, botId, userId, isRoomJoined]);
 
@@ -214,10 +186,31 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     }
   }, [botId, sessionId]);
 
-  // chatType(=chatTag) 변경에 따라 타로 버튼 노출 여부 결정
+  // chatType(=chatTag) 변경에 따라 기능 처리리결정
   useEffect(() => {
     setShowTarotButton(chatType === "tarot");
-  }, [chatType]);
+
+    if (chatType === "tarot result") {
+      const closeSession = async () => {
+        try {
+          const response = await fetch(API_URLS.CHAT.CLOSE, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId: sessionId,
+              userId: userId,
+            }),
+            credentials: "include",
+          });
+          if (!response.ok) throw new Error("세션 종료 실패");
+        } catch (error) {
+          console.error("세션 종료 에러:", error);
+        }
+      };
+  
+      closeSession();
+    }
+  }, [chatType, sessionId, userId]);
 
   // 타로 버튼 클릭 시 카드 선택창 호출
   const handleShowCardSelector = () => {
