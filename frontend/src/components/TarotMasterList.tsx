@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getTarotMasters } from "@/libs/api"
 import Image from "next/image"
+import { useSession } from "@/context/SessionContext";
 
 interface TarotMaster {
   id: number
@@ -21,6 +22,7 @@ interface TarotMasterListProps {
 export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterListProps) {
   const [tarotMasters, setTarotMasters] = useState<TarotMaster[]>([])
   const router = useRouter()
+  const { setBotId, triggerSessionUpdate } = useSession();
 
   useEffect(() => {
     const fetchTarotMasters = async () => {
@@ -37,6 +39,8 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
 
   const handleSelectMaster = (masterId: number) => {
     localStorage.setItem("botId", masterId.toString())
+    setBotId(masterId.toString());
+    triggerSessionUpdate();
     router.push("/chat")
   }
 
