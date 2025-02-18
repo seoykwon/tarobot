@@ -35,7 +35,7 @@ sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
     logger=True,
-    engineio_logger=True,
+    engineio_logger=False,
     transports=["websocket", "polling"]
 )
 
@@ -60,6 +60,13 @@ async def chatbot_worker(room_id: str):
             user_id = data["user_id"]
             bot_id = int(data["bot_id"])
             type = data["type"]
+            
+            # ✅ 현재 참여자 수 확인
+            current_participants = len(room_user_nicknames.get(room_id, {}))
+            print(f"🟢 Room {room_id} participant count = {current_participants}")
+
+            # 예: 참여자 수 >= 2 이면 멀티 모드, 아니면 싱글 모드
+            is_multi_mode = current_participants >= 2
 
             print(f"🟢 사용자 입력 감지: {user_input}")
             print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type}")
@@ -72,7 +79,7 @@ async def chatbot_worker(room_id: str):
             """)
 
             # 전처리 작업 실행
-            context, keywords, chat_tag = await process_user_input(room_id, user_input, type, user_id, bot_id)
+            context, keywords, chat_tag = await process_user_input(room_id, user_input, type, user_id, bot_id, is_multi_mode)
 
             # response_generator를 통해 스트리밍 응답 생성 (async generator)
             generator = response_generator(
@@ -137,7 +144,7 @@ async def disconnect(sid):
 @sio.on("join_room")
 async def handle_join_room(sid, data):
     """
-    data = { "room_id": "some_room_id" }
+    data = { "room_id": "some_room_id", "user_id": "xxx", "nickname": "닉네임" }
     """
     room_id = data["room_id"]
     await sio.enter_room(sid, room_id)

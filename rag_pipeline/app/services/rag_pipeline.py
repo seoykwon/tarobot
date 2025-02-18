@@ -23,7 +23,7 @@ dummy_user_profile = {
     }
 }
 
-async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int):
+async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int, multi_mode: bool = False):
     """
     사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
     """
@@ -77,6 +77,12 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
         # context 합치기
         context = prepare_context(recent_history, pine_results, keywords)
+        
+        # 멀티 모드에 따라 context를 조금 다르게 생성
+        if multi_mode:
+            context = f"{context}\n[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.\n"
+        else:
+            context = f"{context}\n[싱글 모드]: 1:1 타로 상담 상황입니다.\n"
 
         ### 저장 관련 작업 백그라운드 수행
         # 요약 갱신

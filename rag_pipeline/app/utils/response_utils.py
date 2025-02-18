@@ -43,6 +43,9 @@ async def response_generator(
         response_id = str(uuid.uuid4())
         sequence = 1
         llm_answer = ""
+        
+        print(f"📌 생성된 Chat Prompt: {chat_prompt}")  # ✅ 로그 추가
+        
         # OpenAI 스트리밍 응답 처리 (청크 단위)
         async for chunk in call_4o_mini_str(
             chat_prompt,
