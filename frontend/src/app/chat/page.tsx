@@ -1,22 +1,21 @@
 // chat/page.tsx
 "use client"
 
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import ChatStandby from "@/components/ChatStandby";
-import Image from "next/image";
 
 export default function ChatPage() {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  // const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     setIsMobile(window.innerWidth < 768);
+  //   };
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  //   handleResize();
+  //   window.addEventListener("resize", handleResize);
+  //   return () => window.removeEventListener("resize", handleResize);
+  // }, []);
 
   // if (isMobile) {
   //   // 모바일 화면일 경우: 좌측 이미지 영역의 첫 번째 이미지를 ChatStandby 백그라운드로 사용

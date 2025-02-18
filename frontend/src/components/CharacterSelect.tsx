@@ -177,13 +177,17 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
     };
 
     fetchTarotBots()
-  }, []);
+  }, [selectedBot]);
 
   useEffect(() => {
     if (tarotBots.length > 0 && !selectedBot) {
       setSelectedBot(tarotBots[0]);
     }
-  }, [tarotBots]);
+  }, [tarotBots, selectedBot]);
+
+  useEffect(()=>{
+    console.log(`isComing: ${isComing}`);
+  }, [isComing])
 
   const handleStartChat = async () => {
     if (!selectedBot) return

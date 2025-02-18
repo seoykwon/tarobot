@@ -190,7 +190,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
     // 응답 생성 중 표시
     // ✅ 메시지 수신 처리
-    socket.on("saying", (data) => {
+    socket.on("saying", () => {
       setSaying(true);
       console.log("입력중...");
     });
