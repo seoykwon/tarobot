@@ -84,14 +84,16 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
   }, [roomId]);
 
   // Socket.IO 연결 및 signaling 이벤트 설정
+  // 1. 소켓 연결 생성: 컴포넌트 마운트 시 한 번만 실행 (roomId가 있을 때)
   useEffect(() => {
+    if (!roomId) return;
+    if (socketRef.current) return; // 이미 소켓이 생성되어 있다면 재생성 방지
+
     const socket = io(API_URLS.SOCKET.BASE, {
       path: "/socket.io",
       transports: ["websocket", "polling"],
     });
     socketRef.current = socket;
-
-    socket.emit("join_room", { room_id: roomId });
 
     socket.on("offer", async (data: OfferData) => {
       const pc = peerConnectionRef.current;
@@ -132,8 +134,15 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
 
     return () => {
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [roomId, polite, createPeerConnection]);
+  }, [roomId, polite, createPeerConnection]); // roomId가 있을 때만 생성. 이미 연결되었으면 재생성하지 않음
+
+  // 2. roomId 변경 시 join_room 이벤트 발생: 소켓 재생성 없이 join_room만 재전송
+  useEffect(() => {
+    if (!socketRef.current) return;
+    socketRef.current.emit("join_room", { room_id: roomId });
+  }, [roomId]);
 
   // 통화 시작 또는 마이크 토글
   const startCallOrToggleMute = async () => {

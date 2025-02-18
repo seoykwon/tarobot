@@ -140,58 +140,56 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
   // WebSocket 연결
   useEffect(() => {
-    if (!sessionId) return;
-
+    // 모든 값이 준비되지 않으면 연결하지 않음
+    if (!sessionId || !userId || !nickname) return;
+    // 이미 연결된 경우 재연결 방지
+    if (socketRef.current) return;
+  
     // ✅ Socket.IO 연결
     const socket = io(`${API_URLS.SOCKET.BASE}`, {
       path: "/socket.io",
       transports: ["websocket", "polling"],
     });
-
+  
     socketRef.current = socket;
-
+  
     // ✅ 세션(Room) 참가
-    socket.emit("join_room", { room_id: sessionId, nickname: nickname });
-
+    socket.emit("join_room", { room_id: sessionId, user_id: userId, nickname });
+  
     socket.on("room_joined", (data) => {
       console.log(`Room joined: ${data.room_id}`);
-      setIsRoomJoined(true); // ✅ 방 입장 완료 상태 변경
+      setIsRoomJoined(true); // 방 입장 완료 상태 변경
     });
-
-    // ✅ 메시지 수신 처리 (사용자 + 챗봇 메시지 모두 포함)
+  
+    // ✅ 메시지 수신 처리
     socket.on("chat_message", (data) => {
       console.log(`📩 사용자 메시지 수신: ${data}`);
       setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
       setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
     });
-
+  
     socket.on("chatbot_message", (data) => {
       console.log(`🤖 챗봇 메시지 수신: ${data}`);
       setChatType(data.chat_tag);
-      // setMessages((prev) => [...prev, { text: data.message, isUser: "assistant" }]);
       setMessages((prev) => {
-        // ✅ 가장 마지막 "입력 중..." 메시지를 찾아 제거
         const updatedMessages = [...prev];
         const lastBotIndex = updatedMessages.findLastIndex(
           (msg) => msg.isUser === "assistant" && msg.text === "입력 중..."
         );
-    
         if (lastBotIndex !== -1) {
-          updatedMessages.splice(lastBotIndex, 1); // "입력 중..." 제거
+          updatedMessages.splice(lastBotIndex, 1);
         }
-    
-        // ✅ 챗봇 응답 추가
         updatedMessages.push({ text: data.message, isUser: "assistant" });
-    
         return updatedMessages;
       });
     });
-
+  
     return () => {
       console.log("소켓 연결 해제");
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [sessionId, nickname]);
+  }, [sessionId, userId, nickname]);
 
   // pendingMessage를 감지해 전달
   useEffect(() => {
@@ -332,7 +330,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     } else {
       console.log("기존 세션 입장");
     }
-  }, [handleSendMessage]);
+  }, []);
 
   // 새로운 메시지가 추가될 때마다 스크롤을 자동으로 맨 아래로 이동
   useEffect(() => {
