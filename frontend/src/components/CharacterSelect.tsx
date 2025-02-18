@@ -166,15 +166,24 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
         })
         if (!response.ok) throw new Error("Failed to fetch tarot bots")
         const data = await response.json()
-        setTarotBots(data)
-        if (data.length > 0) setSelectedBot(data[0])
+        setTarotBots(data);
+        // 첫 번째 타로 마스터 자동 선택
+        if (data.length > 0 && !selectedBot) {
+          setSelectedBot(data[0]);
+        }
       } catch (error) {
         console.error("Error fetching tarot bots:", error)
       }
-    }
+    };
 
     fetchTarotBots()
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    if (tarotBots.length > 0 && !selectedBot) {
+      setSelectedBot(tarotBots[0]);
+    }
+  }, [tarotBots]);
 
   const handleStartChat = async () => {
     if (!selectedBot) return
