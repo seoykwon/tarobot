@@ -37,7 +37,7 @@ export async function getTarotMaster(botId: string) {
     return data;
   } catch (error) {
     console.error("타로 마스터 불러오기 에러:", error);
-    return null;
+    return {};
   }
 }
 

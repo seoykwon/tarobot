@@ -343,7 +343,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
                 {/* 봇 프로필 이미지 */}
                 {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
                 <Image
-                  src={`/bots/${botId}_profile.png`}
+                  src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
                   alt="Bot Profile"
                   width={128}
                   height={128}
