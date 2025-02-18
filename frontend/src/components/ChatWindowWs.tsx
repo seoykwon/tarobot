@@ -8,6 +8,8 @@ import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
 import { io, Socket } from "socket.io-client";
+import { useSession } from "@/context/SessionContext";
+import { getTarotMaster } from "@/libs/api";
 
 interface ChatWindowProps {
   sessionIdParam?: string;
@@ -19,10 +21,20 @@ interface MessageForm {
   content?: React.ReactNode;
 }
 
+interface TarotMaster {
+  id: number;
+  name: string;
+  description: string;
+  concept: string;
+  profileImage: string;
+  mbti: string;
+}
+
 export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const botId = localStorage.getItem("botId");
   const userId = localStorage.getItem("userId");
   const sessionId = sessionIdParam || "nosession";
+  const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
   const [chatType, setChatType] = useState("none");
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
@@ -39,9 +51,45 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   
   const [isRoomJoined, setIsRoomJoined] = useState(false);
   const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
+
+  const { triggerSessionUpdate } = useSession();
+
+  useEffect(() => {
+    if (!botId) return;
+      const fetchTarotMasters = async () => {
+        try {
+          const master = await getTarotMaster(botId);
+          setTarotMaster(master);
+        } catch (error) {
+          console.error("타로 마스터 불러오기 실패:", error);
+        }
+      };
+  
+      fetchTarotMasters();
+    }, [botId]);
   
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
   const handleSendMessage = useCallback(async (message: string) => {
+    // 세션 업데이트 함수
+    const updateChatSession = async () => {
+      try {
+        const response = await fetch(API_URLS.CHAT.UPDATE(sessionId), {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+          // PUT 요청이 body를 필요로 할 경우 body: JSON.stringify({ ... }) 추가
+        });
+  
+        if (!response.ok) {
+          throw new Error('채팅 세션 업데이트 실패');
+        }
+  
+      } catch (err) {
+        console.error('업데이트 에러:', err);
+      }
+    };
+
     // ✅ 방 입장이 완료되지 않았다면 메시지를 대기열에 추가
     if (!isRoomJoined) {
       console.warn("⚠️ 방 입장이 완료되지 않아 메시지를 대기열에 추가합니다.");
@@ -50,6 +98,10 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     }
 
     if (!socketRef.current) return;
+
+    updateChatSession().then(() => {
+      triggerSessionUpdate();
+    }); // 세션 업데이트
   
     // ✅ Socket.IO를 통해 메시지 전송
     socketRef.current.emit("chat_message", {
@@ -62,7 +114,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   
     setChatType("none"); // 보내고 난 뒤 초기화
 
-  }, [sessionId, chatType, showTarotButton, botId, userId, isRoomJoined]);
+  }, [sessionId, chatType, showTarotButton, botId, userId, isRoomJoined, triggerSessionUpdate]);
 
   // WebSocket 연결
   useEffect(() => {
@@ -295,9 +347,12 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
             {msg.isUser === "assistant" ? (
               <div className="flex items-start space-x-3">
                 {/* 봇 프로필 이미지 */}
-                <img
+                {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
+                <Image
                   src={`/bots/${botId}_profile.png`}
                   alt="Bot Profile"
+                  width={128}
+                  height={128}
                   className="w-16 h-16 rounded-full"
                 />
                 {/* 봇 메시지 말풍선 */}

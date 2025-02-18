@@ -67,6 +67,14 @@ public class ChatController {
         return ResponseEntity.ok(sessions);
     }
 
+    @Operation(summary = "채팅 세션 수정", description = "채팅 세션의 상태나 정보를 수정합니다.")
+    @PutMapping("/session/update/{sessionId}")
+    public ResponseEntity<ChatSessionRes> updateChatSession(@PathVariable UUID sessionId) {
+        ChatSession updatedSession = chatSessionService.findBySessionId(sessionId);
+        chatSessionService.updateLastAccessed(updatedSession);
+        return ResponseEntity.ok(ChatSessionRes.of(updatedSession));
+    }
+
     // 직접 수정할 일이 많이 있을까? 프론트에서 특정 동작을 했을 때 트리거를 다 따로 구현하기 때문에 의미가 많지 않을 듯 함
 //    @Operation(summary = "채팅 세션 수정", description = "채팅 세션의 상태나 정보를 수정합니다.")
 //    @PutMapping("/{sessionId}")

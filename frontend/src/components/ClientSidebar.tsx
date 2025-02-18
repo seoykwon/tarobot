@@ -46,7 +46,7 @@ export default function ClientSidebar({
         </div>
 
         {/* 컨텐츠 영역 - isOpen 상태와 관계없이 항상 렌더링하되 visibility로 제어 */}
-        <div className={`flex flex-col flex-1 ${!isOpen ? "invisible" : ""}`}>
+        <div className={`flex flex-col flex-1 min-h-0 ${!isOpen ? "invisible" : ""}`}>
           {/* 스크롤 가능한 컨텐츠 영역 */}
           <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
             {children}

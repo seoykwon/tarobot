@@ -318,7 +318,7 @@ export default function ChatWindow({ sessionIdParam }: ChatWindowProps) {
         {/* ============ 추가된 요소 ============ */}
   
         {/* 하단 입력창 */}
-        <ChatInput onSend={handleSendMessage} />
+        <ChatInput onSend={handleSendMessage} sessionId={sessionId}/>
       </div>
     </div>
   );
