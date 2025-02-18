@@ -326,6 +326,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
                 <Image
                   src={`/bots/${botId}_profile.png`}
                   alt="Bot Profile"
+                  width={128}
+                  height={128}
                   className="w-16 h-16 rounded-full"
                 />
                 {/* 봇 메시지 말풍선 */}
