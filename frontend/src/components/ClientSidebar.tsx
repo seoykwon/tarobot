@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import DiaryModal from "@/components/Diary"
+import DiaryModal from "@/components/Diary/Diary"
 import type React from "react"
 
 export default function ClientSidebar({
