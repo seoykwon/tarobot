@@ -56,7 +56,7 @@ export default function GoogleLoginButton({ redirect }: { redirect: string }) {
   className="flex items-center justify-center gap-2 px-8 py-3 text-gray-700 rounded-lg shadow-md hover:bg-gray-300 transition mx-auto"
 >
   {/* 구글 로고 추가 */}
-  <NextImage src="/google_logo.svg" alt="Google Logo" className="w-6 h-6" />
+  <NextImage src="/google_logo.svg" alt="Google Logo" width={24} height={24}className="w-6 h-6" />
   구글로 계속하기
 </button>
   );
