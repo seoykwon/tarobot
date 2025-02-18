@@ -42,12 +42,40 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const [nickname, setNickname] = useState("");
   
   const [isRoomJoined, setIsRoomJoined] = useState(false);
   const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
 
   const { triggerSessionUpdate } = useSession();
 
+  // 프로필에서 닉네임 불러오기 함수
+  const fetchProfileData = useCallback(async (): Promise<void> => {
+    // 내 프로필 정보 불러오기
+    try {
+      const res = await fetch(API_URLS.USER.ME, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setNickname(data.nickname || "");
+      } else {
+        console.error("프로필 데이터를 불러오는 데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("프로필 데이터 요청 중 오류 발생:", error);
+    } finally {
+    }
+  }, []);
+
+  // 컴포넌트 마운트 시 프로필 데이터 불러오기
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
+
+  // botId로 부터 정보 불러오기 (프사 등)
   useEffect(() => {
     if (!botId) return;
       const fetchTarotMasters = async () => {
@@ -112,58 +140,56 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
   // WebSocket 연결
   useEffect(() => {
-    if (!sessionId) return;
-
+    // 모든 값이 준비되지 않으면 연결하지 않음
+    if (!sessionId || !userId || !nickname) return;
+    // 이미 연결된 경우 재연결 방지
+    if (socketRef.current) return;
+  
     // ✅ Socket.IO 연결
     const socket = io(`${API_URLS.SOCKET.BASE}`, {
       path: "/socket.io",
       transports: ["websocket", "polling"],
     });
-
+  
     socketRef.current = socket;
-
+  
     // ✅ 세션(Room) 참가
-    socket.emit("join_room", { room_id: sessionId });
-
+    socket.emit("join_room", { room_id: sessionId, user_id: userId, nickname });
+  
     socket.on("room_joined", (data) => {
       console.log(`Room joined: ${data.room_id}`);
-      setIsRoomJoined(true); // ✅ 방 입장 완료 상태 변경
+      setIsRoomJoined(true); // 방 입장 완료 상태 변경
     });
-
-    // ✅ 메시지 수신 처리 (사용자 + 챗봇 메시지 모두 포함)
+  
+    // ✅ 메시지 수신 처리
     socket.on("chat_message", (data) => {
       console.log(`📩 사용자 메시지 수신: ${data}`);
       setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
       setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
     });
-
+  
     socket.on("chatbot_message", (data) => {
       console.log(`🤖 챗봇 메시지 수신: ${data}`);
       setChatType(data.chat_tag);
-      // setMessages((prev) => [...prev, { text: data.message, isUser: "assistant" }]);
       setMessages((prev) => {
-        // ✅ 가장 마지막 "입력 중..." 메시지를 찾아 제거
         const updatedMessages = [...prev];
         const lastBotIndex = updatedMessages.findLastIndex(
           (msg) => msg.isUser === "assistant" && msg.text === "입력 중..."
         );
-    
         if (lastBotIndex !== -1) {
-          updatedMessages.splice(lastBotIndex, 1); // "입력 중..." 제거
+          updatedMessages.splice(lastBotIndex, 1);
         }
-    
-        // ✅ 챗봇 응답 추가
         updatedMessages.push({ text: data.message, isUser: "assistant" });
-    
         return updatedMessages;
       });
     });
-
+  
     return () => {
       console.log("소켓 연결 해제");
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [sessionId]);
+  }, [sessionId, userId, nickname]);
 
   // pendingMessage를 감지해 전달
   useEffect(() => {
@@ -302,7 +328,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         });
       }, 200); // 🚀 WebSocket 안정성을 위해 200ms 대기
     } else {
-      console.log("기존 세션 입장");
+      // console.log("기존 세션 입장");
     }
   }, [handleSendMessage]);
 

@@ -27,7 +27,7 @@ export default function InviteFriend({ onClose, className }: InviteFriendProps) 
       script.src = "https://developers.kakao.com/sdk/js/kakao.min.js";
       script.onload = () => {
         if (window.Kakao && !window.Kakao.isInitialized()) {
-          window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_API_KEY); // 환경 변수에서 API 키 가져오기
+          window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_API_KEY!); // 환경 변수에서 API 키 가져오기
         }
         setKakaoLoaded(true);
       };
@@ -85,6 +85,10 @@ export default function InviteFriend({ onClose, className }: InviteFriendProps) 
           />
         </button>
       </div>
+      {/* 닫기 버튼 추가 */}
+      <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+        닫기
+      </button>
 
       {/* 하단 링크 및 복사 버튼 섹션 */}
       <div className="mb-4">

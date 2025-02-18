@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { getTarotMasters } from "@/libs/api"
-import Image from "next/image"
-import { useSession } from "@/context/SessionContext";
+import { useSession } from "@/context/SessionContext"
 
 interface TarotMaster {
   id: number
@@ -13,6 +13,7 @@ interface TarotMaster {
   concept: string
   profileImage: string
   mbti: string
+  expertise: string[]
 }
 
 interface TarotMasterListProps {
@@ -21,8 +22,11 @@ interface TarotMasterListProps {
 
 export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterListProps) {
   const [tarotMasters, setTarotMasters] = useState<TarotMaster[]>([])
+  const [selectedMaster, setSelectedMaster] = useState<TarotMaster | null>(null)
+  const [isClosing, setIsClosing] = useState(false)
+  const sidePanelRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { setBotId, triggerSessionUpdate } = useSession();
+  const { setBotId, triggerSessionUpdate } = useSession()
 
   useEffect(() => {
     const fetchTarotMasters = async () => {
@@ -37,31 +41,68 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
     fetchTarotMasters()
   }, [])
 
-  const handleSelectMaster = (masterId: number) => {
-    localStorage.setItem("botId", masterId.toString())
-    setBotId(masterId.toString());
-    triggerSessionUpdate();
-    router.push("/chat")
+  /** 🔹 마스터 클릭 시 패널 열거나 닫기 */
+  const handleSelectMaster = (master: TarotMaster) => {
+    if (selectedMaster?.id === master.id) {
+      setIsClosing(true)
+      setTimeout(() => {
+        setSelectedMaster(null)
+        setIsClosing(false)
+      }, 200)
+    } else {
+      setSelectedMaster(master)
+    }
   }
 
+  /** 🔹 채팅 시작 */
+  const handleStartChat = (masterId: number) => {
+    localStorage.setItem("botId", masterId.toString())
+    setBotId(masterId.toString())
+    triggerSessionUpdate()
+    setIsClosing(true) // 패널 닫기 애니메이션 시작
+    setTimeout(() => {
+      setSelectedMaster(null) // 선택된 마스터 초기화
+      setIsClosing(false)
+      router.push("/chat") // 채팅화면으로 이동동
+    }, 200)
+  }
+
+  /** 🔹 패널 외부 클릭 시 닫기 */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidePanelRef.current && !sidePanelRef.current.contains(event.target as Node)) {
+        setIsClosing(true)
+        setTimeout(() => {
+          setSelectedMaster(null)
+          setIsClosing(false)
+        }, 200)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
   return (
-    <>
+    <div className="relative">
       <ul className="space-y-4">
         {tarotMasters.map((master) => (
           <li
             key={master.id}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-[#0D0D0D] cursor-pointer"
-            onClick={() => handleSelectMaster(master.id)}
+            onClick={() => handleSelectMaster(master)}
+            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-[#0D0D0D] cursor-pointer ${
+              selectedMaster?.id === master.id ? "bg-gray-100" : ""
+            }`}
           >
-            {master.profileImage && (
-              <Image
-                src={master.profileImage || "/placeholder.svg"}
-                alt={`타로 마스터 ${master.name}`}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            )}
+            <Image
+              src={master.profileImage || "/placeholder.svg"}
+              alt={`타로 마스터 ${master.name}`}
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
             <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
               {master.name || `타로마스터 ${master.id}`}
             </span>
@@ -74,7 +115,33 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
       >
         더 많은 마스터 보기
       </button>
-    </>
+
+      {selectedMaster && (
+        <div
+          ref={sidePanelRef}
+          className={`fixed left-64 top-1/2 -translate-y-1/2 h-[250px] w-[420px] bg-[#1a1a1a] text-white p-2 z-10 overflow-y-auto rounded-lg transition-transform duration-300 ${
+            isClosing ? "opacity-0 translate-x-10" : "opacity-100 translate-x-0"
+          }`}
+          style={{ maxHeight: "90vh" }}
+        >
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm text-gray-400 mb-1">{selectedMaster.concept}</h3>
+              <h2 className="text-2xl font-bold text-yellow-400">{selectedMaster.name}</h2>
+            </div>
+
+            <p className="text-sm text-gray-300 leading-relaxed">{selectedMaster.description}</p>
+
+            <button
+              onClick={() => handleStartChat(selectedMaster.id)}
+              className="w-full py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors mt-8"
+            >
+              채팅 시작
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import VoiceChat from "@/components/VoiceChat";
 import InviteFriend from "./Chat/InviteFriend";
+import NextImage from "next/image";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -37,9 +38,11 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
         }}
         className="mr-3 p-3 bg-transparent hover:bg-gray-200 rounded-full transition-all duration-200 w-12 h-12 flex items-center justify-center"
       >
-        <img
+        <NextImage
           src="/kakao_logo.svg"
           alt="카카오 초대 링크"
+          width={32}
+          height={32}
           className="w-8 h-8"
         />
       </button>

@@ -50,7 +50,7 @@ async def response_generator(session_id: str, user_input: str, context: str, bot
         }
 
         # Pinecone 업서트 & Redis 저장 (비동기 실행)
-        asyncio.create_task(upsert_documents(user_id, [user_input], [metadata]))
+        asyncio.create_task(upsert_documents(bot_id, user_id, [user_input], [metadata]))
         asyncio.create_task(save_message(session_id, "assistant", llm_answer))
 
     except Exception as e:
@@ -99,8 +99,6 @@ async def response_generator(session_id: str, user_input: str, context: str, bot
 #         print(f"✅ Pinecone 업서트 결과: {upsert_task}")
 #         # redis 저장
 #         save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
-
-
 
 #     except Exception as e:
 #         yield f"[ERROR] OpenAI Streaming 오류: {str(e)}"  # ✅ 에러 발생 시 메시지 반환

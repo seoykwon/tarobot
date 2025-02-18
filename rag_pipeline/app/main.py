@@ -43,6 +43,10 @@ socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/socket.io
 # room_id -> asyncio.Queue(챗봇)
 chatbot_queues: Dict[str, asyncio.Queue] = {}
 
+# room_id: {user_id: nickname} 맵, room_id: {sid: user_id} 맵
+room_user_nicknames: Dict[str, Dict[str, str]] = {}
+sid_user_mapping: Dict[str, Dict[str, str]] = {}
+
 # 챗봇 백그라운드 태스크
 async def chatbot_worker(room_id: str):
     queue = chatbot_queues[room_id]
@@ -58,9 +62,18 @@ async def chatbot_worker(room_id: str):
 
             print(f"🟢 사용자 입력 감지: {user_input}")  # ✅ 로그 추가
             print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type}")  # ✅ 로그 추가
+            other_nicknames = [nick for uid, nick in room_user_nicknames[room_id].items() if uid != user_id]
+            print(f"""
+                  🟢 닉네임 감지
+                  UserNickname {room_user_nicknames[room_id][user_id]}
+                  OtherNickname {other_nicknames}
+""")
 
             # ✅ 챗봇 처리 로직 실행 (rag_pipeline 호출)
             answer, tag = await rag_pipeline(room_id, user_input, type, user_id, bot_id)
+            
+            nicknames = list(room_user_nicknames.get(room_id, {}).values())
+            print(f"룸 {room_id} 참여자: {', '.join(nicknames)}")
 
         except Exception as e:
             answer = f"[Error] RAG 파이프라인 실패: {str(e)}"
@@ -86,6 +99,16 @@ async def connect_error(sid, data):
 
 @sio.event
 async def disconnect(sid):
+    # sid에 해당하는 room_id와 user_id 찾기
+    mapping = sid_user_mapping.get(sid)
+    if mapping:
+        room_id = mapping["room_id"]
+        user_id = mapping["user_id"]
+        if room_id in room_user_nicknames and user_id in room_user_nicknames[room_id]:
+            print(f"룸 {room_id}에서 user_id {user_id} 제거됨.")
+            del room_user_nicknames[room_id][user_id]
+        # sid 매핑 제거
+        del sid_user_mapping[sid]
     print(f"[disconnect] 클라이언트 해제: {sid}")
 
 @sio.on("join_room")
@@ -96,6 +119,20 @@ async def handle_join_room(sid, data):
     room_id = data["room_id"]
     await sio.enter_room(sid, room_id)
     print(f"[join_room] {sid} joined {room_id}")
+
+    user_id = data.get("user_id")
+    nickname = data.get("nickname")
+    # 해당 room_id에 대한 매핑 딕셔너리가 없으면 생성
+    if room_id not in room_user_nicknames:
+        room_user_nicknames[room_id] = {}
+
+    # user_id와 nickname 저장
+    if user_id and nickname:
+        room_user_nicknames[room_id][user_id] = nickname
+        # sid에서 room_id와 user_id 정보도 저장
+        sid_user_mapping[sid] = {"room_id": room_id, "user_id": user_id}
+        print(f"🔍 룸 {room_id}에 user_id {user_id}: '{nickname}' 저장됨.")
+    else: print("nono")
 
     print(f"🔍 현재 {sid}의 Room 리스트: {sio.rooms(sid)}")
 
@@ -124,6 +161,7 @@ async def handle_chat_message(sid, data):
         "message": data["user_input"],
         "role": data["user_id"],
         "type" : data["type"],
+        "bot_id": data["bot_id"],
         }, room=room_id)
 
     # 챗봇 Queue에 메시지 투입
