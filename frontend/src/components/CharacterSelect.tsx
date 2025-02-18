@@ -179,12 +179,13 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
     if (!selectedBot) return
 
     try {
+      const botId = selectedBot.id
       const initialMessage = "안녕하세요, 타로 상담을 시작하겠습니다."
       const response = await fetch(API_URLS.CHAT.ENTER, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          botId: selectedBot.id,
+          botId,
           title: initialMessage,
         }),
         credentials: "include",
@@ -194,11 +195,13 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
 
       const data = await response.json()
       localStorage.setItem("firstMessage", initialMessage)
-      localStorage.setItem("botId", selectedBot.id.toString())
+      localStorage.setItem("botId", botId.toString())
 
       triggerSessionUpdate()
 
-      router.push(`/chat/${data.sessionId}`)
+      setTimeout(() => {
+        router.push(`/chat/${data.sessionId}`)
+      }, 100)
       onClose()
     } catch (error) {
       console.error("채팅 시작 에러:", error)
@@ -252,18 +255,7 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
                 <h1 className="mb-1 text-sm font-medium text-gray-400">{selectedBot.concept}</h1>
                 <h2 className="mb-6 text-4xl font-bold text-yellow-300">{selectedBot.name}</h2>
 
-                {/* Specialty icons */}
-                {/* <div className="mb-6 flex gap-4">
-                  {selectedBot.expertise.map((exp, index) => (
-                    <div key={index} className="flex h-12 w-12 items-center justify-center bg-gray-800 rounded-md">
-                      {exp === "INFO" && <Target className="h-6 w-6 text-yellow-300" />}
-                      {exp === "C" && <Flame className="h-6 w-6 text-yellow-300" />}
-                      {exp === "Q" && <Star className="h-6 w-6 text-yellow-300" />}
-                      {exp === "E" && <Flame className="h-6 w-6 text-yellow-300" />}
-                      {exp === "X" && <X className="h-6 w-6 text-yellow-300" />}
-                    </div>
-                  ))}
-                </div> */}
+
 
                 {/* Character descriptions */}
                 <div className="flex flex-col flex-grow">
