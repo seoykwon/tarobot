@@ -59,6 +59,9 @@ async def chatbot_worker(room_id: str):
             print(f"🟢 사용자 입력 감지: {user_input}")  # ✅ 로그 추가
             print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type}")  # ✅ 로그 추가
 
+            room_participants = sio.manager.rooms.get("/", {}).get(room_id, set())
+            print(f"🔍 현재 {room_id}의 참여자 수: {len(room_participants)/2}")
+
             # ✅ 챗봇 처리 로직 실행 (rag_pipeline 호출)
             answer, tag = await rag_pipeline(room_id, user_input, type, user_id, bot_id)
 
@@ -124,6 +127,7 @@ async def handle_chat_message(sid, data):
         "message": data["user_input"],
         "role": data["user_id"],
         "type" : data["type"],
+        "bot_id": data["bot_id"],
         }, room=room_id)
 
     # 챗봇 Queue에 메시지 투입
