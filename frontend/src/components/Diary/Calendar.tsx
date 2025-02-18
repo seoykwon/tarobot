@@ -1,3 +1,4 @@
+// components/Calendar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,9 +14,9 @@ interface DayInfo {
   botNumber: number | null;
 }
 
-export default function Calendar({ selectedDate, setSelectedDate }: CalendarProps) {
+export default function Calendar({ selectedDate, setSelectedDate, onDateClick }: CalendarProps) {
   const [daysInfo, setDaysInfo] = useState<DayInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const MONTHS = [
@@ -59,10 +60,10 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
     fetchCalendarData();
   }, [selectedDate]);
 
-  const getDaysInMonth = (date: Date) => 
+  const getDaysInMonth = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
-  const getFirstDayOfMonth = (date: Date) => 
+  const getFirstDayOfMonth = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
   const handlePrevMonth = () => {
@@ -82,14 +83,14 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
     const firstDayOfMonth = getFirstDayOfMonth(selectedDate);
     const days = [];
 
-    // 수정 부분: 빈 칸에 aspect-square 추가
+    // 빈 칸: aspect-square 적용
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(
         <div key={`empty-${i}`} className="aspect-square bg-gray-50"></div>
       );
     }
 
-    // 수정 부분: 날짜 셀 스타일 전체 변경
+    // 날짜 셀 렌더링: onDateClick 콜백 추가
     for (let i = 1; i <= daysInMonth; i++) {
       const currentDate = new Date(
         selectedDate.getFullYear(),
@@ -106,15 +107,16 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
             border border-gray-200 transition-all
             ${isSelected ? "bg-blue-100 border-blue-400" : "hover:bg-gray-50"}
             relative`}
-          onClick={() => setSelectedDate(currentDate)}
+          onClick={() => {
+            setSelectedDate(currentDate);
+            if (onDateClick) onDateClick(currentDate);
+          }}
         >
-          {/* 수정 부분: 텍스트 크기 조정 */}
           <span className={`text-xs font-semibold 
             ${isSelected ? "text-blue-600" : "text-gray-600"}`}>
             {i}
           </span>
-
-          {/* 수정 부분: 상단 여백 추가 및 폰트 크기 조정 */}
+  
           {botNumber !== null && (
             <div className="absolute inset-0 flex items-center justify-center top-2">
               <span className="text-lg font-bold text-purple-600 
@@ -123,8 +125,7 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
               </span>
             </div>
           )}
-
-          {/* 수정 부분: 로딩 스피너 크기 조정 */}
+  
           {isLoading && (
             <div className="absolute inset-0 bg-white bg-opacity-75 
               flex items-center justify-center">
@@ -140,7 +141,7 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
 
   return (
     <div className="p-4 bg-white rounded-xl shadow-lg">
-      {/* 월 선택 헤더 */}
+      {/* 상단: 월 선택 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={handlePrevMonth}
@@ -150,11 +151,11 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        
+  
         <h2 className="text-xl font-bold text-gray-800">
           {MONTHS[selectedDate.getMonth()]} {selectedDate.getFullYear()}
         </h2>
-        
+  
         <button
           onClick={handleNextMonth}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -164,9 +165,8 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
           </svg>
         </button>
       </div>
-
+  
       {/* 요일 표시 */}
-      {/* 수정 부분: 그리드 행 설정 추가 */}
       <div className="grid grid-cols-7 gap-px mb-1 bg-gray-200">
         {DAYS.map(day => (
           <div 
@@ -179,8 +179,8 @@ export default function Calendar({ selectedDate, setSelectedDate }: CalendarProp
           </div>
         ))}
       </div>
-
-      {/* 수정 부분: auto-rows 클래스 추가 */}
+  
+      {/* 날짜 그리드 */}
       <div className="grid grid-cols-7 gap-px bg-gray-200 auto-rows-[minmax(0,_1fr)]">
         {renderCalendarDays()}
       </div>
