@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import ProfileOverlay from "./ProfileOverlay";
 import NotificationOverlay from "./NotificationOverlay";
-import DiaryModal from "@/components/Diary";
+import DiaryModal from "@/components/Diary/Diary";
 import { useSession } from "@/context/SessionContext";
 import { getBotName } from "@/utils/botNameMap";
 
