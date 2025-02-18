@@ -1,13 +1,15 @@
+"use client";
+
 import { useState } from "react";
 import { FaTrashAlt, FaBell } from "react-icons/fa";
 import Image from "next/image";
 
-interface Notification {
-  id: number;
-  name: string;
-  message: string;
-  time: string;
-  profileIcon: string;
+interface Announcement {
+  announcementId: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  profileIcon?: string;
 }
 
 export default function NotificationOverlay({
@@ -17,49 +19,43 @@ export default function NotificationOverlay({
   isActive: boolean;
   toggle: () => void;
 }) {
-  const [notifications, setNotifications] = useState<Notification[]>([
+  // 예시 알림 1개를 초기 상태로 설정 (3일 전 날짜로 설정하려면 아래와 같이 수정 가능)
+  const [notifications, setNotifications] = useState<Announcement[]>([
     {
-      id: 1,
-      name: "Name",
-      message:
-        "Supporting line text loremadsfadsfasdffdasasdfasdfasfasafas loremadsfadsfasdffdasasdfasdfasfasasasdfasdasfasfas",
-      time: "10 min",
-      profileIcon: "/example.jpg",
-    },
-    {
-      id: 2,
-      name: "Name",
-      message: "Supporting line text lorem...",
-      time: "10 min",
-      profileIcon: "/example.jpg",
-    },
-    {
-      id: 3,
-      name: "Name",
-      message: "Suppas dfafdsfads afdszvcx asdfasfdrem...",
-      time: "10 min",
-      profileIcon: "/example.jpg",
-    },
-    {
-      id: 4,
-      name: "Name",
-      message: "Supporting line text lorem...",
-      time: "10 min",
-      profileIcon: "/example.jpg",
-    },
-    {
-      id: 5,
-      name: "Name",
-      message: "Supporting line text lorem...",
-      time: "10 min",
-      profileIcon: "/example.jpg",
+      announcementId: 1,
+      title: "시스템 점검 안내",
+      content: "내일 12시부터 2시까지 시스템 점검이 예정되어 있습니다.",
+      // 만약 3일 전으로 설정하려면 new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()를 사용
+      createdAt: new Date().toISOString(),
+      profileIcon: "/notice.svg",
     },
   ]);
 
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [selectedNotification, setSelectedNotification] =
+    useState<Announcement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModal = (notification: Notification) => {
+  // 오늘 날짜인지 판별 후, 오늘이면 시간, 그렇지 않으면 날짜를 표시하는 함수
+  const formatNotificationDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    if (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    ) {
+      // 오늘 날짜인 경우 시간 표시
+      return date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } else {
+      // 오늘이 아니면 날짜 표시
+      return date.toLocaleDateString("ko-KR");
+    }
+  };
+
+  const openModal = (notification: Announcement) => {
     setSelectedNotification(notification);
     setIsModalOpen(true);
   };
@@ -93,55 +89,62 @@ export default function NotificationOverlay({
             </button>
           </div>
 
-        {/* 알림 리스트 */}
-        <ul className="max-h-64 overflow-y-auto scrollbar-none divide-y divide-gray-200">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => openModal(notification)}
-              >
-                {/* 왼쪽 아이콘 및 텍스트 영역 */}
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-300">
-                    <Image
-                      src={notification.profileIcon}
-                      alt={`${notification.name} profile`}
-                      fill
-                      className="object-cover"
-                    />
+          {/* 알림 리스트 */}
+          <ul className="max-h-64 overflow-y-auto scrollbar-none divide-y divide-gray-200">
+            {notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <li
+                  key={notification.announcementId}
+                  className="flex items-center justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => openModal(notification)}
+                >
+                  {/* 왼쪽 아이콘 및 텍스트 영역 */}
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-300">
+                      <Image
+                        src={notification.profileIcon || "/notice.svg"}
+                        alt={`${notification.title} profile`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 max-w-full">
+                      <p className="font-bold">{notification.title}</p>
+                      <p className="text-sm text-gray-500 line-clamp-1">
+                        {notification.content}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 max-w-full">
-                    <p className="font-bold">{notification.name}</p>
-                    <p className="text-sm text-gray-500 line-clamp-1">
-                      {notification.message}
-                    </p>
-                  </div>
-                </div>
 
-                {/* 오른쪽 시간 및 삭제 버튼 영역 */}
-                <div className="flex items-center gap-4 flex-shrink-0">
-                  <span className="text-sm text-gray-400">{notification.time}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNotifications((prev) =>
-                        prev.filter((n) => n.id !== notification.id)
-                      );
-                    }}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <FaTrashAlt />
-                  </button>
-                </div>
+                  {/* 오른쪽 시간 및 삭제 버튼 영역 */}
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <span className="text-sm text-gray-400">
+                      {formatNotificationDate(notification.createdAt)}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotifications((prev) =>
+                          prev.filter(
+                            (n) =>
+                              n.announcementId !== notification.announcementId
+                          )
+                        );
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </div>
+                </li>
+              ))
+            ) : (
+              // 알림이 없을 경우 표시할 문구
+              <li className="px-4 py-2 text-center text-gray-500">
+                알림이 없습니다.
               </li>
-            ))
-          ) : (
-            // 알림이 없을 경우 표시할 문구
-            <li className="px-4 py-2 text-center text-gray-500">알림이 없습니다.</li>
-          )}
-        </ul>
+            )}
+          </ul>
         </div>
       )}
 
@@ -160,13 +163,27 @@ export default function NotificationOverlay({
             <div className="flex items-center gap-4 border-b pb-4 mb-4">
               <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gray-300 flex-shrink-0">
                 <Image
-                  src={selectedNotification.profileIcon}
-                  alt={`${selectedNotification.name} profile`}
+                  src={selectedNotification.profileIcon || "/notice.svg"}
+                  alt={`${selectedNotification.title} profile`}
                   fill
                   className="object-cover"
                 />
               </div>
-              <h2 className="text-xl font-bold">{selectedNotification.name}</h2>
+              <div className="flex flex-col">
+                <h2 className="text-xl font-bold">
+                  {selectedNotification.title}
+                </h2>
+                <span className="text-sm text-gray-500">
+                  작성일:{" "}
+                  {new Date(selectedNotification.createdAt).toLocaleString("ko-KR", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
               <button
                 onClick={closeModal}
                 className="ml-auto text-gray-500 hover:text-gray-700"
@@ -177,7 +194,9 @@ export default function NotificationOverlay({
 
             {/* 모달 본문 */}
             <div>
-              <p className="text-sm text-gray-700">{selectedNotification.message}</p>
+              <p className="text-sm text-gray-700">
+                {selectedNotification.content}
+              </p>
             </div>
 
             {/* 모달 푸터 */}
