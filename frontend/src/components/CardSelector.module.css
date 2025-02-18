@@ -9,6 +9,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .overlayContent {
@@ -17,13 +18,13 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
-  padding-bottom: 40px;
+  padding-top: 40px;
 }
 
 .closeButton {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
   background: none;
@@ -35,13 +36,15 @@
 }
 
 .cardSemiCircle {
-  position: relative;
+  position: absolute;
   width: 100%;
-  height: 300px;
+  height: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  margin-bottom: 60px;
+  align-items: flex-start;
+  top: 0;
+  left: 0;
+  margin-top: 120px;
 }
 
 .card {
@@ -90,7 +93,7 @@
 }
 
 .scrollButton {
-  position: absolute;
+  position: fixed;
   bottom: 40px;
   background: rgba(255, 255, 255, 0.2);
   border: none;

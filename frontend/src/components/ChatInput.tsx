@@ -69,21 +69,29 @@ export default function ChatInput({ onSend, sessionId }: ChatInputProps) {
         />
         
         {/* 전송/음성 버튼 */}
-        <button
-          onClick={input.trim() ? sendMessage : () => console.log("음성 입력")}
-          className="absolute top-1/2 right-4 transform -translate-y-1/2 
-                   px-4 py-2 bg-tranparent text-black rounded-xl 
-                   hover:bg-gray-200 transition-all duration-200
-                   flex items-center justify-center w-12 h-12"
-        >
-          <span className={`transition-opacity ${input.trim() ? "opacity-100" : "opacity-0"}`}>
+        {input.trim() ? (
+          // 채팅 입력이 있을 때: 전송 버튼
+          <button
+            onClick={sendMessage}
+            className="absolute top-1/2 right-4 transform -translate-y-1/2 
+                    px-4 py-2 bg-tranparent text-black rounded-xl 
+                    hover:bg-gray-200 transition-all duration-200
+                    flex items-center justify-center w-12 h-12"
+          >
             ↑
-          </span>
-          <span className={`transition-opacity duration-200 absolute inset-0 ${input.trim() ? "opacity-0 scale-75" : "opacity-100 scale-100"}`}>
-            {/* 🎤 */}
+          </button>
+        ) : (
+          // 채팅 입력이 없을 때: 음성 입력 버튼
+          <button
+            onClick={() => console.log("음성 입력")}
+            className="absolute top-1/2 right-4 transform -translate-y-1/2 
+                    px-4 py-2 bg-tranparent text-black rounded-xl 
+                    hover:bg-gray-200 transition-all duration-200
+                    flex items-center justify-center w-12 h-12"
+          >
             <VoiceChat roomId={sessionId} />
-          </span>
-        </button>
+          </button>
+        )}
       </div>
     </div>
   );
