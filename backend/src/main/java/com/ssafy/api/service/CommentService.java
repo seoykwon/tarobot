@@ -3,6 +3,7 @@ package com.ssafy.api.service;
 import com.ssafy.api.request.CommentRegisterReq;
 import com.ssafy.api.request.CommentUpdateReq;
 import com.ssafy.db.entity.Comment;
+
 import java.util.List;
 
 public interface CommentService {

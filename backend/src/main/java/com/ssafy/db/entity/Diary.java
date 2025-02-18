@@ -2,11 +2,10 @@ package com.ssafy.db.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.URL;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -33,4 +32,8 @@ public class Diary extends BaseEntity {
     private String summary; // 상담 요약
 
     private String cardImageUrl; // 타로 카드 이미지 URL
+
+    @ManyToOne
+    @JoinColumn(name = "tarot_bot_id", nullable = false)
+    private TarotBot tarotBot; // 상담을 진행한 타로봇
 }

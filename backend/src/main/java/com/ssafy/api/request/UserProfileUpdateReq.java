@@ -1,7 +1,7 @@
 package com.ssafy.api.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;

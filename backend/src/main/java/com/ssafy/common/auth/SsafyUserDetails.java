@@ -1,15 +1,14 @@
 package com.ssafy.common.auth;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import com.ssafy.db.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.ssafy.db.entity.User;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 현재 액세스 토큰으로부터 인증된 유저의 부가 상세정보(활성화 여부, 만료, 롤 등) 정의.

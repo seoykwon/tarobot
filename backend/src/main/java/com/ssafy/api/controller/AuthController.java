@@ -1,33 +1,29 @@
 package com.ssafy.api.controller;
 
+import com.ssafy.api.request.UserLoginPostReq;
+import com.ssafy.api.service.UserService;
+import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.common.util.CookieUtil;
+import com.ssafy.common.util.JwtTokenUtil;
 import com.ssafy.db.entity.RefreshToken;
+import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.RefreshTokenRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.ssafy.api.request.UserLoginPostReq;
-import com.ssafy.api.response.UserLoginPostRes;
-import com.ssafy.api.service.UserService;
-import com.ssafy.common.model.response.BaseResponseBody;
-import com.ssafy.common.util.JwtTokenUtil;
-import com.ssafy.db.entity.User;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.time.Duration;
 import java.time.Instant;

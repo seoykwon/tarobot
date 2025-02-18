@@ -1,9 +1,7 @@
 package com.ssafy.common.model.response;
 
-import org.springframework.http.HttpStatus;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
+import lombok.Getter;
 import lombok.Setter;
 
 /**
