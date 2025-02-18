@@ -39,13 +39,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>
-  ([
-    { text: "안녕", isUser: localStorage.getItem("userId") || "user" }, // 사용자 메시지
-    { text: "반가워", isUser: "assistant" }, // 봇 메시지
-    { text: "오늘 기분 어때? 오늘 기분 어때?  오늘 기분 어때? 오늘 기분 어때?오늘 기분 어때? 오늘 기분 어때? 오늘 기분 어때? 오늘 기분 어때?", isUser: localStorage.getItem("userId") || "user" }, // 사용자 메시지
-    { text: "좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~", isUser: "assistant" }, // 봇 메시지
-    ]);
+  const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   
@@ -349,7 +343,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
                 {/* 봇 프로필 이미지 */}
                 {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
                 <Image
-                  src={`/bots/${botId}_profile.png`}
+                  src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
                   alt="Bot Profile"
                   width={128}
                   height={128}
