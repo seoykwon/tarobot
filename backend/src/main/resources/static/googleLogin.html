@@ -4,16 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>로그인 성공</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            background-color: #F3E8FF; /* 연한 라벤더 색 */
+            text-align: center;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 350px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #4285F4, #9B59B6, #E74C3C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .countdown {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: white;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
 </head>
 <body>
-<h1>구글 로그인이 성공하였습니다.</h1>
-<p>3초 뒤에 창이 자동으로 닫힙니다.</p>
+
+<div class="container">
+    <h1>구글 로그인에 성공했습니다.</h1>
+    <p class="countdown">창이 <span id="count">3</span>초 후에 자동으로 닫힙니다.</p>
+    <button onclick="closeWindow()">지금 닫기</button>
+</div>
 
 <script>
-    window.opener.postMessage("google-login-success", "*");
-    setTimeout(() => {
+    let count = 3;
+    const countElement = document.getElementById("count");
+
+    function updateCountdown() {
+        count--;
+        countElement.textContent = count;
+        if (count <= 0) {
+            window.opener.postMessage("google-login-success", "*");
+            window.close();
+        } else {
+            setTimeout(updateCountdown, 1000);
+        }
+    }
+
+    function closeWindow() {
+        window.opener.postMessage("google-login-success", "*");
         window.close();
-    }, 3000);
+    }
+
+    setTimeout(updateCountdown, 1000);
 </script>
+
 </body>
 </html>

@@ -47,47 +47,6 @@ chatbot_queues: Dict[str, asyncio.Queue] = {}
 room_user_nicknames: Dict[str, Dict[str, str]] = {}
 sid_user_mapping: Dict[str, Dict[str, str]] = {}
 
-# # 챗봇 백그라운드 태스크
-# async def chatbot_worker(room_id: str):
-#     queue = chatbot_queues[room_id]
-#     while True:
-#         data = await queue.get()  # ✅ 큐에서 데이터를 가져옴 (딕셔너리 형태)
-#         if data is None:
-#             break
-#         try:
-#             user_input = data["user_input"]
-#             user_id = data["user_id"]
-#             bot_id = data["bot_id"]
-#             type = data["type"]
-
-#             print(f"🟢 사용자 입력 감지: {user_input}")  # ✅ 로그 추가
-#             print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type}")  # ✅ 로그 추가
-#             other_nicknames = [nick for uid, nick in room_user_nicknames[room_id].items() if uid != user_id]
-#             print(f"""
-#                   🟢 닉네임 감지
-#                   UserNickname {room_user_nicknames[room_id][user_id]}
-#                   OtherNickname {other_nicknames}
-# """)
-
-#             # ✅ 챗봇 처리 로직 실행 (rag_pipeline 호출)
-#             answer, tag = await rag_pipeline(room_id, user_input, type, user_id, bot_id)
-            
-#             nicknames = list(room_user_nicknames.get(room_id, {}).values())
-#             print(f"룸 {room_id} 참여자: {', '.join(nicknames)}")
-
-#         except Exception as e:
-#             answer = f"[Error] RAG 파이프라인 실패: {str(e)}"
-
-#         # ✅ 챗봇 응답을 방에 브로드캐스트
-#         await sio.emit("chatbot_message", {
-#             "message": answer,
-#             "role" : "assistant",
-#             "chat_tag" : tag,
-#         }, room=room_id)
-
-#         print(f"🟣 현재 세션 ID: {room_id}")  # ✅ 로그 추가
-#         print(f"🟣 chatbot_message 브로드캐스트 완료: {answer}, 채팅 태그: {tag}")  # ✅ 로그 추가
-
 # 챗봇 백그라운드 태스크 (스트리밍 방식, 사용자 새 메시지 수신 시 중단)
 async def chatbot_worker(room_id: str):
     queue = chatbot_queues[room_id]
@@ -219,6 +178,8 @@ async def handle_chat_message(sid, data):
         "type" : data["type"],
         "bot_id": data["bot_id"],
         }, room=room_id)
+    
+    await sio.emit("saying", {}, room=room_id)
 
     # 챗봇 Queue에 메시지 투입
     if room_id in chatbot_queues:
