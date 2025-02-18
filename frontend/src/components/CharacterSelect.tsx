@@ -130,7 +130,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Flame, Star, Target, X } from "lucide-react"
+// import { Flame, Star, Target, X } from "lucide-react"
 import { API_URLS } from "@/config/api"
 import { useSession } from "@/context/SessionContext"
 

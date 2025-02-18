@@ -328,9 +328,9 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         });
       }, 200); // 🚀 WebSocket 안정성을 위해 200ms 대기
     } else {
-      console.log("기존 세션 입장");
+      // console.log("기존 세션 입장");
     }
-  }, []);
+  }, [handleSendMessage]);
 
   // 새로운 메시지가 추가될 때마다 스크롤을 자동으로 맨 아래로 이동
   useEffect(() => {
