@@ -1,13 +1,16 @@
 package com.ssafy.common.auth;
 
-import java.io.IOException;
-
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.ssafy.api.service.UserService;
+import com.ssafy.common.util.JwtTokenUtil;
+import com.ssafy.common.util.ResponseBodyWriteUtil;
+import com.ssafy.db.entity.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,12 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.ssafy.api.service.UserService;
-import com.ssafy.common.util.JwtTokenUtil;
-import com.ssafy.common.util.ResponseBodyWriteUtil;
-import com.ssafy.db.entity.User;
+import java.io.IOException;
 
 /**
  * 요청 헤더에 jwt 토큰이 있는 경우, 토큰 검증 및 인증 처리 로직 정의.
@@ -36,15 +34,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-//		// Read the Authorization header, where the JWT Token should be
-//        String header = request.getHeader(JwtTokenUtil.HEADER_STRING);
-//
-//        // If header does not contain BEARER or is null delegate to Spring impl and exit
-//        if (header == null || !header.startsWith(JwtTokenUtil.TOKEN_PREFIX)) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-        
+
         try {
             // If header is present, try grab user principal from database and perform authorization
             Authentication authentication = getAuthentication(request);

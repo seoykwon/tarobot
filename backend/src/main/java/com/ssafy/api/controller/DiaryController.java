@@ -52,19 +52,6 @@ public class DiaryController {
         return ResponseEntity.ok(diaries);
     }
 
-//    @GetMapping("/{diaryId}")
-//    @Operation(summary = "다이어리 단건 조회", description = "특정 다이어리 ID로 다이어리를 조회합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "성공"),
-//            @ApiResponse(responseCode = "404", description = "다이어리를 찾을 수 없음"),
-//            @ApiResponse(responseCode = "500", description = "서버 오류")
-//    })
-//    public ResponseEntity<Diary> getDiaryById(
-//            @PathVariable @Parameter(description = "다이어리 ID", required = true) Long diaryId) {
-//        Diary diary = diaryService.getDiaryById(diaryId);
-//        return ResponseEntity.ok(diary);
-//    }
-
     @PutMapping("/{diaryId}")
     @Operation(summary = "다이어리 수정", description = "특정 다이어리 ID의 내용을 수정합니다.")
     @ApiResponses({

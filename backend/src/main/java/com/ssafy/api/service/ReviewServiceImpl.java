@@ -2,18 +2,18 @@ package com.ssafy.api.service;
 
 import com.ssafy.api.request.ReviewRegisterReq;
 import com.ssafy.api.response.ReviewRes;
+import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.Review;
 import com.ssafy.db.entity.TarotBot;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.ReviewRepository;
 import com.ssafy.db.repository.TarotBotRepository;
-import com.ssafy.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -80,7 +80,8 @@ public class ReviewServiceImpl implements ReviewService {
         Long userId = currentUser.getId();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Review> reviewPage = reviewRepository.findByUser_Id(userId, pageable);
-// Page 객체의 컨텐트만 추출하여 ReviewRes 리스트로 변환 후 반환
+
+        // Page 객체의 컨텐트만 추출하여 ReviewRes 리스트로 변환 후 반환
         return reviewPage.getContent()
                 .stream()
                 .map(ReviewRes::of)

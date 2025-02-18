@@ -80,7 +80,6 @@ public class TokenApiController {
         response.put("userId", currentUser.getUserId());
 
         return ResponseEntity.ok(response);
-
     }
 
     private void addAccessTokenToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken) {

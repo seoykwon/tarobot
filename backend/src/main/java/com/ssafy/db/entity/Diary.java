@@ -2,11 +2,10 @@ package com.ssafy.db.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.URL;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity

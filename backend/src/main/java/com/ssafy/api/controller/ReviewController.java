@@ -3,10 +3,8 @@ package com.ssafy.api.controller;
 import com.ssafy.api.request.ReviewRegisterReq;
 import com.ssafy.api.response.ReviewRes;
 import com.ssafy.api.service.ReviewService;
-import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.model.response.BaseResponseBody;
 import com.ssafy.db.entity.Review;
-import com.ssafy.db.entity.TarotBot;
 import com.ssafy.db.repository.ReviewRepository;
 import com.ssafy.db.repository.TarotBotRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,15 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,8 +77,6 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
-
-
     // 리뷰 수정 API
     @PutMapping("/{reviewId}")
     @Operation(summary = "리뷰 수정", description = "특정 리뷰 ID의 내용을 수정합니다.")
@@ -126,7 +118,6 @@ public class ReviewController {
     public ResponseEntity<List<ReviewRes>> getMyReviews(
             @RequestParam(defaultValue = "0") @Parameter(description = "페이지 번호 (0부터 시작)", required = false) int page,
             @RequestParam(defaultValue = "10") @Parameter(description = "페이지 크기", required = false) int size) {
-
 
         List<ReviewRes> reviews = reviewService.getReviewsByUser(page, size);
         return ResponseEntity.ok(reviews);

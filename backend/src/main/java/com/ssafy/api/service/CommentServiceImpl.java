@@ -2,7 +2,6 @@ package com.ssafy.api.service;
 
 import com.ssafy.api.request.CommentRegisterReq;
 import com.ssafy.api.request.CommentUpdateReq;
-import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.Comment;
 import com.ssafy.db.entity.Post;
@@ -12,6 +11,7 @@ import com.ssafy.db.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service("commentService")
