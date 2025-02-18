@@ -25,7 +25,7 @@ export const API_URLS = {
   },
   TAROTBOTS: {
     LIST: `${BASE_URL}/api/v1/tarot-bots`,
-    DETAILS: (id: number) => `${BASE_URL}/api/v1/tarot-bots/${id}`,
+    DETAILS: (id: string) => `${BASE_URL}/api/v1/tarot-bots/${id}`,
   },
   POSTS: {
     LIST: (filter: string, page: number) =>

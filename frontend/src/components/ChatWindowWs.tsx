@@ -9,6 +9,7 @@ import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
 import { io, Socket } from "socket.io-client";
 import { useSession } from "@/context/SessionContext";
+import { getTarotMaster } from "@/libs/api";
 
 interface ChatWindowProps {
   sessionIdParam?: string;
@@ -20,10 +21,20 @@ interface MessageForm {
   content?: React.ReactNode;
 }
 
+interface TarotMaster {
+  id: number;
+  name: string;
+  description: string;
+  concept: string;
+  profileImage: string;
+  mbti: string;
+}
+
 export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const botId = localStorage.getItem("botId");
   const userId = localStorage.getItem("userId");
   const sessionId = sessionIdParam || "nosession";
+  const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
   const [chatType, setChatType] = useState("none");
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
@@ -42,6 +53,20 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
 
   const { triggerSessionUpdate } = useSession();
+
+  useEffect(() => {
+    if (!botId) return;
+      const fetchTarotMasters = async () => {
+        try {
+          const master = await getTarotMaster(botId);
+          setTarotMaster(master);
+        } catch (error) {
+          console.error("타로 마스터 불러오기 실패:", error);
+        }
+      };
+  
+      fetchTarotMasters();
+    }, [botId]);
   
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
   const handleSendMessage = useCallback(async (message: string) => {
