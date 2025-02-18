@@ -43,6 +43,9 @@ socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/socket.io
 # room_id -> asyncio.Queue(챗봇)
 chatbot_queues: Dict[str, asyncio.Queue] = {}
 
+# 사용자 sid: nickname 맵
+user_nicknames: Dict[str, str] = {}
+
 # 챗봇 백그라운드 태스크
 async def chatbot_worker(room_id: str):
     queue = chatbot_queues[room_id]
@@ -89,6 +92,8 @@ async def connect_error(sid, data):
 
 @sio.event
 async def disconnect(sid):
+    if sid in user_nicknames:
+        del user_nicknames[sid]
     print(f"[disconnect] 클라이언트 해제: {sid}")
 
 @sio.on("join_room")
@@ -100,7 +105,14 @@ async def handle_join_room(sid, data):
     await sio.enter_room(sid, room_id)
     print(f"[join_room] {sid} joined {room_id}")
 
+    nickname = data.get("nickname")
+    if nickname:
+        user_nicknames[sid] = nickname
+        print(f"사용자 {sid}에 대한 nickname '{nickname}' 저장됨.")
+
     print(f"🔍 현재 {sid}의 Room 리스트: {sio.rooms(sid)}")
+    room_participants = sio.manager.rooms.get("/", {}).get(room_id, set())
+    print(f"🔍 현재 {room_id}의 참여자 수: {len(room_participants)/2}")
 
     if room_id not in chatbot_queues:
         chatbot_queues[room_id] = asyncio.Queue()

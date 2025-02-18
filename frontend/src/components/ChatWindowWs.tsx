@@ -42,12 +42,40 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const [nickname, setNickname] = useState("");
   
   const [isRoomJoined, setIsRoomJoined] = useState(false);
   const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
 
   const { triggerSessionUpdate } = useSession();
 
+  // 프로필에서 닉네임 불러오기 함수
+  const fetchProfileData = useCallback(async (): Promise<void> => {
+    // 내 프로필 정보 불러오기
+    try {
+      const res = await fetch(API_URLS.USER.ME, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setNickname(data.nickname || "");
+      } else {
+        console.error("프로필 데이터를 불러오는 데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("프로필 데이터 요청 중 오류 발생:", error);
+    } finally {
+    }
+  }, []);
+
+  // 컴포넌트 마운트 시 프로필 데이터 불러오기
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
+
+  // botId로 부터 정보 불러오기 (프사 등)
   useEffect(() => {
     if (!botId) return;
       const fetchTarotMasters = async () => {
@@ -123,7 +151,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     socketRef.current = socket;
 
     // ✅ 세션(Room) 참가
-    socket.emit("join_room", { room_id: sessionId });
+    socket.emit("join_room", { room_id: sessionId, nickname: nickname });
 
     socket.on("room_joined", (data) => {
       console.log(`Room joined: ${data.room_id}`);
@@ -163,7 +191,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       console.log("소켓 연결 해제");
       socket.disconnect();
     };
-  }, [sessionId]);
+  }, [sessionId, nickname]);
 
   // pendingMessage를 감지해 전달
   useEffect(() => {
