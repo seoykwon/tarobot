@@ -59,7 +59,12 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
     localStorage.setItem("botId", masterId.toString())
     setBotId(masterId.toString())
     triggerSessionUpdate()
-    router.push("/chat")
+    setIsClosing(true) // 패널 닫기 애니메이션 시작
+    setTimeout(() => {
+      setSelectedMaster(null) // 선택된 마스터 초기화
+      setIsClosing(false)
+      router.push("/chat") // 채팅화면으로 이동동
+    }, 200)
   }
 
   /** 🔹 패널 외부 클릭 시 닫기 */
