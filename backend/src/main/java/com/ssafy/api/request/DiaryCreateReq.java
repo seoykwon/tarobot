@@ -14,9 +14,6 @@ import java.time.LocalDate;
 @Schema(description = "DiaryCreateRequest")
 public class DiaryCreateReq {
 
-    @Schema(description = "유저 ID", example = "1")
-    private Long userId;
-
     @Schema(description = "상담 일자", example = "2024-01-23")
     private LocalDate consultDate;
 
@@ -31,4 +28,7 @@ public class DiaryCreateReq {
 
     @Schema(description = "타로 카드 이미지 URL", example = "http://example.com/tarot.jpg")
     private String cardImageUrl;
+
+    @Schema(description = "타로봇 ID", example = "1")
+    private Long tarotBotId;
 }

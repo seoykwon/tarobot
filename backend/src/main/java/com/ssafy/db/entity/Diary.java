@@ -32,4 +32,8 @@ public class Diary extends BaseEntity {
     private String summary; // 상담 요약
 
     private String cardImageUrl; // 타로 카드 이미지 URL
+
+    @ManyToOne
+    @JoinColumn(name = "tarot_bot_id", nullable = false)
+    private TarotBot tarotBot; // 상담을 진행한 타로봇
 }
