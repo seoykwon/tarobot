@@ -16,6 +16,7 @@ export const API_URLS = {
     STREAM: `${FASTAPI_BASE_URL}/chat/stream`,
     ENTER: `${BASE_URL}/api/v1/chat/session/enter`,
     CLOSE: `${BASE_URL}/api/v1/chat/session/close`,
+    UPDATE: (sessionId: string) => `${BASE_URL}/api/v1/chat/session/update/${sessionId}`,
   },
   TAROT: {
     RECORDS: `${BASE_URL}/tarot-records`,

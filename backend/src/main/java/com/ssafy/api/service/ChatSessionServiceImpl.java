@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -71,6 +72,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     // 저장 시 updatedAt 스탬프가 자동 업데이트 됨
     @Override
     public void updateLastAccessed(ChatSession session) {
+        session.setUpdatedAt(LocalDateTime.now());
         chatSessionRepository.save(session);
     }
 
