@@ -14,6 +14,7 @@ from app.utils.response_utils import response_generator  # ✅ Streaming import
 from app.utils.fo_mini_api import call_4o_mini
 from app.services.redis_utils import get_recent_history
 from app.utils.sys_prompt_dict import sys_prompt
+from app.utils.max_tokens import max_tokens_for_type
 
 app = FastAPI()
 
@@ -73,10 +74,16 @@ async def chatbot_worker(room_id: str):
             # 전처리 작업 실행하여 context, keywords, chat_tag 생성
             context, keywords, chat_tag = await process_user_input(room_id, user_input, type, user_id, bot_id)
 
+            # none 타입, 의도 분석 결과 tarot 아니고, 20자 미만의 짧은 채팅이면 short
+            if (type == "none" and chat_tag != "tarot" and len(user_input) < 20):
+                type = "short"
+                context += "짧은 대화이니 반드시 30자 이내로 대답하세요"
+
             # response_generator를 통해 스트리밍 응답을 생성 (async generator)
             generator = response_generator(
                 room_id, user_input, context,
-                bot_id=bot_id, keywords=keywords, user_id=user_id, type=type, chat_tag=chat_tag
+                bot_id=bot_id, keywords=keywords, user_id=user_id, type=type, chat_tag=chat_tag,
+                max_tokens=max_tokens_for_type[type]
             )
 
             # generator를 통해 스트리밍으로 전송
