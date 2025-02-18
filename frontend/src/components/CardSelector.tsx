@@ -85,9 +85,9 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
     return cards
   }
 
-  const isEdgePosition = () => {
-    return startIndex === 0 || startIndex >= randomizedCards.length - visibleCards
-  }
+  // const isEdgePosition = () => {
+  //   return startIndex === 0 || startIndex >= randomizedCards.length - visibleCards
+  // }
 
   const getCardStyle = (index: number, cardId: string): React.CSSProperties => {
     const angle = -105 + (210 / (visibleCards - 1)) * index
