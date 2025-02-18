@@ -14,7 +14,7 @@ export default function GoogleLoginButton({ redirect }: { redirect: string }) {
       return;
     }
 
-    popup.location.href = `${API_URLS.AUTH.GOOGLE}`;
+    popup.location.href = `${API_URLS.AUTH.GOOGLE}?prompt=login`;
 
     // 팝업 창 닫힘 감지 및 결과 처리
     const checkPopup = setInterval(async () => {
