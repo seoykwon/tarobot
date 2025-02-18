@@ -165,21 +165,39 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     socket.on("chat_message", (data) => {
       console.log(`📩 사용자 메시지 수신: ${data}`);
       setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
-      setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
+      // setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
     });
   
+    // socket.on("chatbot_message", (data) => {
+    //   console.log(`🤖 챗봇 메시지 수신: ${data}`);
+    //   setChatType(data.chat_tag);
+    //   setMessages((prev) => {
+    //     const updatedMessages = [...prev];
+    //     const lastBotIndex = updatedMessages.findLastIndex(
+    //       (msg) => msg.isUser === "assistant" && msg.text === "입력 중..."
+    //     );
+    //     if (lastBotIndex !== -1) {
+    //       updatedMessages.splice(lastBotIndex, 1);
+    //     }
+    //     updatedMessages.push({ text: data.message, isUser: "assistant" });
+    //     return updatedMessages;
+    //   });
+    // });
     socket.on("chatbot_message", (data) => {
       console.log(`🤖 챗봇 메시지 수신: ${data}`);
       setChatType(data.chat_tag);
       setMessages((prev) => {
         const updatedMessages = [...prev];
-        const lastBotIndex = updatedMessages.findLastIndex(
-          (msg) => msg.isUser === "assistant" && msg.text === "입력 중..."
-        );
-        if (lastBotIndex !== -1) {
-          updatedMessages.splice(lastBotIndex, 1);
+        // 마지막 메시지가 assistant의 메시지라면, 그 메시지에 새로운 청크를 추가합니다.
+        if (
+          updatedMessages.length > 0 &&
+          updatedMessages[updatedMessages.length - 1].isUser === "assistant"
+        ) {
+          updatedMessages[updatedMessages.length - 1].text += data.message;
+        } else {
+          // 처음 받은 메시지라면 새로운 메시지 객체를 추가합니다.
+          updatedMessages.push({ text: data.message, isUser: "assistant" });
         }
-        updatedMessages.push({ text: data.message, isUser: "assistant" });
         return updatedMessages;
       });
     });
