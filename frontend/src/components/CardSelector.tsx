@@ -37,10 +37,10 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 
     console.log("🃏 랜덤 카드 목록:", allCards)
 
-    // 2000ms (2초) 후 초기 애니메이션 종료
+    // 2000ms (1초) 후 초기 애니메이션 종료
     setTimeout(() => {
       setIsInitial(false)
-    }, 2000)
+    }, 1000)
   }, [])
 
   const handleCardSelect = (cardId: string) => {
