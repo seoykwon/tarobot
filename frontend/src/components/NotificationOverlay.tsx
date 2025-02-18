@@ -21,14 +21,6 @@ export default function NotificationOverlay({
 }) {
   // 예시 알림 1개를 초기 상태로 설정 (3일 전 날짜로 설정하려면 아래와 같이 수정 가능)
   const [notifications, setNotifications] = useState<Announcement[]>([
-    {
-      announcementId: 1,
-      title: "시스템 점검 안내",
-      content: "내일 12시부터 2시까지 시스템 점검이 예정되어 있습니다.",
-      // 만약 3일 전으로 설정하려면 new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()를 사용
-      createdAt: new Date().toISOString(),
-      profileIcon: "/notice.svg",
-    },
   ]);
 
   const [selectedNotification, setSelectedNotification] =
