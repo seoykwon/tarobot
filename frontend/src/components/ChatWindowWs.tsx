@@ -74,8 +74,9 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
     if (!socketRef.current) return;
 
-    updateChatSession();
-    triggerSessionUpdate(); // 세션 업데이트
+    updateChatSession().then(() => {
+      triggerSessionUpdate();
+    }); // 세션 업데이트
   
     // ✅ Socket.IO를 통해 메시지 전송
     socketRef.current.emit("chat_message", {
@@ -321,7 +322,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
             {msg.isUser === "assistant" ? (
               <div className="flex items-start space-x-3">
                 {/* 봇 프로필 이미지 */}
-                <img
+                {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
+                <Image
                   src={`/bots/${botId}_profile.png`}
                   alt="Bot Profile"
                   className="w-16 h-16 rounded-full"
