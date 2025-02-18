@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVer = '3.2.12' / Spring Boot
+        springBootVer = '3.2.12' // Spring Boot
         querydslVer = '5.0.0'  // QueryDSL
         querydslPluginVer = '1.0.10' // QueryDSL 플러그인
         springDependencyMgmtVer = '1.1.4' // Spring Dependency Management
