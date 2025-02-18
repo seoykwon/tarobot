@@ -27,7 +27,13 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
+  const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>
+  ([
+    { text: "안녕", isUser: localStorage.getItem("userId") || "user" }, // 사용자 메시지
+    { text: "반가워", isUser: "assistant" }, // 봇 메시지
+    { text: "오늘 기분 어때? 오늘 기분 어때?  오늘 기분 어때? 오늘 기분 어때?오늘 기분 어때? 오늘 기분 어때? 오늘 기분 어때? 오늘 기분 어때?", isUser: localStorage.getItem("userId") || "user" }, // 사용자 메시지
+    { text: "좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~ 좋아 보여~", isUser: "assistant" }, // 봇 메시지
+    ]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   
@@ -270,46 +276,41 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   }, [messages]);
 
   return (
-    // 모바일일때와 아닐때 배경 분기
-    <div className={isMobile ? "relative h-screen" : "flex flex-col h-screen bg-purple-100"}>
-      {isMobile && (
-        <div className="absolute inset-0">
-          {/* 이미지 임시, 경로 수정 필요 */}
-          <Image
-            src="/images/dummy1.png"
-            alt="배경 이미지"
-            fill
-            className="object-cover"
-          />
-        </div>
-      )}
-      <div
+        // 모바일일때와 아닐때 배경 분기
+        <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
+        {/* 모바일일 때 이미지 부분 삭제 */}
+        <div
         className={
-          isMobile
-            ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]"
-            : "flex flex-col h-screen"
+        isMobile
+        ? "relative z-10 flex flex-col h-screen bg-purple-50"
+        : "flex flex-col h-screen"
         }
         style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
-      >
+        >
         {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
         <div
           ref={chatContainerRef}
           className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
         >
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                // assistant 메시지는 왼쪽 정렬, 그 외는 오른쪽 정렬
-                msg.isUser === "assistant" ? "justify-start" : "justify-end"
-              } w-full`}
-            >
-              {msg.isUser === "assistant" ? (
-                // 봇 메시지 (왼쪽 정렬, text 클래스는 고정하거나 원하는 대로)
-                <div className="px-4 py-2 rounded-r-lg rounded-bl-lg max-w-xs bg-purple-400 text-gray-800 leading-relaxed">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`flex ${
+              msg.isUser === "assistant" ? "justify-start" : "justify-end"
+            } w-full`}
+          >
+            {msg.isUser === "assistant" ? (
+              <div className="flex items-start space-x-3">
+                {/* 봇 프로필 이미지 */}
+                <img
+                  src={`/bots/${botId}_profile.png`}
+                  alt="Bot Profile"
+                  className="w-16 h-16 rounded-full"
+                />
+                {/* 봇 메시지 말풍선 */}
+                <div className="px-4 py-2 rounded-lg max-w-[90%] text-gray-800 leading-relaxed">
                   {msg.text}
                   {msg.content && <div className="mt-2">{msg.content}</div>}
-                  {/* ✅ 타로 메시지일 경우 버튼 추가 */}
                   {index === messages.length - 1 && chatType === "tarot" && (
                     <div className="mt-2">
                       <button
@@ -321,19 +322,21 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
                     </div>
                   )}
                 </div>
-              ) : (
-                // 사용자 메시지 (오른쪽 정렬)
-                <div
-                  className={`px-4 py-2 rounded-l-lg rounded-br-lg max-w-xs bg-gray-800 ${
-                    // 메시지의 isUser가 내 userId와 같으면 text-white, 아니면 text-blue 적용
-                    msg.isUser === userId ? "text-white bg-gray-800" : "text-pink-500 bg-blue-100"
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ) : (
+              /* 사용자 메시지 */
+              <div
+                className={`px-4 py-2 rounded-lg max-w-[60%] ${
+                  msg.isUser === userId ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
+                }`}
+              >
+                {msg.text}
+              </div>
+            )}
+          </div>
+        ))}
+
+
         </div>
   
         {/* ============ 추가된 요소 ============ */}
