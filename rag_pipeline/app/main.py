@@ -14,6 +14,7 @@ from app.utils.response_utils import response_generator  # ✅ Streaming import
 from app.utils.fo_mini_api import call_4o_mini
 from app.services.redis_utils import get_recent_history
 from app.utils.sys_prompt_dict import sys_prompt
+from app.services.redis_utils import save_message
 
 app = FastAPI()
 
@@ -70,23 +71,29 @@ async def chatbot_worker(room_id: str):
                   OtherNickname {other_nicknames}
             """)
 
-            # 전처리 작업 실행하여 context, keywords, chat_tag 생성
+            # 전처리 작업 실행
             context, keywords, chat_tag = await process_user_input(room_id, user_input, type, user_id, bot_id)
 
-            # response_generator를 통해 스트리밍 응답을 생성 (async generator)
+            # response_generator를 통해 스트리밍 응답 생성 (async generator)
             generator = response_generator(
                 room_id, user_input, context,
                 bot_id=bot_id, keywords=keywords, user_id=user_id, type=type, chat_tag=chat_tag
             )
 
-            # generator를 통해 스트리밍으로 전송
+            # 각 청크를 파싱 후 Socket.IO로 전송
             async for chunk in generator:
-                # 만약 큐에 새 메시지가 들어왔다면 스트리밍 응답을 중단합니다.
-                if not queue.empty():
-                    print("새로운 사용자 메시지 감지, 스트리밍 응답 중단")
-                    break
+                try:
+                    payload = json.loads(chunk)
+                except Exception:
+                    payload = {"chunk": chunk, "response_id": None, "sequence": None}
+                # 만약 큐에 새 메시지가 있다면 스트리밍 중단
+                # if not queue.empty():
+                #     print("새로운 사용자 메시지 감지, 스트리밍 응답 중단")
+                #     break
                 await sio.emit("chatbot_message", {
-                    "message": chunk,
+                    "message": payload["chunk"],
+                    "response_id": payload["response_id"],
+                    "sequence": payload["sequence"],
                     "role": "assistant",
                     "chat_tag": chat_tag,
                 }, room=room_id)
@@ -95,9 +102,10 @@ async def chatbot_worker(room_id: str):
 
         except Exception as e:
             answer = f"[Error] Streaming 응답 생성 실패: {str(e)}"
-            # 에러 발생 시 전체 에러 메시지를 전송
             await sio.emit("chatbot_message", {
                 "message": answer,
+                "response_id": None,
+                "sequence": None,
                 "role": "assistant",
                 "chat_tag": "",
             }, room=room_id)
@@ -170,6 +178,8 @@ async def handle_chat_message(sid, data):
     }
     """
     room_id = data["room_id"]
+    # user_input = data["user_input"]
+    # user_id = data["user_id"]
 
     # 사용자 메시지 브로드캐스트
     await sio.emit("chat_message", {
@@ -180,6 +190,9 @@ async def handle_chat_message(sid, data):
         }, room=room_id)
     
     await sio.emit("saying", {}, room=room_id)
+    
+    # **사용자 메시지를 Redis에 즉시 저장** (중요)
+    # await save_message(room_id, user_id, user_input)
 
     # 챗봇 Queue에 메시지 투입
     if room_id in chatbot_queues:

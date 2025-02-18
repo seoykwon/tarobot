@@ -1,4 +1,4 @@
-// components/ChatWindowWs.tsx
+// src/components/ChatWindowWs.tsx
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -19,6 +19,8 @@ interface MessageForm {
   message: string;
   role: string;
   content?: React.ReactNode;
+  response_id?: string;
+  sequence?: number;
 }
 
 interface TarotMaster {
@@ -39,15 +41,13 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [showTarotButton, setShowTarotButton] = useState(false);
   const [showCardSelector, setShowCardSelector] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
+  const [messages, setMessages] = useState<MessageForm[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const [nickname, setNickname] = useState("");
   const [saying, setSaying] = useState(false);
-
   const [isRoomJoined, setIsRoomJoined] = useState(false);
-  const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
-
+  const pendingMessageRef = useRef<string | null>(null);
   const { triggerSessionUpdate } = useSession();
 
   // 프로필에서 닉네임 불러오기 함수
@@ -165,29 +165,44 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     // ✅ 메시지 수신 처리
     socket.on("chat_message", (data) => {
       console.log(`📩 사용자 메시지 수신: ${data}`);
-      setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
+      setMessages((prev) => [...prev, { message: data.message, role: data.role }]);
     });
 
+    // 기존 chatbot_message 이벤트 핸들러 수정 (response_id & sequence 사용)
     socket.on("chatbot_message", (data) => {
-      console.log(`🤖 챗봇 메시지 수신: ${data}`);
+      console.log("🤖 챗봇 메시지 수신:", data);
       setSaying(false);
       setChatType(data.chat_tag);
+    
       setMessages((prev) => {
         const updatedMessages = [...prev];
-        // 마지막 메시지가 assistant의 메시지라면, 그 메시지에 새로운 청크를 추가합니다.
-        if (
-          updatedMessages.length > 0 &&
-          updatedMessages[updatedMessages.length - 1].isUser === "assistant"
-        ) {
-          updatedMessages[updatedMessages.length - 1].text += data.message;
+    
+        // 1) 이미 해당 response_id를 가진 봇 메시지가 있는지 뒤에서부터 검색
+        const existingIndex = updatedMessages
+          .slice()
+          .reverse() // 뒤에서부터 확인
+          .findIndex((msg) => msg.role === "assistant" && msg.response_id === data.response_id);
+    
+        // findIndex는 뒤집힌 배열에서 찾으므로, 실제 인덱스를 재계산
+        // (뒤집힌 배열에서의 인덱스를 원본 인덱스로 변환)
+        let realIndex = existingIndex >= 0 ? updatedMessages.length - 1 - existingIndex : -1;
+    
+        if (data.response_id && realIndex >= 0) {
+          // 2) 이미 존재하는 메시지라면, 그 메시지 내용에 chunk 이어붙이기
+          updatedMessages[realIndex].message += data.message;
         } else {
-          // 처음 받은 메시지라면 새로운 메시지 객체를 추가합니다.
-          updatedMessages.push({ text: data.message, isUser: "assistant" });
+          // 3) 해당 response_id 메시지가 아직 없다면 새로 추가
+          updatedMessages.push({
+            message: data.message,
+            role: data.role,
+            response_id: data.response_id,
+            sequence: data.sequence,
+          });
         }
         return updatedMessages;
       });
     });
-
+    
     // 응답 생성 중 표시
     // ✅ 메시지 수신 처리
     socket.on("saying", () => {
@@ -246,8 +261,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
         // 서버에서 가져온 이전 대화 기록을 메시지 상태에 설정
         setMessages(data.map((msg: MessageForm) => ({
-          text: msg.message,
-          isUser: msg.role,
+          message: msg.message,
+          role: msg.role,
           content: msg.content ? (
             <Image
               src={`/basic/${msg.content}.svg`}
@@ -310,8 +325,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     setMessages((prev) => [
       ...prev,
       { 
-        text: `"${selectedCard}" 카드를 선택했어!`, 
-        isUser: "assistant",
+        message: `"${selectedCard}" 카드를 선택했어!`, 
+        role: "assistant",
         content: (
           <Image
             src={`/basic/${cardId}.svg`}
@@ -350,81 +365,80 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   }, [messages]);
 
   return (
-        // 모바일일때와 아닐때 배경 분기
-        <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
-        {/* 모바일일 때 이미지 부분 삭제 */}
-        <div
+    // 모바일일때와 아닐때 배경 분기
+    <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
+      {/* 모바일일 때 이미지 부분 삭제 */}
+      <div
         className={
-        isMobile
-        ? "relative z-10 flex flex-col h-screen bg-purple-50"
-        : "flex flex-col h-screen"
+          isMobile
+            ? "relative z-10 flex flex-col h-screen bg-purple-50"
+            : "flex flex-col h-screen"
         }
         style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
-        >
+      >
         {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
         <div
           ref={chatContainerRef}
           className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
         >
           {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              msg.isUser === "assistant" ? "justify-start" : "justify-end"
-            } w-full`}
-          >
-            {msg.isUser === "assistant" ? (
-              <div className="flex items-start space-x-3">
-                {/* 봇 프로필 이미지 */}
-                {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
-                <Image
-                  src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
-                  alt="Bot Profile"
-                  width={128}
-                  height={128}
-                  className="w-16 h-16 rounded-full"
-                />
-                {/* 봇 메시지 말풍선 */}
-                <div className="px-4 py-2 rounded-lg max-w-[90%] text-gray-800 leading-relaxed">
-                  {msg.text}
-                  {msg.content && <div className="mt-2">{msg.content}</div>}
-                  {index === messages.length - 1 && chatType === "tarot" && (
-                    <div className="mt-2">
-                      <button
-                        onClick={handleShowCardSelector}
-                        className="px-4 py-2 bg-yellow-500 text-white rounded"
-                      >
-                        타로 점 보기 🔮
-                      </button>
-                    </div>
-                  )}
+            <div
+              key={index}
+              className={`flex ${
+                msg.role === "assistant" ? "justify-start" : "justify-end"
+              } w-full`}
+            >
+              {msg.role === "assistant" ? (
+                <div className="flex items-start space-x-3">
+                  {/* 봇 프로필 이미지 */}
+                  {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
+                  <Image
+                    src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
+                    alt="Bot Profile"
+                    width={128}
+                    height={128}
+                    className="w-16 h-16 rounded-full"
+                  />
+                  {/* 봇 메시지 말풍선 */}
+                  <div className="px-4 py-2 rounded-lg max-w-[90%] text-gray-800 leading-relaxed">
+                    {msg.message}
+                    {msg.content && <div className="mt-2">{msg.content}</div>}
+                    {index === messages.length - 1 && chatType === "tarot" && (
+                      <div className="mt-2">
+                        <button
+                          onClick={handleShowCardSelector}
+                          className="px-4 py-2 bg-yellow-500 text-white rounded"
+                        >
+                          타로 점 보기 🔮
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              /* 사용자 메시지 */
-              <div
-                className={`px-4 py-2 rounded-lg max-w-[60%] ${
-                  msg.isUser === userId ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
-                }`}
-              >
-                {msg.text}
-              </div>
-            )}
-          </div>
-        ))}
-        {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
-        {saying && tarotMaster?.profileImage && (
-          <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
-            <Image
-              src={tarotMaster.profileImage}
-              alt="Chatbot Thinking"
-              width={64}
-              height={64}
-              className="w-16 h-16 rounded-full animate-pulse"
-            />
-          </div>
-        )}
-
+              ) : (
+                /* 사용자 메시지 */
+                <div
+                  className={`px-4 py-2 rounded-lg max-w-[60%] ${
+                    msg.role === userId ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
+                  }`}
+                >
+                  {msg.message}
+                </div>
+              )}
+            </div>
+          ))}
+          {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
+          {saying && tarotMaster?.profileImage && (
+            <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
+              <Image
+                src={tarotMaster.profileImage}
+                alt="Chatbot Thinking"
+                width={64}
+                height={64}
+                className="w-16 h-16 rounded-full animate-pulse"
+              />
+            </div>
+          )}
         </div>
   
         {/* ============ 추가된 요소 ============ */}
@@ -440,8 +454,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         {/* ============ 추가된 요소 ============ */}
   
         {/* 하단 입력창 */}
-        <ChatInput onSend={handleSendMessage} sessionId={sessionId}/>
+        <ChatInput onSend={handleSendMessage} sessionId={sessionId} />
       </div>
     </div>
-  );
+  ); 
 }
