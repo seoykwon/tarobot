@@ -68,8 +68,8 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
         # recent_summary_task = asyncio.create_task(get_summary_history(session_id))
         
         # Pinecone RAG 검색
-        retrieve_task = asyncio.create_task(retrieve_documents(user_id, user_input, keywords, top_k=3))
-
+        retrieve_task = asyncio.create_task(retrieve_documents(bot_id, user_id, user_input, keywords, top_k=3))
+        
         # 2가지 비동기 task 완료 대기 후 값 할당
         recent_history, pine_results = await asyncio.gather(recent_history_task ,retrieve_task)
 
@@ -177,7 +177,7 @@ async def rag_pipeline(session_id: str, user_input: str, type: str, user_id: str
 
     # Pinecone 업서트
     print(f"🔹 Pinecone 업서트 데이터: {metadata}")  # 디버깅용 로그
-    upsert_task = asyncio.create_task(upsert_documents(user_id, [user_input], [metadata]))
+    upsert_task = asyncio.create_task(upsert_documents(bot_id, user_id, [user_input], [metadata]))
 
     # ✅ 업서트 응답 확인
     print(f"✅ Pinecone 업서트 결과: {upsert_task}")
