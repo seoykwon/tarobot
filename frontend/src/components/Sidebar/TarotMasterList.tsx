@@ -92,7 +92,7 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
           <li
             key={master.id}
             onClick={() => handleSelectMaster(master)}
-            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-[#0D0D0D] cursor-pointer ${
+            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-200 text-[#0D0D0D] cursor-pointer ${
               selectedMaster?.id === master.id ? "bg-gray-100" : ""
             }`}
           >
@@ -111,7 +111,7 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
       </ul>
       <button
         onClick={onOpenCharacterSelect}
-        className="mt-4 w-full py-2 bg-gray-100 text-black rounded-lg hover:bg-gray-200 p-3 rounded-lg flex items-center justify-start transition-colors"
+        className="mt-4 w-full py-2 bg-[#f0f4f9] text-black rounded-lg hover:bg-gray-200 p-3 rounded-lg flex items-center justify-start transition-colors"
       >
         더 많은 마스터 보기
       </button>
