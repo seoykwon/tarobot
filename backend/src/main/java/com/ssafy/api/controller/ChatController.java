@@ -73,7 +73,7 @@ public class ChatController {
         chatSessionService.deleteChatSession(request.getSessionId());
 
         // 2. 요약 요청
-        chatSessionService.summaryAndDiarySave(request.getSessionId(), request.getUserId());
+        chatSessionService.summaryAndDiarySave(request.getSessionId(), request.getUserId(), request.getBotId());
 
         return ResponseEntity.ok(Map.of("message", "채팅 종료 처리 중"));
     }

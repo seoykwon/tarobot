@@ -12,5 +12,5 @@ public interface ChatSessionService {
     List<ChatSession> findAllByUserIdAndBotId(Long botId);
     void updateLastAccessed(ChatSession session);
     void deleteChatSession(UUID sessionId);
-    void summaryAndDiarySave(UUID sessionId, String userId);
+    void summaryAndDiarySave(UUID sessionId, String userId, Long botId);
 }

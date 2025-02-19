@@ -331,6 +331,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
             body: JSON.stringify({
               sessionId: sessionId,
               userId: storedUserId,
+              botId: botId,
             }),
             credentials: "include",
           });
@@ -341,7 +342,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       };
       closeSession();
     }
-  }, [chatType, sessionId, storedUserId]);
+  }, [chatType, sessionId, storedUserId, botId]);
 
   // =========================================
   // 타로 버튼 클릭 시 카드 선택창 호출

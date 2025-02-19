@@ -4,9 +4,11 @@ import com.ssafy.api.response.ChatSummaryRes;
 import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.ChatSession;
 import com.ssafy.db.entity.Diary;
+import com.ssafy.db.entity.TarotBot;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.ChatSessionRepository;
 import com.ssafy.db.repository.DiaryRepository;
+import com.ssafy.db.repository.TarotBotRepository;
 import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +31,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 
     private final DiaryRepository diaryRepository;
     private final UserRepository userRepository;
+    private final TarotBotRepository tarotBotRepository;
 
     private final SecurityUtil securityUtil;
     private final WebClient webClient;
@@ -84,7 +87,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    public void summaryAndDiarySave(UUID sessionId, String userId) {
+    public void summaryAndDiarySave(UUID sessionId, String userId, Long botId) {
         try {
             // ✅ FastAPI 응답을 DTO 객체로 매핑
             ChatSummaryRes response = webClient.post()
@@ -101,6 +104,8 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 User user = userRepository.findByUserId(userId)
                         .orElseThrow(() -> new RuntimeException("User not found with userId: " + userId));
 
+                TarotBot tarotBot = tarotBotRepository.findById(botId).get();
+
                 Diary diary = new Diary();
                 diary.setUser(user);
                 diary.setConsultDate(LocalDate.now());
@@ -108,6 +113,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 diary.setTitle(response.getTitle());
                 diary.setTag(String.join(", ", response.getTag()));
                 diary.setCardImageUrl(response.getCardImageUrl());
+                diary.setTarotBot(tarotBot);
 
                 diaryRepository.save(diary);
                 System.out.println("✅ Diary saved successfully with title: " + response.getTitle());

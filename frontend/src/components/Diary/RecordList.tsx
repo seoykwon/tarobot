@@ -11,7 +11,7 @@ interface TarotSummary {          // 타로 요약 데이터
   title: string;
   summary: string;
   cardImageUrl: string;
-  taroBotId: number;
+  tarotBotId: number;
   createdAt: string;
   updatedAt: string;
 }

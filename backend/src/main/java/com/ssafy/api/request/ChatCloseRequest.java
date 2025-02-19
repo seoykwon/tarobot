@@ -16,4 +16,8 @@ public class ChatCloseRequest {
     @NotNull(message = "사용자 ID는 필수 입력 항목입니다.")
     @Schema(description = "사용자의 ID", example = "username@email.com")
     private String userId;
+
+    @NotNull(message = "봇 ID는 필수 입력 항목입니다.")
+    @Schema(description = "봇의 ID", example = "1")
+    private Long botId;
 }
