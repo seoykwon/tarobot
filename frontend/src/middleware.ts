@@ -77,6 +77,6 @@ async function validateAndRefresh(req: NextRequest, accessToken: string | undefi
 // Middleware가 적용될 경로 설정
 export const config = {
   matcher: [
-    "/chat/:path*", // 동적 채팅 경로
+    // "/chat/:path*", // 동적 채팅 경로
   ],
 };
