@@ -13,10 +13,16 @@ export default function InviteFriend({ onClose, className }: InviteFriendProps) 
   const [isCopied, setIsCopied] = useState(false);
   const [kakaoLoaded, setKakaoLoaded] = useState(false);
 
-  // 현재 URL 가져오기
+  // 현재 URL 가져오기 및 botId 추가
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setCurrentURL(window.location.href);
+      const botId = localStorage.getItem("botId"); // localStorage에서 botId 가져오기
+      const baseURL = window.location.href; // 현재 URL 가져오기
+      const updatedURL = new URL(baseURL);
+      if (botId) {
+        updatedURL.searchParams.set("botId", botId); // botId를 쿼리 파라미터로 추가
+      }
+      setCurrentURL(updatedURL.toString()); // 업데이트된 URL 설정
     }
   }, []);
 
@@ -54,7 +60,7 @@ export default function InviteFriend({ onClose, className }: InviteFriendProps) 
         content: {
           title: "채팅방 초대",
           description: "친구와 함께 채팅에 참여하세요!",
-          imageUrl: "https://ifh.cc/g/hMJsnc.jpg", // 유효
+          imageUrl: "https://ifh.cc/g/hMJsnc.jpg", // 유효한 이미지 URL
           link: {
             mobileWebUrl: currentURL,
             webUrl: currentURL,

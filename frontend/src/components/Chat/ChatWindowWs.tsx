@@ -32,8 +32,8 @@ interface TarotMaster {
 }
 
 export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
-  const botId = localStorage.getItem("botId");
-  const userId = localStorage.getItem("userId");
+  const botId = localStorage.getItem("botId") || new URLSearchParams(window.location.search).get("botId") || "";  // localstorage or 쿼리 파라미터 or 없음
+  const userId = localStorage.getItem("userId") || "";
   const sessionId = sessionIdParam || "nosession";
   const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
   const [chatType, setChatType] = useState("none");
