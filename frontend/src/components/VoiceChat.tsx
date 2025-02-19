@@ -170,12 +170,12 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
 
   return (
     <>
-      <button
+      <div
         onClick={startCallOrToggleMute}
         className="transition-opacity duration-200 absolute inset-0"
       >
         {callStarted ? (isMuted ? "🎙️ Off" : "🎤 On") : "Start Call"}
-      </button>
+      </div>
       <audio ref={remoteAudioRef} autoPlay />
     </>
   );

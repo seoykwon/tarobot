@@ -1,3 +1,4 @@
+# utils/sys_prompt_dict.py
 sys_prompt = {
     "gettag" : """
 유저의 입력을 분석해 사용자가 타로 점을 보고 싶은 지 분석해주세요.

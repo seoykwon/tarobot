@@ -1,3 +1,4 @@
+# utils/chatbot_concept.py
 names = ["미루", "온달", "나비", "루미", "라쿠", "벨로", "제로"]
 concepts = {
     "미루" : """

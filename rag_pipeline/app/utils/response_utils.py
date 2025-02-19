@@ -1,61 +1,86 @@
-# response_utils.py
+# app/utils/response_utils.py
 import asyncio
 import datetime
-from typing import AsyncGenerator
-
+import uuid
+import json
 import pytz
+from typing import AsyncGenerator
 from app.utils.fo_mini_api import call_4o_mini_str
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_tarot
 from app.utils.chatbot_concept import names, concepts
 from app.services.pinecone_integration import upsert_documents
 from app.services.redis_utils import get_recent_history, save_message
 
-async def response_generator(session_id: str, user_input: str, context: str, bot_id: int, keywords: list[str], user_id: str, type: str, chat_tag: str, max_tokens: int = 512) -> AsyncGenerator[str, None]:
+async def response_generator(
+    session_id: str,
+    user_input: str,
+    context: str,
+    bot_id: int,
+    keywords: list[str],
+    user_id: str,
+    type: str,
+    chat_tag: str
+) -> AsyncGenerator[str, None]:
     """
-    OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터
+    OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터  
+    각 청크에 고유 response_id와 sequence 번호를 추가하여 JSON 문자열로 반환합니다.
     """
     try:
-        # type에 따라 input과 chat_prompt 템플릿 분리
+        # 타로/일반 대화 프롬프트 구성
         if type == "tarot":
             chat_prompt = make_prompt_tarot(context, user_input)
-            lastconv = await get_recent_history(session_id, 3) # 직전 대화 기록 불러오기
-            print(lastconv)
+            lastconv = await get_recent_history(session_id, 3)  # 직전 대화 기록 불러오기
             if lastconv:
                 chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
         else:
             chat_prompt = make_prompt_chat(context, user_input)
-            # 챗 태그가 tarot이면 바로 결과를 내지 말고, 사용자가 타로를 보고 싶다고 하길 유도하라
             if chat_tag == "tarot":
                 chat_prompt += """
 사용자가 타로 점을 보고 싶어하는 것 같습니다.
 이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
 """
-
-        llm_answer = ""  # ✅ 모든 chunk를 저장할 변수
-
-        print(context)
-
-        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=max_tokens, system_prompt=concepts[names[bot_id]], stream=True):  
-            if not chunk:  
+        # 새로운 응답에 대한 고유 ID 생성 및 sequence 초기화
+        response_id = str(uuid.uuid4())
+        sequence = 1
+        llm_answer = ""
+        
+        print(f"📌 생성된 Chat Prompt: {chat_prompt}")  # ✅ 로그 추가
+        
+        # OpenAI 스트리밍 응답 처리 (청크 단위)
+        async for chunk in call_4o_mini_str(
+            chat_prompt,
+            max_tokens=512,
+            system_prompt=concepts[names[bot_id]],
+            stream=True
+        ):
+            if not chunk:
                 break
-            llm_answer += chunk  
-            yield chunk
+            llm_answer += chunk
+            payload = {
+                "response_id": response_id,
+                "sequence": sequence,
+                "chunk": chunk
+            }
+            sequence += 1
+            # 각 청크를 JSON 문자열로 yield (줄바꿈으로 구분)
+            yield json.dumps(payload) + "\n"
 
-        # ✅ Pinecone 업서트할 metadata 구성
+        # Pinecone 업서트 및 Redis 저장(백그라운드 실행)
         metadata = {
             "created_at": int(datetime.datetime.now(pytz.timezone("Asia/Seoul")).timestamp()),
             "keywords": keywords if keywords else ["(없음)"],
             "user_input": user_input,
             "response": llm_answer
         }
-
-        # Pinecone 업서트 & Redis 저장 (비동기 실행)
         asyncio.create_task(upsert_documents(bot_id, user_id, [user_input], [metadata]))
         asyncio.create_task(save_message(session_id, "assistant", llm_answer))
-
     except Exception as e:
-        yield f"[ERROR] OpenAI Streaming 오류: {str(e)}"
-
+        error_payload = {
+            "response_id": response_id if 'response_id' in locals() else None,
+            "sequence": sequence if 'sequence' in locals() else None,
+            "chunk": f"[ERROR] OpenAI Streaming 오류: {str(e)}"
+        }
+        yield json.dumps(error_payload) + "\n"
 
 # async def response_generator(session_id: str, user_input: str, context: str, keywords: list[str], user_id: str) -> AsyncGenerator[str, None]:
 #     """

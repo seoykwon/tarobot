@@ -1,3 +1,4 @@
+// src/components/ChatStandby.tsx
 "use client"
 
 import { useState, useEffect } from "react";
@@ -31,6 +32,9 @@ export default function ChatStandby() {
   // 추가된 요소 =======================
   const userId = localStorage.getItem("userId");
   const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
+
+  // 새로 생성된 세션 ID를 저장할 state
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   // botId로 부터 정보 불러오기 (프사 등)
   useEffect(() => {
@@ -73,6 +77,9 @@ export default function ChatStandby() {
 
       const data = await response.json();
       localStorage.setItem("firstMessage", message);
+      
+      // 생성된 sessionId를 상태에 저장
+      setSessionId(data.sessionId);
 
       triggerSessionUpdate(); // ✅ 새로운 세션이 생성되면 업데이트 트리거 실행
 
@@ -147,7 +154,7 @@ export default function ChatStandby() {
           onSend={(message) => {
             setMessages([...messages, { text: message, isUser: userId! }]);
             handleFirstMessage(message);
-          }} sessionId="none"
+          }} sessionId={sessionId || "none"}
         />
       </div>
     </div>

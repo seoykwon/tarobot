@@ -23,7 +23,7 @@ dummy_user_profile = {
     }
 }
 
-async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int):
+async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int, multi_mode: bool = False):
     """
     사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
     """
@@ -77,6 +77,12 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
         # context 합치기
         context = prepare_context(recent_history, pine_results, keywords)
+        
+        # 멀티 모드에 따라 context를 조금 다르게 생성
+        if multi_mode:
+            context = f"{context}\n[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.\n"
+        else:
+            context = f"{context}\n[싱글 모드]: 1:1 타로 상담 상황입니다.\n"
 
         ### 저장 관련 작업 백그라운드 수행
         # 요약 갱신
@@ -84,15 +90,16 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
         # Redis에 인풋 저장
         save_task = asyncio.create_task(save_message(session_id, user_id, user_input))
 
-        if (type=="tarot"):
-            try:
-                await asyncio.gather(
-                    save_summary_task,
-                    save_task,
-                    return_exceptions=True  # ✅ 하나의 태스크가 실패해도 나머지 태스크 실행 유지
-                )
-            except Exception as e:
-                print(f"⚠️ 비동기 작업 실행 중 오류 발생: {e}") # tarot의 경우 직전 대화를 불러오는 과정이 있어서 경쟁 접근 방지
+        # 모든 사용자의 입력의 저장을 보장합니다.
+        # if (type=="tarot"):
+        try:
+            await asyncio.gather(
+                save_summary_task,
+                save_task,
+                return_exceptions=True  # ✅ 하나의 태스크가 실패해도 나머지 태스크 실행 유지
+            )
+        except Exception as e:
+            print(f"⚠️ 비동기 작업 실행 중 오류 발생: {e}") # tarot의 경우 직전 대화를 불러오는 과정이 있어서 경쟁 접근 방지
 
         # asyncio.gather(save_task, save_summary_task) # 저장 작업 완료 대기. 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
 
