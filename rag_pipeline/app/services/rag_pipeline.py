@@ -12,16 +12,16 @@ from app.utils.chatbot_concept import names, concepts
 from app.utils.sys_prompt_dict import sys_prompt
 
 # 🔥 [개발용] 임시 사용자 데이터 (백엔드 연동 전)
-dummy_user_profile = {
-    "user_id": "test_user_123",  # ✅ 개발용 user_id
-    "name": "테스트 유저",  # 🏷️ 사용자 이름
-    "birth_date": "1995-06-21",  # 🎂 생년월일
-    "astro_sign": "Gemini",  # ♈ 별자리
-    "preferences": {  
-        "preferred_reading_style": "detailed",  # 상세한 리딩을 원하는지 여부
-        "fav_tarot_cards": ["The High Priestess", "The Moon"]  # 선호하는 타로 카드
-    }
-}
+# dummy_user_profile = {
+#     "user_id": "test_user_123",  # ✅ 개발용 user_id
+#     "name": "테스트 유저",  # 🏷️ 사용자 이름
+#     "birth_date": "1995-06-21",  # 🎂 생년월일
+#     "astro_sign": "Gemini",  # ♈ 별자리
+#     "preferences": {  
+#         "preferred_reading_style": "detailed",  # 상세한 리딩을 원하는지 여부
+#         "fav_tarot_cards": ["The High Priestess", "The Moon"]  # 선호하는 타로 카드
+#     }
+# }
 
 async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int, multi_mode: bool = False):
     """
@@ -80,9 +80,9 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
         
         # 멀티 모드에 따라 context를 조금 다르게 생성
         if multi_mode:
-            context = f"{context}\n[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.\n"
+            context = f"\n[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.\n{context}"
         else:
-            context = f"{context}\n[싱글 모드]: 1:1 타로 상담 상황입니다.\n"
+            context = f"\n[싱글 모드]: 1:1 타로 상담 상황입니다.\n{context}"
 
         ### 저장 관련 작업 백그라운드 수행
         # 요약 갱신
@@ -128,15 +128,15 @@ def prepare_context(recent_history, pine_results, keywords):
 
     # ✅ 최적화된 컨텍스트 구성
     context = f"""
-[최근 대화 기록]:
-{recent_history}
+            [직전 대화 기록]:
+            {recent_history}
 
-[Pinecone 검색 요약]: 
-{pine_content_text}
+            [과거 연관 대화 기록]: 
+            {pine_content_text}
 
-[NER 정보]:
-{keywords}
-"""
+            [NER 정보]:
+            {keywords}
+        """
 
     return context.strip()  # ✅ 불필요한 공백 제거
 

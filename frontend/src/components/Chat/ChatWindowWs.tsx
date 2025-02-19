@@ -11,7 +11,7 @@ import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
 
 interface ChatWindowProps {
-  sessionIdParam?: string;
+  sessionIdParam: string;
 }
 
 interface MessageForm {
@@ -37,7 +37,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const storedUserId = localStorage.getItem("userId") || "";
 
   // sessionIdParam이 없으면 "nosession"
-  const sessionId = sessionIdParam || "nosession";
+  const sessionId = sessionIdParam|| "nosession";
 
   const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
   const [chatType, setChatType] = useState("none");
@@ -65,6 +65,14 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   // ✅ SessionContext
   const { triggerSessionUpdate } = useSession();
 
+  // 1. 타이핑 중인 사용자를 관리하는 상태 추가
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+
+  // 무응답 타이머를 위한 변수
+  const sessionIdRef = useRef(sessionId);
+  const botIdRef = useRef(botId);
+  const isRoomJoinedRef = useRef(isRoomJoined);
+
   // =========================================
   // 프로필에서 닉네임 불러오기 함수
   // =========================================
@@ -91,6 +99,13 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   useEffect(() => {
     fetchProfileData();
   }, [fetchProfileData]);
+
+  // useEffect로 최신 값 유지
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+    botIdRef.current = botId;
+    isRoomJoinedRef.current = isRoomJoined;
+  }, [sessionId, botId, isRoomJoined]);
 
   // =========================================
   // botId로 부터 정보 불러오기 (프사 등)
@@ -237,6 +252,30 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     socket.on("saying", () => {
       setSaying(true);
       console.log("입력중...");
+    });
+    
+    // 상대방 타이핑 표시 (원하면 UI 반영)
+    socket.on("typing_indicator", (data) => {
+      console.log("[typing_indicator]:", data);
+      // 예) "OOO님이 입력중" 표시
+    });
+
+    socket.on("typing_indicator", (data) => {
+      console.log("[typing_indicator]:", data);
+      // data 예시: { user_id: "user123", typing: true }
+      setTypingUsers((prev) => {
+        // 내 userId는 storedUserId (또는 다른 변수)로 관리되고 있음
+        if (data.typing) {
+          // 내 자신은 표시하지 않음
+          if (data.user_id !== storedUserId && !prev.includes(data.user_id)) {
+            return [...prev, data.user_id];
+          }
+          return prev;
+        } else {
+          // typing:false이면 해당 user_id 제거
+          return prev.filter((id) => id !== data.user_id);
+        }
+      });
     });
 
     return () => {
@@ -406,32 +445,43 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     });
   }, [messages]);
 
-  // =========================================
-  // 10초간 input 변화 없으면 자동 assistant 메시지 (macro)
-  // =========================================
+  // ----------------------------------------
+  // 5초 무응답 -> macro 메시지
+  // ----------------------------------------
   const handleUserInputIdle = useCallback((currentInput: string) => {
+    // 최신 입력값을 즉시 업데이트
+    lastInputRef.current = currentInput;
+    
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-
-    // 10초 뒤에 macro 메시지 체크
+  
     idleTimerRef.current = setTimeout(() => {
+      console.log("⏳ [handleUserInputIdle] 5초 경과 후 체크 시작");
+  
+      // currentInput은 클로저에 잡힌 값이고, lastInputRef.current는 방금 업데이트한 값과 같을 것이므로
       if (currentInput.trim().length > 0 && currentInput === lastInputRef.current) {
-        // macro 메시지
-        const macroMsg = "지금 잠시 쉬고 계신가요? 필요하시면 언제든지 말씀해 주세요.";
-        // 소켓이 연결되었을 때만 전송
-        if (socketRef.current && isRoomJoined) {
+        console.log("💡 [handleUserInputIdle] 사용자 입력이 5초 동안 없음 -> 자동 메시지 전송");
+        const macroMsg = "입력이 없으신가요? 필요하시면 언제든 말씀해주세요! (자동)";
+        const latestSessionId = sessionIdRef.current;
+        const latestBotId = botIdRef.current;
+        const latestIsRoomJoined = isRoomJoinedRef.current;
+        if (socketRef.current && latestIsRoomJoined) {
+          console.log("📩 [handleUserInputIdle] macro 메시지 전송 중...");
           socketRef.current.emit("chat_message", {
-            room_id: sessionId,
+            room_id: latestSessionId,
             user_id: "assistant",
-            bot_id: botId,
+            bot_id: latestBotId,
             user_input: macroMsg,
-            type: "macro"
+            type: "macro",
           });
+        } else {
+          console.warn("⚠️ [handleUserInputIdle] socketRef 또는 isRoomJoined가 비어 있음. 메시지 전송 안 함.");
         }
+      } else {
+        console.log("🔄 [handleUserInputIdle] 입력 변경됨, macro 메시지 전송 안 함.");
       }
-      // ref에 저장 (상태 업데이트 없음)
-      lastInputRef.current = currentInput;
-    }, 10000);
-  }, [sessionId, botId, isRoomJoined]);
+      // 타이머 콜백에서는 lastInputRef.current를 따로 갱신할 필요가 없음
+    }, 5000);
+  }, []);    
 
   return (
     // 모바일일때와 아닐때 배경 분기
@@ -494,6 +544,13 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
               )}
             </div>
           ))}
+          
+          {/* 타이핑 중인 사용자가 있으면 UI 표시 */}
+          {typingUsers.length > 0 && (
+            <div className="px-4 py-2 text-sm text-gray-600 italic">
+              {typingUsers.join(", ")} 님이 입력중입니다...
+            </div>
+          )}
 
           {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
           {saying && tarotMaster?.profileImage && (
@@ -518,25 +575,15 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
         {/* 하단 입력창 */}
         <ChatInput
-          onSend={(msg) => {
-            // 메시지 전송 시 typing_stop 이벤트 호출
-            if (socketRef.current && isRoomJoined) {
-              socketRef.current.emit("typing_stop", { room_id: sessionId });
-            }
-            handleSendMessage(msg);
+          sessionId={sessionId}
+          socketRef={socketRef} // ✅ socketRef를 추가!
+          onSend={(val) => {
+            // Enter로 메시지 전송해도 typing_stop은 안 보냄 (요구사항)
+            handleSendMessage(val);
             lastInputRef.current = "";
           }}
-          sessionId={sessionId}
           onInputChange={(val) => {
-            if (socketRef.current && isRoomJoined) {
-              // 입력값이 비어있으면 typing_stop, 그렇지 않으면 typing_start
-              if (val.trim() === "") {
-                socketRef.current.emit("typing_stop", { room_id: sessionId });
-              } else {
-                socketRef.current.emit("typing_start", { room_id: sessionId });
-              }
-            }
-            handleUserInputIdle(val);
+            handleUserInputIdle(val); // 5초 자동 메시지
           }}
         />
       </div>

@@ -50,8 +50,8 @@ app.add_middleware(
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    logger=True,
-    engineio_logger=True,
+    logger=False,
+    engineio_logger=False,
     transports=["websocket", "polling"]
 )
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/socket.io")
@@ -70,9 +70,8 @@ chatbot_queues: Dict[str, asyncio.Queue] = {}
 # 챗봇 백그라운드 태스크 (스트리밍 방식, 사용자 새 메시지 수신 시 중단)
 async def chatbot_worker(room_id: str):
     """
-    기존 RAG 파이프라인을 위한 챗봇 워커.
-    batch_queue를 flush할 때, flush된 메시지를 여기로 put하면 
-    한 번에 처리(스트리밍 응답)합니다.
+    작업 큐(chatbot_queues)를 모니터링하여,
+    메시지가 들어오면 RAG 응답을 생성 및 스트리밍 전송
     """
     queue = chatbot_queues[room_id]
     while True:
@@ -155,58 +154,69 @@ async def chatbot_worker(room_id: str):
 # 배치 큐 / 입력 중 로직
 # --------------------------------------------------------------------------------
 room_batch_queues: Dict[str, List[Dict[str, str]]] = {}
-room_last_input_signal: Dict[str, float] = {}
+# typing_stop을 “end”로 간주 -> 모든 참가자가 stop하면 batch flush
+room_typing_stop_signals: Dict[str, set] = {}
 
-BATCH_CHECK_INTERVAL = 0.5   # 0.5초마다 배치 큐 상태 확인
-BATCH_FLUSH_DELAY = 1.0      # 마지막 입력 중단 후 1초 지나면 flush
+# BATCH_CHECK_INTERVAL = 0.5   # 0.5초마다 배치 큐 상태 확인
+# BATCH_FLUSH_DELAY = 1.0      # 마지막 입력 중단 후 1초 지나면 flush
 
 async def batch_worker():
     """
-    주기적으로 배치 큐를 확인하여,
-    '사용자 입력이 멈춘 시점'으로부터 1초 이상 경과하면 
-    그동안 쌓인 메시지를 한 번에 챗봇 큐에 넣고 Redis에 저장.
+    0.5초마다 배치 큐 상태 확인:
+      - 메시지 수 ≥ 8개 or 글자수 ≥ 250 => 강제 flush
+      - typing_stop은 별도 이벤트에서 flush 처리
     """
-    print("배치 워커 가동")
+    print("배치 워커 시작")
     while True:
-        await asyncio.sleep(BATCH_CHECK_INTERVAL)
-        now = time.time()
-
+        await asyncio.sleep(0.5)
         for room_id, messages in list(room_batch_queues.items()):
             if not messages:
                 continue
 
-            print(f"🟠 [배치큐 상태] room={room_id}, 대기 중 메시지 수: {len(messages)}")
+            total_length = sum(len(m["user_input"]) for m in messages)
+            if len(messages) >= 8 or total_length >= 250:
+                print(f"🟡 [batch_worker] room={room_id}, 배치 큐 과다 => flush")
+                flush_messages(room_id)
 
-            # 마지막 입력 시그널 시점
-            last_input_time = room_last_input_signal.get(room_id, now)
-            if (now - last_input_time) >= BATCH_FLUSH_DELAY:
-                # flush
-                flush_msgs = messages[:]
-                room_batch_queues[room_id] = []
+def flush_messages(room_id: str):
+    """
+    배치 큐 -> 챗봇 큐 이동 + Redis 저장
+    """
+    if room_id not in room_batch_queues:
+        return
+    messages = room_batch_queues[room_id]
+    if not messages:
+        return
 
-                print(f"🟢 [batch_worker] room_id={room_id}, {len(flush_msgs)}개 메시지 flush")
+    flush_msgs = messages[:]
+    room_batch_queues[room_id] = []
 
-                # 1) Redis 저장
-                # 2) 챗봇 큐(chatbot_queues)에 put -> RAG 응답
-                for msg in flush_msgs:
-                    user_input = msg["user_input"]
-                    user_id = msg["user_id"]
-                    bot_id = msg["bot_id"]
-                    type_ = msg["type"]
+    # 응답 생성중 표시
+    asyncio.create_task(
+        sio.emit("saying", {}, room=room_id)
+    )
 
-                    # Redis 저장
-                    await save_message(room_id, user_id, user_input)
+    print(f"🟢 flush_messages: room_id={room_id}, {len(flush_msgs)}개 메시지 이동")
 
-                    # 챗봇 워커가 응답 생성하도록 큐에 넣음
-                    if room_id in chatbot_queues:
-                        data = {
-                            "room_id": room_id,
-                            "user_input": user_input,
-                            "user_id": user_id,
-                            "bot_id": bot_id,
-                            "type": type_
-                        }
-                        await chatbot_queues[room_id].put(data)
+    for msg in flush_msgs:
+        user_input = msg["user_input"]
+        user_id = msg["user_id"]
+        bot_id = msg["bot_id"]
+        type_ = msg["type"]
+
+        # Redis 저장
+        asyncio.create_task(save_message(room_id, user_id, user_input))
+
+        # 챗봇 큐로 이동
+        if room_id in chatbot_queues:
+            data = {
+                "room_id": room_id,
+                "user_input": user_input,
+                "user_id": user_id,
+                "bot_id": bot_id,
+                "type": type_
+            }
+            asyncio.create_task(chatbot_queues[room_id].put(data))
 
 
 # --------------------------------------------------------------------------------
@@ -265,7 +275,9 @@ async def handle_join_room(sid, data):
         
     if room_id not in room_batch_queues:
         room_batch_queues[room_id] = []
-    room_last_input_signal[room_id] = time.time()
+
+    if room_id not in room_typing_stop_signals:
+        room_typing_stop_signals[room_id] = set()
 
     # 클라이언트에게 알림
     await sio.emit("room_joined", {"room_id": room_id}, room=sid)
@@ -276,28 +288,63 @@ async def handle_typing_start(sid, data):
     data = { "room_id": "..." }
     """
     room_id = data["room_id"]
+    if sid not in sid_user_mapping:
+        return
     user_id = sid_user_mapping[sid]["user_id"]
+
+    # 현재 방의 참여자 수
+    participants = len(room_user_nicknames.get(room_id, {}))
+
+    # 방에 대한 typing_stop_signals 세트가 없으면 생성
+    if room_id not in room_typing_stop_signals:
+        room_typing_stop_signals[room_id] = set()
+
+    # typing_stop 세트에서 제거 (다시 입력을 시작하므로 stop 상태가 아님)
+    if user_id in room_typing_stop_signals[room_id]:
+        room_typing_stop_signals[room_id].remove(user_id)
+
+    # 여기서도 로그를 찍어줌
+    print(f"🟢 [typing_start] room={room_id}, user={user_id}, "
+          f"stop_cnt={len(room_typing_stop_signals[room_id])}/{participants}")
+
     # "상대방이 입력 중입니다." 표시를 위해 브로드캐스트
     await sio.emit("typing_indicator", {
         "user_id": user_id,
         "typing": True
     }, room=room_id, skip_sid=sid)
 
+
 @sio.on("typing_stop")
 async def handle_typing_stop(sid, data):
     """
     data = { "room_id": "..." }
+    -> 한 사용자가 입력을 마침 (end)
+    -> 모든 참가자 stop이면 batch flush
     """
     room_id = data["room_id"]
+    if sid not in sid_user_mapping:
+        return
     user_id = sid_user_mapping[sid]["user_id"]
     # "입력 중지" 알림
     await sio.emit("typing_indicator", {
         "user_id": user_id,
         "typing": False
     }, room=room_id, skip_sid=sid)
-    # 마지막 입력 중단 시점 기록
-    room_last_input_signal[room_id] = time.time()
-    print(f"🛑 [typing_stop] room_id={room_id}, user_id={user_id}, time={room_last_input_signal[room_id]}")
+    
+    # typing_stop 기록
+    participants = len(room_user_nicknames.get(room_id, {}))
+    if room_id not in room_typing_stop_signals:
+        room_typing_stop_signals[room_id] = set()
+
+    room_typing_stop_signals[room_id].add(user_id)
+    print(f"🛑 [typing_stop] room={room_id}, user={user_id}, stop_cnt={len(room_typing_stop_signals[room_id])}/{participants}")
+
+    # 모든 참가자가 stop이면 -> flush
+    print(f'참가자 숫자{len(room_typing_stop_signals[room_id])}')
+    if len(room_typing_stop_signals[room_id]) == participants:
+        print(f"🔴 [typing_stop] 모든 참가자 stop -> flush_messages")
+        flush_messages(room_id)
+        room_typing_stop_signals[room_id].clear()
 
 @sio.on("chat_message")
 async def handle_chat_message(sid, data):
@@ -322,12 +369,11 @@ async def handle_chat_message(sid, data):
 
     print(f"🟢 [chat_message] 수신됨: room={room_id}, user={user_id}, input={user_input}")
 
-    # typing_stop 처리
+    # typing_indicator 종료
     await sio.emit("typing_indicator", {
         "user_id": user_id,
         "typing": False
     }, room=room_id, skip_sid=sid)
-    room_last_input_signal[room_id] = time.time()
 
     # 클라이언트 측에 우선 표시 (UI 반영)
     await sio.emit("chat_message", {
@@ -353,7 +399,7 @@ async def handle_chat_message(sid, data):
     })
 
     # "saying" 이벤트 (봇이 응답 준비중)
-    await sio.emit("saying", {}, room=room_id)
+    # await sio.emit("saying", {}, room=room_id)
 
 # --- 아래는 WebRTC signaling 이벤트 추가 부분 ---
 @sio.on("offer")
