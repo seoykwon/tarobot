@@ -33,9 +33,6 @@ export default function ChatStandby() {
   const userId = localStorage.getItem("userId");
   const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
 
-  // 새로 생성된 세션 ID를 저장할 state
-  const [sessionId, setSessionId] = useState<string | null>(null);
-
   // botId로 부터 정보 불러오기 (프사 등)
   useEffect(() => {
     if (!botId) return;
@@ -77,9 +74,6 @@ export default function ChatStandby() {
 
       const data = await response.json();
       localStorage.setItem("firstMessage", message);
-      
-      // 생성된 sessionId를 상태에 저장
-      setSessionId(data.sessionId);
 
       // 세션 생성 후 전역 업데이트 트리거 실행
       triggerSessionUpdate();
