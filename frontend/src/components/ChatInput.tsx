@@ -97,7 +97,7 @@ export default function ChatInput({ onSend, sessionId, onInputChange }: ChatInpu
             onClick={() => console.log("음성 입력")}
             className="absolute top-1/2 right-4 transform -translate-y-1/2 px-4 py-2 bg-transparent text-black rounded-xl hover:bg-gray-200 transition-all duration-200 flex items-center justify-center w-12 h-12"
           >
-            {/* <VoiceChat roomId={sessionId} /> */}
+            <VoiceChat roomId={sessionId} />
           </button>
         )}
       </div>

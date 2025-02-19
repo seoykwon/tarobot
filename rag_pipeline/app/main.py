@@ -109,7 +109,7 @@ async def chatbot_worker(room_id: str):
             # none 타입, 의도 분석 결과 tarot 아니고, 20자 미만의 짧은 채팅이면 short
             if (type_ == "none" and chat_tag != "tarot" and len(user_input) < 20):
                 type_ = "short"
-                context += "짧은 대화이니 반드시 30자 이내로 대답하세요"
+                context += "\n짧은 대화이니 반드시 30자 이내로 대답하세요."
 
             # response_generator를 통해 스트리밍 응답을 생성 (async generator)
             generator = response_generator(
