@@ -240,6 +240,9 @@ async def disconnect(sid):
         if room_id in room_user_nicknames and user_id in room_user_nicknames[room_id]:
             print(f"룸 {room_id}에서 user_id {user_id} 제거됨.")
             del room_user_nicknames[room_id][user_id]
+        # disconnect 시 타이핑 상태에서도 제거
+        if room_id in room_typing_stop_signals and user_id in room_typing_stop_signals[room_id]:
+            room_typing_stop_signals[room_id].remove(user_id)
         # sid 매핑 제거
         del sid_user_mapping[sid]
     print(f"[disconnect] 클라이언트 해제: {sid}")
@@ -276,8 +279,10 @@ async def handle_join_room(sid, data):
     if room_id not in room_batch_queues:
         room_batch_queues[room_id] = []
 
+    # 여기서 해당 방의 타이핑 상태를 초기화: 기본적으로 모든 사용자는 '멈춤(stop)' 상태로 설정
     if room_id not in room_typing_stop_signals:
         room_typing_stop_signals[room_id] = set()
+    room_typing_stop_signals[room_id].add(user_id)
 
     # 클라이언트에게 알림
     await sio.emit("room_joined", {"room_id": room_id}, room=sid)
@@ -292,59 +297,56 @@ async def handle_typing_start(sid, data):
         return
     user_id = sid_user_mapping[sid]["user_id"]
 
-    # 현재 방의 참여자 수
-    participants = len(room_user_nicknames.get(room_id, {}))
-
-    # 방에 대한 typing_stop_signals 세트가 없으면 생성
-    if room_id not in room_typing_stop_signals:
-        room_typing_stop_signals[room_id] = set()
-
-    # typing_stop 세트에서 제거 (다시 입력을 시작하므로 stop 상태가 아님)
-    if user_id in room_typing_stop_signals[room_id]:
+    # 사용자가 입력 시작하면, '멈춤' 상태에서 제거
+    if room_id in room_typing_stop_signals and user_id in room_typing_stop_signals[room_id]:
         room_typing_stop_signals[room_id].remove(user_id)
+        
+    # nickname 정보를 가져옴 (없으면 user_id 사용)
+    nickname = room_user_nicknames.get(room_id, {}).get(user_id, user_id)
 
-    # 여기서도 로그를 찍어줌
-    print(f"🟢 [typing_start] room={room_id}, user={user_id}, "
-          f"stop_cnt={len(room_typing_stop_signals[room_id])}/{participants}")
-
-    # "상대방이 입력 중입니다." 표시를 위해 브로드캐스트
+    print(f"🟢 [typing_start] room={room_id}, user={user_id}, current stop_cnt={len(room_typing_stop_signals.get(room_id, set()))}")
     await sio.emit("typing_indicator", {
         "user_id": user_id,
+        "nickname": nickname,
         "typing": True
     }, room=room_id, skip_sid=sid)
-
 
 @sio.on("typing_stop")
 async def handle_typing_stop(sid, data):
     """
     data = { "room_id": "..." }
     -> 한 사용자가 입력을 마침 (end)
-    -> 모든 참가자 stop이면 batch flush
+    -> 모든 참가자가 stop이면 batch flush
     """
     room_id = data["room_id"]
     if sid not in sid_user_mapping:
         return
     user_id = sid_user_mapping[sid]["user_id"]
-    # "입력 중지" 알림
+    
+    # nickname 정보를 가져옴
+    nickname = room_user_nicknames.get(room_id, {}).get(user_id, user_id)
+
+    # 입력 중지 알림 전송
     await sio.emit("typing_indicator", {
         "user_id": user_id,
+        "nickname": nickname,
         "typing": False
     }, room=room_id, skip_sid=sid)
     
     # typing_stop 기록
-    participants = len(room_user_nicknames.get(room_id, {}))
     if room_id not in room_typing_stop_signals:
         room_typing_stop_signals[room_id] = set()
 
     room_typing_stop_signals[room_id].add(user_id)
+    participants = len(room_user_nicknames.get(room_id, {}))
     print(f"🛑 [typing_stop] room={room_id}, user={user_id}, stop_cnt={len(room_typing_stop_signals[room_id])}/{participants}")
 
     # 모든 참가자가 stop이면 -> flush
-    print(f'참가자 숫자{len(room_typing_stop_signals[room_id])}')
     if len(room_typing_stop_signals[room_id]) == participants:
         print(f"🔴 [typing_stop] 모든 참가자 stop -> flush_messages")
         flush_messages(room_id)
-        room_typing_stop_signals[room_id].clear()
+        # flush 후 기존 clear() 대신, 현재 방의 모든 사용자로 재설정
+        room_typing_stop_signals[room_id] = set(room_user_nicknames[room_id].keys())
 
 @sio.on("chat_message")
 async def handle_chat_message(sid, data):

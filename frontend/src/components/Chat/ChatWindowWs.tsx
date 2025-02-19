@@ -10,6 +10,21 @@ import { io, Socket } from "socket.io-client";
 import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
 
+// TypingIndicator
+function TypingIndicator({ nickname }: { nickname: string }) {
+  return (
+    <div className="flex items-center px-4 py-2">
+      <span className="mr-2 font-semibold text-gray-700">{nickname}</span>
+      <div className="flex space-x-1">
+        <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0s" }}></span>
+        <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0.2s" }}></span>
+        <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0.4s" }}></span>
+      </div>
+      <span className="ml-2 text-gray-600">입력중입니다...</span>
+    </div>
+  );
+}
+
 interface ChatWindowProps {
   sessionIdParam: string;
 }
@@ -260,22 +275,18 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       // 예) "OOO님이 입력중" 표시
     });
 
+    // **typing_indicator 이벤트 핸들러 (닉네임 사용)**
     socket.on("typing_indicator", (data) => {
       console.log("[typing_indicator]:", data);
-      // data 예시: { user_id: "user123", typing: true }
-      setTypingUsers((prev) => {
-        // 내 userId는 storedUserId (또는 다른 변수)로 관리되고 있음
-        if (data.typing) {
-          // 내 자신은 표시하지 않음
-          if (data.user_id !== storedUserId && !prev.includes(data.user_id)) {
-            return [...prev, data.user_id];
-          }
-          return prev;
-        } else {
-          // typing:false이면 해당 user_id 제거
-          return prev.filter((id) => id !== data.user_id);
+      // data 예시: { user_id: "user123", nickname: "닉네임", typing: true }
+      if (data.typing) {
+        // 내 자신은 표시하지 않음
+        if (data.nickname !== nickname && !typingUsers.includes(data.nickname)) {
+          setTypingUsers((prev) => [...prev, data.nickname]);
         }
-      });
+      } else {
+        setTypingUsers((prev) => prev.filter((n) => n !== data.nickname));
+      }
     });
 
     return () => {
@@ -283,7 +294,17 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [sessionId, storedUserId, nickname]);
+  }, [sessionId, storedUserId, nickname, typingUsers]);
+
+  // **타이핑 인디케이터 등장 시 자동 스크롤**
+  useEffect(() => {
+    if (typingUsers.length > 0 && chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [typingUsers]);
 
   // ✅ pendingMessage를 감지해 전달
   useEffect(() => {
@@ -460,7 +481,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       // currentInput은 클로저에 잡힌 값이고, lastInputRef.current는 방금 업데이트한 값과 같을 것이므로
       if (currentInput.trim().length > 0 && currentInput === lastInputRef.current) {
         console.log("💡 [handleUserInputIdle] 사용자 입력이 5초 동안 없음 -> 자동 메시지 전송");
-        const macroMsg = "입력이 없으신가요? 필요하시면 언제든 말씀해주세요! (자동)";
+        const macroMsg = "괜찮으신가요? 필요하시면 언제든 말씀해주세요!";
         const latestSessionId = sessionIdRef.current;
         const latestBotId = botIdRef.current;
         const latestIsRoomJoined = isRoomJoinedRef.current;
@@ -545,10 +566,12 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
             </div>
           ))}
           
-          {/* 타이핑 중인 사용자가 있으면 UI 표시 */}
+          {/* 기존 단순 텍스트 대신 TypingIndicator 컴포넌트 사용 */}
           {typingUsers.length > 0 && (
-            <div className="px-4 py-2 text-sm text-gray-600 italic">
-              {typingUsers.join(", ")} 님이 입력중입니다...
+            <div className="mb-4">
+              {typingUsers.map((name, index) => (
+                <TypingIndicator key={index} nickname={name} />
+              ))}
             </div>
           )}
 
