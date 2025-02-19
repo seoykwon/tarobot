@@ -160,7 +160,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   useEffect(() => {
     // 모든 값이 준비되지 않으면 연결하지 않음
     // userId가 없거나 sessionIdParam이 "nosession"이면 방 생성 불가
-    if (sessionId === "nosession" || !storedUserId) {
+    if (sessionId === "nosession" || !storedUserId || !nickname) {
       console.log("🚫 조건 불충족: sessionId=", sessionId, " userId=", storedUserId, " nickname=", nickname);
       return;
     }
@@ -213,7 +213,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           .reverse() // 뒤에서부터 확인
           .findIndex((msg) => msg.role === "assistant" && msg.response_id === data.response_id);
 
-        let realIndex = existingIndex >= 0
+        const realIndex = existingIndex >= 0
           ? updatedMessages.length - 1 - existingIndex
           : -1;
 
