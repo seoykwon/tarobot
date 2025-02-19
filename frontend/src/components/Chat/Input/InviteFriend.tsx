@@ -54,7 +54,7 @@ export default function InviteFriend({ onClose, className }: InviteFriendProps) 
         content: {
           title: "채팅방 초대",
           description: "친구와 함께 채팅에 참여하세요!",
-          imageUrl: "https://mud-kage.kakao.com/dn/NTmhS/btqfEUdFAUf/FjKzkZsnoeE4o19klTOVI1/openlink_640x640s.jpg", // 유효
+          imageUrl: "https://ifh.cc/g/hMJsnc.jpg", // 유효
           link: {
             mobileWebUrl: currentURL,
             webUrl: currentURL,
