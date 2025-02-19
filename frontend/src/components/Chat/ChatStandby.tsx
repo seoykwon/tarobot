@@ -1,13 +1,13 @@
-// src/components/ChatStandby.tsx
-"use client"
+// chatstandby.tsx
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
-import ChatInput from "@/components/ChatInput";
-import Image from "next/image";
+import ChatInputNoVoice from "@/components/Chat/Input/ChatInputNoVoice";
 import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
+import Image from "next/image";
 
 interface TarotMaster {
   id: number;
@@ -81,8 +81,10 @@ export default function ChatStandby() {
       // 생성된 sessionId를 상태에 저장
       setSessionId(data.sessionId);
 
-      triggerSessionUpdate(); // ✅ 새로운 세션이 생성되면 업데이트 트리거 실행
+      // 세션 생성 후 전역 업데이트 트리거 실행
+      triggerSessionUpdate();
 
+      // 새로운 채팅 세션 페이지로 이동합니다.
       router.push(`/chat/${data.sessionId}`);
     } catch (error) {
       console.error("세션 생성 에러:", error);
@@ -90,27 +92,8 @@ export default function ChatStandby() {
   };
 
   return (
-    // <div className={`${isMobile ? "relative h-screen" : "flex flex-col h-screen bg-purple-100"}`}>
-    //   <div className={`${isMobile ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]" : "flex flex-col h-screen"}`}>
-    //     <div className="flex-1 px-6 py-4 space-y-4 overflow-auto">
-    //       {messages.map((msg, index) => (
-    //         <div key={index} className={`flex ${msg.isUser ? "justify-end" : "justify-start"} w-full`}>
-    //           <div className={`px-4 py-2 rounded-lg max-w-xs ${msg.isUser ? "bg-gray-800 text-white" : "bg-purple-400 text-gray"}`}>
-    //             {msg.text}
-    //           </div>
-    //         </div>
-    //       ))}
-    //     </div>
-    //     <ChatInput
-    //       onSend={(message) => {
-    //         setMessages([...messages, { text: message, isUser: true }]);
-    //         handleFirstMessage(message);
-    //       }} sessionId="none"
-    //     />
-    //   </div>
-    // </div>
     <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
-      <div className={`${isMobile ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]" : "flex flex-col h-screen"}`}
+      <div className={`${isMobile ? "relative z-10 flex flex-col h-screen" : "flex flex-col h-screen"}`}
       style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}>
         <div className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14">
           {messages.map((msg, index) => (
@@ -150,11 +133,11 @@ export default function ChatStandby() {
           </div>
         ))}
         </div>
-        <ChatInput
+        <ChatInputNoVoice
           onSend={(message) => {
             setMessages([...messages, { text: message, isUser: userId! }]);
             handleFirstMessage(message);
-          }} sessionId={sessionId || "none"}
+          }}
         />
       </div>
     </div>

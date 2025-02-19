@@ -2,7 +2,7 @@ import Image from "next/image";
 import GoogleLoginButton from "@/components/Login/GoogleLoginButton";
 
 export default function WelcomePage({ searchParams }: { searchParams: { redirect?: string } }) {
-  const redirect = searchParams?.redirect || "/home"; // 기본값으로 "/home" 설정
+  const redirect = searchParams?.redirect || "/chat"; // 기본값으로 "/chat" 설정
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 to-white px-6">
