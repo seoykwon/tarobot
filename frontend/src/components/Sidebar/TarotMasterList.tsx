@@ -119,7 +119,7 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
       {selectedMaster && (
         <div
           ref={sidePanelRef}
-          className={`fixed left-64 top-1/2 -translate-y-1/2 h-[250px] w-[420px] bg-[#1a1a1a] text-white p-2 z-10 overflow-y-auto rounded-lg transition-transform duration-300 ${
+          className={`fixed left-64 top-14 h-[250px] w-[420px] bg-[#1a1a1a] text-white p-2 z-10 overflow-y-auto rounded-lg transition-transform duration-300 ${
             isClosing ? "opacity-0 translate-x-10" : "opacity-100 translate-x-0"
           }`}
           style={{ maxHeight: "90vh" }}
