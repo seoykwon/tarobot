@@ -9,7 +9,7 @@ from app.utils.fo_mini_api import call_4o_mini
 async def get_redis_connection():
     return await aioredis.from_url(f"redis://{settings.redis_host}:{settings.redis_port}", decode_responses=True)
 
-async def save_message(session_id: str, role: str, message):
+async def save_message(session_id: str, role: str, message: str, nickname: str = ""):
     """
     Redis에 메시지를 비동기적으로 저장 (Streaming 대응)
     """
@@ -19,9 +19,13 @@ async def save_message(session_id: str, role: str, message):
     if isinstance(message, (asyncio.StreamReader, asyncio.StreamWriter)) or hasattr(message, "__aiter__"):
         message = "".join([chunk async for chunk in message])
 
-    message_data = json.dumps({"role": role, "message": message})
+    message_data = json.dumps({
+        "role": role,        # user_id 혹은 'assistant'
+        "nickname": nickname, 
+        "message": message
+    }, ensure_ascii=False)
 
-    print(f"✅ Redis에 {role}의 메시지 저장 완료")
+    print(f"✅ Redis에 {role, nickname}의 메시지 저장 완료")
 
     redis = await get_redis_connection()
     async with redis.client() as conn:

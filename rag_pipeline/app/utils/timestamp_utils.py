@@ -11,6 +11,7 @@ async def generate_timestamp_filter(user_query: str) -> dict:
     """
     timestamp_prompt = make_prompt_timestamp(user_query)
     timestamp_response = await call_4o_mini(timestamp_prompt, max_tokens=100)
+    timestamp_response = timestamp_response.strip('`').replace("```json","").replace("```","").strip()
     print(f' generate_timestamp: {timestamp_response}')
 
     try:

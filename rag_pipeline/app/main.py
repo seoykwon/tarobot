@@ -79,17 +79,19 @@ async def chatbot_worker(room_id: str):
         if data is None:
             break
         try:
-            user_input = data["user_input"]
-            user_id = data["user_id"]
+            combined_input = data["user_input"]
+            flush_msgs = data["flush_msgs"]
+            all_user_ids = data["all_user_ids"]  # ← 새 필드
             bot_id = int(data["bot_id"])
             type_ = data["type"]
+            user_id = data["user_id"]  # 마지막 메시지 발화자 (단순 보관용)
 
             # 참여자 수 (멀티 모드 여부)
             current_participants = len(room_user_nicknames.get(room_id, {}))
             is_multi_mode = current_participants >= 2
 
             print(f"🟢 Room {room_id} participant count = {current_participants}")
-            print(f"🟢 사용자 입력 감지: {user_input}")
+            print(f"🟢 사용자 입력 감지: {combined_input}")
             print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type_}")
 
             other_nicknames = [nick for uid, nick in room_user_nicknames[room_id].items() if uid != user_id]
@@ -100,39 +102,67 @@ async def chatbot_worker(room_id: str):
             """)
 
             # RAG 전처리
+            # context, keywords, chat_tag = await process_user_input(
+            #     room_id, user_input, type_, user_id, bot_id, is_multi_mode
+            # )
+            
+            # RAG 전처리
+            # 1) RAG 전처리 -> all_user_ids를 넘겨서 멀티 유저 검색
             context, keywords, chat_tag = await process_user_input(
-                room_id, user_input, type_, user_id, bot_id, is_multi_mode
+                session_id=room_id,
+                combined_input=combined_input,
+                type_=type_,
+                user_ids=all_user_ids,  # ← 모든 user_id를 넘김
+                bot_id=bot_id,
+                multi_mode=is_multi_mode
             )
 
             # 스트리밍 응답 생성
             # none 타입, 의도 분석 결과 tarot 아니고, 20자 미만의 짧은 채팅이면 short
-            if (type_ == "none" and chat_tag != "tarot" and len(user_input) < 20):
+            if (type_ == "none" and chat_tag != "tarot" and len(combined_input) < 20):
                 type_ = "short"
                 context += "\n짧은 대화이니 반드시 30자 이내로 대답하세요."
 
             token_num = max_tokens_for_type.get(type_, max_tokens_for_type["none"])
 
             # response_generator를 통해 스트리밍 응답을 생성 (async generator)
+            # response_generator에 flush_msgs를 추가로 넘김
             generator = response_generator(
-                room_id, user_input, context,
-                bot_id=bot_id, keywords=keywords, user_id=user_id,
-                type=type_, chat_tag=chat_tag, max_tokens=token_num,
+                session_id=room_id,
+                user_input=combined_input,
+                context=context,
+                bot_id=bot_id,
+                keywords=keywords,            # ← 명시적으로 param 이름 작성
+                user_id=user_id,
+                type=type_,
+                chat_tag=chat_tag,
+                flush_msgs=flush_msgs,        # ← 반드시 키워드 인자로
+                max_tokens=token_num
             )
 
-            # 각 청크를 파싱 후 Socket.IO로 전송
+            # 청크를 수신하고 Socket.IO로 전송
             async for chunk in generator:
+                # 1) chunk는 JSON 문자열일 가능성이 높으나, 혹시 아니면 fallback
+                #    (예: LLM이 partial code block 등으로 준 경우)
+                
                 try:
-                    payload = json.loads(chunk)
-                except Exception:
-                    payload = {"chunk": chunk, "response_id": None, "sequence": None}
-                # 만약 큐에 새 메시지가 있다면 스트리밍 중단
-                # if not queue.empty():
-                #     print("새로운 사용자 메시지 감지, 스트리밍 응답 중단")
-                #     break
+                    # 🔍 혹시 백틱(````json`)이 섞여 있다면 제거
+                    safe_chunk = chunk.replace("```json", "").replace("```", "").strip()
+                    payload = json.loads(safe_chunk)
+                
+                except Exception as e:
+                    # (디버그용) 예외 로그 남기기
+                    print(f"[WARNING] JSON 파싱 실패: {e}, chunk=({chunk})")
+                    payload = {
+                        "chunk": chunk,
+                        "response_id": None,
+                        "sequence": None
+                    }
+                
                 await sio.emit("chatbot_message", {
-                    "message": payload["chunk"],
-                    "response_id": payload["response_id"],
-                    "sequence": payload["sequence"],
+                    "message": payload.get("chunk", ""),
+                    "response_id": payload.get("response_id"),
+                    "sequence": payload.get("sequence"),
                     "role": "assistant",
                     "chat_tag": chat_tag,
                 }, room=room_id)
@@ -178,9 +208,23 @@ async def batch_worker():
                 print(f"🟡 [batch_worker] room={room_id}, 배치 큐 과다 => flush")
                 flush_messages(room_id)
 
+def combine_messages(room_id: str, flush_msgs: List[dict]) -> str:
+    """
+    여러 메시지를 닉네임: 발화 형태로 합쳐서 하나의 문자열로 만든다.
+    """
+    lines = []
+    for msg in flush_msgs:
+        user_id = msg["user_id"]
+        nickname = room_user_nicknames[room_id].get(user_id, user_id)
+        lines.append(f"{nickname}: {msg['user_input']}")
+    return "\n".join(lines)
+
 def flush_messages(room_id: str):
     """
     배치 큐 -> 챗봇 큐 이동 + Redis 저장
+    - Redis 저장은 기존처럼 각 메시지를 개별적으로 저장합니다.
+    - 작업큐로 넘어갈 메시지는 사용자별로 그룹화하여, 
+      aggregated(합쳐진) user_input을 전달합니다.
     """
     if room_id not in room_batch_queues:
         return
@@ -203,20 +247,35 @@ def flush_messages(room_id: str):
         user_id = msg["user_id"]
         bot_id = msg["bot_id"]
         type_ = msg["type"]
-
+        # room_user_nicknames에서 nickname 조회 (없으면 user_id 사용)
+        nickname = room_user_nicknames.get(room_id, {}).get(user_id, user_id)
         # Redis 저장
-        asyncio.create_task(save_message(room_id, user_id, user_input))
+        asyncio.create_task(save_message(room_id, user_id, user_input, nickname=nickname))
+    
+    # 1) 모든 user_id 추출
+    all_user_ids = list({m["user_id"] for m in flush_msgs})
+    
+    # 2) 여러 메시지를 합쳐 하나의 user_input으로 만듦
+    combined_input = combine_messages(room_id, flush_msgs)
 
-        # 챗봇 큐로 이동
-        if room_id in chatbot_queues:
-            data = {
-                "room_id": room_id,
-                "user_input": user_input,
-                "user_id": user_id,
-                "bot_id": bot_id,
-                "type": type_
-            }
-            asyncio.create_task(chatbot_queues[room_id].put(data))
+    # 3) 대표 메시지(마지막 메시지 기준)에서 bot_id, type 정보만 차용
+    last_msg = flush_msgs[-1]
+    user_id = last_msg["user_id"]
+    bot_id = last_msg["bot_id"]
+    type_ = last_msg["type"]
+    print(f'flush_msgs: {flush_msgs}')
+    # 챗봇 큐로 이동
+    if room_id in chatbot_queues:
+        data = {
+            "room_id": room_id,
+            "user_input": combined_input,
+            "bot_id": bot_id,
+            "type": type_,
+            "user_id": user_id,
+            "flush_msgs": flush_msgs,  # ← 새로 추가. response_generator에 넘겨줄 원본 메시지 리스트
+            "all_user_ids": all_user_ids  # ← 새 필드
+        }
+        asyncio.create_task(chatbot_queues[room_id].put(data))
 
 
 # --------------------------------------------------------------------------------
