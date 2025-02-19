@@ -224,7 +224,7 @@ async def handle_join_room(sid, data):
     """
     room_id = data["room_id"]
     user_id = data.get("user_id")
-    nickname = data.get("nickname", "Unknown")
+    nickname = data.get("nickname")
 
     await sio.enter_room(sid, room_id)
     print(f"[join_room] {sid} joined {room_id}")
