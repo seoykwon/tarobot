@@ -50,8 +50,8 @@ app.add_middleware(
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    logger=True,
-    engineio_logger=True,
+    logger=False,
+    engineio_logger=False,
     transports=["websocket", "polling"]
 )
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/socket.io")

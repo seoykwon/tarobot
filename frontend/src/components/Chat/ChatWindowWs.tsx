@@ -340,9 +340,9 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           console.error("세션 종료 에러:", error);
         }
       };
-      closeSession();
+      closeSession().then(()=>triggerSessionUpdate());
     }
-  }, [chatType, sessionId, storedUserId, botId]);
+  }, [chatType, sessionId, storedUserId, botId, triggerSessionUpdate]);
 
   // =========================================
   // 타로 버튼 클릭 시 카드 선택창 호출
