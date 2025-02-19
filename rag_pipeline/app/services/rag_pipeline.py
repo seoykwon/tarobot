@@ -3,7 +3,7 @@ import asyncio
 import datetime
 import pytz
 import json
-from app.services.redis_utils import save_message, get_summary_history, save_summary_history, get_recent_history
+from app.services.redis_utils import save_message, get_recent_history
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.utils.fo_mini_api import call_4o_mini
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_ner, make_prompt_tarot
@@ -62,7 +62,7 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
         ### context 생성 관련 작업 수행
         # 세션 전체 기억 불러오기
-        recent_history_task = asyncio.create_task(get_recent_history(session_id))
+        recent_history_task = asyncio.create_task(get_recent_history(session_id, 50))
 
         # # 요약 불러오기
         # recent_summary_task = asyncio.create_task(get_summary_history(session_id))
@@ -86,7 +86,7 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
         ### 저장 관련 작업 백그라운드 수행
         # 요약 갱신
-        save_summary_task = asyncio.create_task(save_summary_history(session_id, user_input))
+        # save_summary_task = asyncio.create_task(save_summary_history(session_id, user_input))
         # Redis에 인풋 저장
         save_task = asyncio.create_task(save_message(session_id, user_id, user_input))
 
@@ -94,7 +94,7 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
         # if (type=="tarot"):
         try:
             await asyncio.gather(
-                save_summary_task,
+                # save_summary_task,
                 save_task,
                 return_exceptions=True  # ✅ 하나의 태스크가 실패해도 나머지 태스크 실행 유지
             )
