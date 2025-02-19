@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
-import ChatInput from "@/components/Chat/Input/ChatInput";
+import ChatInputNoVoice from "@/components/Chat/Input/ChatInputNoVoice";
 import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
 import Image from "next/image";
@@ -127,11 +127,11 @@ export default function ChatStandby() {
           </div>
         ))}
         </div>
-        <ChatInput
+        <ChatInputNoVoice
           onSend={(message) => {
             setMessages([...messages, { text: message, isUser: userId! }]);
             handleFirstMessage(message);
-          }} sessionId="none"
+          }}
         />
       </div>
     </div>
