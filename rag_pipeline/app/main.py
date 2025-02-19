@@ -231,8 +231,7 @@ async def handle_join_room(sid, data):
         # sid에서 room_id와 user_id 정보도 저장
         sid_user_mapping[sid] = {"room_id": room_id, "user_id": user_id}
         print(f"🔍 룸 {room_id}에 user_id {user_id}: '{nickname}' 저장됨.")
-    # else: print("nono")
-    print(f"🔍 룸 {room_id}에 user_id {user_id}: '{nickname}' 저장됨.")
+    else: print("nono")
 
     print(f"🔍 현재 {sid}의 Room 리스트: {sio.rooms(sid)}")
 
@@ -274,6 +273,7 @@ async def handle_typing_stop(sid, data):
     }, room=room_id, skip_sid=sid)
     # 마지막 입력 중단 시점 기록
     room_last_input_signal[room_id] = time.time()
+    print(f"🛑 [typing_stop] room_id={room_id}, user_id={user_id}, time={room_last_input_signal[room_id]}")
 
 @sio.on("chat_message")
 async def handle_chat_message(sid, data):
@@ -450,11 +450,12 @@ async def retrieve_data(key: str):
     val = redis_client.get(key)
     return {"key": key, "value": val}
 
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(batch_worker())
+
 # uvicorn 실행
 def start_server():
-    loop = asyncio.get_event_loop()
-    # 배치 워커 실행
-    loop.create_task(batch_worker())
     uvicorn.run(
         socket_app,
         host="0.0.0.0",
