@@ -49,6 +49,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
   // ✅ Socket.IO 객체를 저장
   const socketRef = useRef<Socket | null>(null);
+  const hasClosedSessionRef = useRef(false);
 
   // ✅ 프로필 닉네임
   const [nickname, setNickname] = useState("");
@@ -202,7 +203,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     socket.on("chatbot_message", (data) => {
       console.log("🤖 챗봇 메시지 수신:", data);
       setSaying(false);
-      setChatType(data.chat_tag);
 
       setMessages((prev) => {
         const updatedMessages = [...prev];
@@ -232,6 +232,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         return updatedMessages;
       });
     });
+
+    // 챗봇 메시지 종료 신호 => 이 때 ChatType을 세팅
+    socket.on("chatbot_message_end", (data) => {
+      setChatType(data.chat_tag);
+    })
 
     // 응답 생성 중 표시
     socket.on("saying", () => {
@@ -322,7 +327,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   useEffect(() => {
     setShowTarotButton(chatType === "tarot");
 
-    if (chatType === "tarot result") {
+    if (chatType === "tarot result" && !hasClosedSessionRef.current) {
+      hasClosedSessionRef.current = true;
       const closeSession = async () => {
         try {
           const response = await fetch(API_URLS.CHAT.CLOSE, {
@@ -340,7 +346,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           console.error("세션 종료 에러:", error);
         }
       };
-      closeSession().then(()=>triggerSessionUpdate());
+      closeSession().then(() => {
+        setChatType("none");
+        triggerSessionUpdate();
+        hasClosedSessionRef.current = false;
+      });
     }
   }, [chatType, sessionId, storedUserId, botId, triggerSessionUpdate]);
 
