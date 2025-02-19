@@ -295,10 +295,7 @@ async def handle_typing_stop(sid, data):
     }, room=room_id, skip_sid=sid)
     # 마지막 입력 중단 시점 기록
     room_last_input_signal[room_id] = time.time()
-    print("=================================")
-    print(room_batch_queues)
-    print(room_last_input_signal)
-    print("=================================")
+    print(f"🛑 [typing_stop] room_id={room_id}, user_id={user_id}, time={room_last_input_signal[room_id]}")
 
 @sio.on("chat_message")
 async def handle_chat_message(sid, data):
@@ -477,9 +474,6 @@ async def retrieve_data(key: str):
 
 # uvicorn 실행
 def start_server():
-    loop = asyncio.get_event_loop()
-    # 배치 워커 실행
-    loop.create_task(batch_worker())
     uvicorn.run(
         socket_app,
         host="0.0.0.0",
