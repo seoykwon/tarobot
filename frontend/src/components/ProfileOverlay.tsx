@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaCog, FaGem, FaSignOutAlt } from "react-icons/fa";
+import { FaCog, FaSignOutAlt } from "react-icons/fa";
 import SettingModal from "./ProfileModal/SettingModal";
-import PlanUpgradeModal from "./ProfileModal/PlanUpgradeModal";
 import LogoutModal from "./ProfileModal/LogoutModal";
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
@@ -49,10 +48,6 @@ export default function ProfileOverlay({
     toggle();
   };
 
-  const openPlanUpgrade = () => {
-    setPlanUpgradeModalOpen(true);
-    toggle();
-  };
 
   const openLogout = () => {
     setLogoutModalOpen(true);
@@ -91,13 +86,6 @@ export default function ProfileOverlay({
               <span>설정</span>
             </li>
             <li
-              className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-              onClick={openPlanUpgrade}
-            >
-              <FaGem className="mr-2 text-blue-500" />
-              <span>플랜 업그레이드</span>
-            </li>
-            <li
               className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500"
               onClick={openLogout}
             >
@@ -120,9 +108,6 @@ export default function ProfileOverlay({
           <div className="fixed inset-0 flex items-center justify-center z-[100]">
             {isSettingModalOpen && (
               <SettingModal onClose={closeAllModals} />
-            )}
-            {isPlanUpgradeModalOpen && (
-              <PlanUpgradeModal onClose={closeAllModals} />
             )}
             {isLogoutModalOpen && (
               <LogoutModal onClose={closeAllModals} />

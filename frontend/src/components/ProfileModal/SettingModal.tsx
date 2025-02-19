@@ -10,7 +10,6 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: "profile", label: "내 정보" },
-  { id: "ai", label: "AI" },
 ];
 
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
@@ -85,14 +84,8 @@ function Sidebar({
 
 function ContentArea({ activeTab }: { activeTab: string }) {
   return (
-    <div className="w-4/5 pl-4 overflow-y-auto">
+    <div className="w-4/5 pl-4 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {activeTab === "profile" && <ProfileSettings />}
-      {activeTab === "ai" && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">AI 설정</h2>
-          <p>여기에 AI 관련 기능이나 옵션 내용을 추가할 수 있습니다.</p>
-        </div>
-      )}
     </div>
   );
 }

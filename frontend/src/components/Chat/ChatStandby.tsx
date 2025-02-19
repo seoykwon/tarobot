@@ -87,7 +87,7 @@ export default function ChatStandby() {
 
   return (
     <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
-      <div className={`${isMobile ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]" : "flex flex-col h-screen"}`}
+      <div className={`${isMobile ? "relative z-10 flex flex-col h-screen" : "flex flex-col h-screen"}`}
       style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}>
         <div className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14">
           {messages.map((msg, index) => (
