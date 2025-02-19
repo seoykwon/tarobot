@@ -1,12 +1,13 @@
 // chatstandby.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
 import ChatInput from "@/components/ChatInput";
 import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
+import Image from "next/image";
 
 interface TarotMaster {
   id: number;
@@ -85,25 +86,6 @@ export default function ChatStandby() {
   };
 
   return (
-    // <div className={`${isMobile ? "relative h-screen" : "flex flex-col h-screen bg-purple-100"}`}>
-    //   <div className={`${isMobile ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]" : "flex flex-col h-screen"}`}>
-    //     <div className="flex-1 px-6 py-4 space-y-4 overflow-auto">
-    //       {messages.map((msg, index) => (
-    //         <div key={index} className={`flex ${msg.isUser ? "justify-end" : "justify-start"} w-full`}>
-    //           <div className={`px-4 py-2 rounded-lg max-w-xs ${msg.isUser ? "bg-gray-800 text-white" : "bg-purple-400 text-gray"}`}>
-    //             {msg.text}
-    //           </div>
-    //         </div>
-    //       ))}
-    //     </div>
-    //     <ChatInput
-    //       onSend={(message) => {
-    //         setMessages([...messages, { text: message, isUser: true }]);
-    //         handleFirstMessage(message);
-    //       }} sessionId="none"
-    //     />
-    //   </div>
-    // </div>
     <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
       <div className={`${isMobile ? "relative z-10 flex flex-col h-screen bg-[rgba(70,35,10,0.3)]" : "flex flex-col h-screen"}`}
       style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}>
