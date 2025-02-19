@@ -17,9 +17,31 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
   const [randomizedCards, setRandomizedCards] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isInitial, setIsInitial] = useState(true) // 초기 애니메이션 상태 추가
-  const visibleCards = 24
+  // const visibleCards = 24
+  const [visibleCards, setVisibleCards] = useState<number>(24)
   const touchStartXRef = useRef<number | null>(null)
   const dragStartXRef = useRef<number | null>(null)
+  
+  // 화면 크기에 따라 visible cards 값을 동적으로 업데이트
+  const updateVisibleCards = useCallback(() => { // ✅ 추가됨
+    const width = window.innerWidth
+    if (width >= 1024) {
+      setVisibleCards(24) // 데스크탑
+    } else if (width >= 768) {
+      setVisibleCards(24) // 태블릿
+    } else {
+      setVisibleCards(12) // 모바일
+    }
+  }, [])
+
+  useEffect(() => {
+    updateVisibleCards() // 🔥 초기값 설정
+    window.addEventListener("resize", updateVisibleCards) // 🔥 ✅ 리사이즈 이벤트 추가
+    return () => {
+      window.removeEventListener("resize", updateVisibleCards) // 🔥 ✅ 정리
+    }
+  }, [updateVisibleCards]) // 추가됨
+
 
   useEffect(() => {
     const majorCards = Array.from({ length: 22 }, (_, i) => `maj${i}`)
@@ -37,7 +59,7 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 
     console.log("🃏 랜덤 카드 목록:", allCards)
 
-    // 2000ms (1초) 후 초기 애니메이션 종료
+    // 1000ms (1초) 후 초기 애니메이션 종료
     setTimeout(() => {
       setIsInitial(false)
     }, 1000)
@@ -61,29 +83,40 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
       if (isSelecting) return
       console.log(`📜 Scroll 방향: ${direction}`)
       setStartIndex((prevIndex) => {
+        // if (direction === "left") {
+        //   if (prevIndex === 0) return prevIndex
+        //   return prevIndex - 1
+        // } else {
+        //   if (prevIndex >= randomizedCards.length - visibleCards) return prevIndex
+        //   return prevIndex + 1
+        // }
         if (direction === "left") {
-          if (prevIndex === 0) return prevIndex
-          return prevIndex - 1
+          return Math.max(prevIndex - 1, 0) // 기존 로직 유지
         } else {
-          if (prevIndex >= randomizedCards.length - visibleCards) return prevIndex
-          return prevIndex + 1
+          return Math.min(prevIndex + 1, randomizedCards.length - visibleCards) // 🔥 visibleCards 적용
         }
       })
     },
-    [isSelecting, randomizedCards.length],
+    [isSelecting, randomizedCards.length, visibleCards], // visibleCards 추가
   )
 
+  // const getVisibleCards = () => {
+  //   if (randomizedCards.length === 0) return []
+  //   const cards = []
+  //   for (let i = 0; i < visibleCards; i++) {
+  //     const cardIndex = startIndex + i
+  //     if (cardIndex >= randomizedCards.length) break
+  //     cards.push(randomizedCards[cardIndex])
+  //   }
+  //   console.log("📌 현재 화면에 보이는 카드들:", cards)
+  //   return cards
+  // }
+
+  // [수정] getVisibleCards 함수에서 visibleCards 적용
   const getVisibleCards = () => {
     if (randomizedCards.length === 0) return []
-    const cards = []
-    for (let i = 0; i < visibleCards; i++) {
-      const cardIndex = startIndex + i
-      if (cardIndex >= randomizedCards.length) break
-      cards.push(randomizedCards[cardIndex])
-    }
-    console.log("📌 현재 화면에 보이는 카드들:", cards)
-    return cards
-  }
+    return randomizedCards.slice(startIndex, startIndex + visibleCards) // 수정됨
+  } 
 
   // const isEdgePosition = () => {
   //   return startIndex === 0 || startIndex >= randomizedCards.length - visibleCards
@@ -91,15 +124,20 @@ const CardSelector: React.FC<CardSelectorProps> = ({ onCardSelect, onClose }) =>
 
   const getCardStyle = (index: number, cardId: string): React.CSSProperties => {
     const angle = -105 + (210 / (visibleCards - 1)) * index
+    const isMobile = window.innerWidth < 768 // 모바일 확인
 
     return {
       position: "absolute",
-      width: selectedCard === cardId ? "120px" : "80px",
-      height: selectedCard === cardId ? "180px" : "120px",
+      // width: selectedCard === cardId ? "120px" : "80px",
+      // height: selectedCard === cardId ? "180px" : "120px",
+      width: selectedCard === cardId ? (isMobile ? "90px" : "120px") : (isMobile ? "60px" : "80px"), // 모바일 크기 축소
+      height: selectedCard === cardId ? (isMobile ? "135px" : "180px") : (isMobile ? "90px" : "120px"), // 모바일 크기 축소
       cursor: "pointer",
       transform: isInitial
-        ? `rotate(-90deg) translateY(500px)` // 초기에 아래에서 시작
-        : `rotate(${angle}deg) translateY(280px)`, // 원래 반원형 정렬
+        // ? `rotate(-90deg) translateY(500px)` // 초기에 아래에서 시작
+        // : `rotate(${angle}deg) translateY(280px)`, // 원래 반원형 정렬
+        ? `rotate(-90deg) translateY(${isMobile ? "400px" : "500px"})` // 모바일: translateY 값 축소
+        : `rotate(${angle}deg) translateY(${isMobile ? "40px" : "280px"})`, // 더 촘촘히
       transformOrigin: "top center",
       transition: isInitial
         ? `transform 1s ease-out ${index * 80}ms` // 애니메이션 시간을 1초로, 간격을 80ms로 늘림
