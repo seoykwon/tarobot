@@ -185,8 +185,14 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         ) {
           updatedMessages[updatedMessages.length - 1].text += data.message;
         } else {
-          // 처음 받은 메시지라면 새로운 메시지 객체를 추가합니다.
-          updatedMessages.push({ text: data.message, isUser: "assistant" });
+          // 3) 해당 response_id 메시지가 아직 없다면 새로 추가
+          setChatType(data.chat_tag);
+          updatedMessages.push({
+            message: data.message,
+            role: data.role,
+            response_id: data.response_id,
+            sequence: data.sequence,
+          });
         }
         return updatedMessages;
       });
