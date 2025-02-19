@@ -43,7 +43,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const [nickname, setNickname] = useState("");
-  
+  const [saying, setSaying] = useState(false);
+
   const [isRoomJoined, setIsRoomJoined] = useState(false);
   const pendingMessageRef = useRef<string | null>(null); // ✅ useRef로 변경
 
@@ -165,23 +166,33 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     socket.on("chat_message", (data) => {
       console.log(`📩 사용자 메시지 수신: ${data}`);
       setMessages((prev) => [...prev, { text: data.message, isUser: data.role }]);
-      setMessages((prev) => [...prev, { text: "입력 중...", isUser: "assistant" }]);
     });
-  
+
     socket.on("chatbot_message", (data) => {
       console.log(`🤖 챗봇 메시지 수신: ${data}`);
+      setSaying(false);
       setChatType(data.chat_tag);
       setMessages((prev) => {
         const updatedMessages = [...prev];
-        const lastBotIndex = updatedMessages.findLastIndex(
-          (msg) => msg.isUser === "assistant" && msg.text === "입력 중..."
-        );
-        if (lastBotIndex !== -1) {
-          updatedMessages.splice(lastBotIndex, 1);
+        // 마지막 메시지가 assistant의 메시지라면, 그 메시지에 새로운 청크를 추가합니다.
+        if (
+          updatedMessages.length > 0 &&
+          updatedMessages[updatedMessages.length - 1].isUser === "assistant"
+        ) {
+          updatedMessages[updatedMessages.length - 1].text += data.message;
+        } else {
+          // 처음 받은 메시지라면 새로운 메시지 객체를 추가합니다.
+          updatedMessages.push({ text: data.message, isUser: "assistant" });
         }
-        updatedMessages.push({ text: data.message, isUser: "assistant" });
         return updatedMessages;
       });
+    });
+
+    // 응답 생성 중 표시
+    // ✅ 메시지 수신 처리
+    socket.on("saying", () => {
+      setSaying(true);
+      console.log("입력중...");
     });
   
     return () => {
@@ -319,13 +330,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
   useEffect(() => {
     const storedMessage = localStorage.getItem("firstMessage");
+    localStorage.removeItem("firstMessage"); // ✅ 꺼낸 뒤 즉시 삭제
     if (storedMessage) {
       // ✅ 200ms 뒤에 첫 메시지 전송 (WebSocket 연결 보장)
       setTimeout(() => {
-        handleSendMessage(storedMessage).then(() => {
-          console.log("지금 첫 메시지 제어");
-          localStorage.removeItem("firstMessage"); // ✅ 사용 후 삭제
-        });
+        handleSendMessage(storedMessage);
       }, 200); // 🚀 WebSocket 안정성을 위해 200ms 대기
     } else {
       // console.log("기존 세션 입장");
@@ -357,7 +366,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           ref={chatContainerRef}
           className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
         >
-        {messages.map((msg, index) => (
+          {messages.map((msg, index) => (
           <div
             key={index}
             className={`flex ${
@@ -403,7 +412,18 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
             )}
           </div>
         ))}
-
+        {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
+        {saying && tarotMaster?.profileImage && (
+          <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
+            <Image
+              src={tarotMaster.profileImage}
+              alt="Chatbot Thinking"
+              width={64}
+              height={64}
+              className="w-16 h-16 rounded-full animate-pulse"
+            />
+          </div>
+        )}
 
         </div>
   

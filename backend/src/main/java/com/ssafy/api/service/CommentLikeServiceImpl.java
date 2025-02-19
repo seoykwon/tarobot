@@ -1,18 +1,15 @@
 package com.ssafy.api.service;
 
-import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.Comment;
 import com.ssafy.db.entity.CommentLike;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.CommentLikeRepository;
 import com.ssafy.db.repository.CommentRepository;
-import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Optional;
 
 @Service

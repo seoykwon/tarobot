@@ -154,8 +154,9 @@ interface CharacterSelectProps {
 export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProps) {
   const [tarotBots, setTarotBots] = useState<TarotBot[]>([])
   const [selectedBot, setSelectedBot] = useState<TarotBot | null>(null)
+  const [isComing, setIsClosing] = useState(false)
   const router = useRouter()
-  const { triggerSessionUpdate } = useSession()
+  const { setBotId, triggerSessionUpdate } = useSession()
 
   useEffect(() => {
     const fetchTarotBots = async () => {
@@ -165,49 +166,44 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
         })
         if (!response.ok) throw new Error("Failed to fetch tarot bots")
         const data = await response.json()
-        setTarotBots(data)
-        if (data.length > 0) setSelectedBot(data[0])
+        setTarotBots(data);
+        // 첫 번째 타로 마스터 자동 선택
+        if (data.length > 0 && !selectedBot) {
+          setSelectedBot(data[0]);
+        }
       } catch (error) {
         console.error("Error fetching tarot bots:", error)
       }
-    }
+    };
 
     fetchTarotBots()
-  }, [])
+  }, [selectedBot]);
+
+  useEffect(() => {
+    if (tarotBots.length > 0 && !selectedBot) {
+      setSelectedBot(tarotBots[0]);
+    }
+  }, [tarotBots, selectedBot]);
+
+  useEffect(()=>{
+    console.log(`isComing: ${isComing}`);
+  }, [isComing])
 
   const handleStartChat = async () => {
     if (!selectedBot) return
 
-    try {
-      const botId = selectedBot.id
-      const initialMessage = "안녕하세요, 타로 상담을 시작하겠습니다."
-      const response = await fetch(API_URLS.CHAT.ENTER, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          botId,
-          title: initialMessage,
-        }),
-        credentials: "include",
-      })
+    localStorage.setItem("botId", selectedBot.id.toString())
+    setBotId(selectedBot.id.toString())
+    triggerSessionUpdate()
+    setIsClosing(true) // 패널 닫기 애니메이션 시작
 
-      if (!response.ok) throw new Error("세션 생성 실패")
-
-      const data = await response.json()
-      localStorage.setItem("firstMessage", initialMessage)
-      localStorage.setItem("botId", botId.toString())
-
-      triggerSessionUpdate()
-
-      setTimeout(() => {
-        router.push(`/chat/${data.sessionId}`)
-      }, 100)
-      onClose()
-    } catch (error) {
-      console.error("채팅 시작 에러:", error)
-    }
+    setTimeout(() => {
+      setSelectedBot(null) // 선택된 봇 초기화
+      setIsClosing(false)
+      onClose() // 모달 닫기
+      router.push("/chat") // 채팅화면으로 이동
+    }, 200)
   }
-
   if (!isOpen) return null
 
   return (
@@ -215,7 +211,11 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose()
+          setIsClosing(true)
+          setTimeout(() => {
+            onClose()
+            setIsClosing(false)
+          }, 200)
         }
       }}
     >
@@ -247,7 +247,16 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
 
           {/* Right side - Character Info */}
           <div className="flex flex-[3] flex-col p-6">
-            <button onClick={onClose} className="self-end text-gray-400 hover:text-gray-200">
+          <button
+              onClick={() => {
+                setIsClosing(true)
+                setTimeout(() => {
+                  onClose()
+                  setIsClosing(false)
+                }, 200)
+              }}
+              className="self-end text-gray-400 hover:text-gray-200"
+            >
               ✕
             </button>
             {selectedBot && (
@@ -269,13 +278,13 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
                 </div>
 
                 {/* Rating */}
-                <div className="mt-4 flex items-center gap-1">
+                {/* <div className="mt-4 flex items-center gap-1">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <span key={index} className="text-yellow-300">
                       ★
                     </span>
                   ))}
-                </div>
+                </div> */}
               </div>
             )}
 

@@ -3,14 +3,12 @@ package com.ssafy.config;
 import com.ssafy.api.service.UserService;
 import com.ssafy.common.auth.JwtAuthenticationFilter;
 import com.ssafy.common.auth.SsafyUserDetailService;
-
 import com.ssafy.common.util.JwtTokenUtil;
 import com.ssafy.config.oauth.OAuth2FailureHandler;
 import com.ssafy.config.oauth.OAuth2SuccessHandler;
 import com.ssafy.config.oauth.OAuth2UserCustomService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

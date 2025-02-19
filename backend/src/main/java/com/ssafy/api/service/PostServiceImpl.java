@@ -3,7 +3,6 @@ package com.ssafy.api.service;
 import com.ssafy.api.request.PostRegisterReq;
 import com.ssafy.api.request.PostUpdateReq;
 import com.ssafy.api.response.PostRes;
-import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.User;
@@ -20,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.ssafy.db.entity.QPost.post;
 
 /**
  * 게시글 관련 비즈니스 로직 처리를 위한 서비스 구현.
@@ -177,62 +174,6 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new IllegalArgumentException("ID가 " + postId + "인 게시글을 찾을 수 없습니다."));
         return PostRes.of(post);
     }
-
-//    /**
-//     * 게시글 제목 기반 검색
-//     * - 제목에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
-//     */
-//    @Override
-//    public List<PostRes> getPostsByTitle(String title) {
-//        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-//        Page<Post> postPage = postRepository.findByTitleContaining(title, pageable);
-//        return postPage.getContent().stream()
-//                .filter(Post::isActive)
-//                .map(PostRes::of)
-//                .collect(Collectors.toList());
-//    }
-//
-//    /**
-//     * 게시글 내용 기반 검색
-//     * - 게시글 내용에 해당 키워드가 포함된 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
-//     */
-//    public List<PostRes> getPostsByContent(String content) {
-//        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-//        Page<Post> postPage = postRepository.findByContentContaining(content, pageable);
-//        return postPage.getContent().stream()
-//                .filter(Post::isActive)
-//                .map(PostRes::of)
-//                .collect(Collectors.toList());
-//    }
-
-
-
-//    /**
-//     * 작성자 기반 검색
-//     * - 주어진 작성자 ID에 해당하는 활성 게시글을 기본페이지(0, 10, 최신순)로 조회합니다.
-//     */
-//    @Override
-//    public List<PostRes> getPostsByAuthor(String userId) {
-//        User author = userRepository.findByUserId(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
-//        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-//        Page<Post> postPage = postRepository.findAllByAuthor(author, pageable);
-//        return postPage.getContent().stream()
-//                .filter(Post::isActive)
-//                .map(PostRes::of)
-//                .collect(Collectors.toList());
-//    }
-
-    // 작성자+제목 기반 검색
-    /*
-    @Override
-    public List<PostRes> getPostsByTitleAndAuthor(String title, String userId) {
-        return postRepositorySupport.findPostsByTitleAndAuthor(title, userId)
-                .stream()
-                .map(PostRes::of)
-                .collect(Collectors.toList());
-    }
-    */
 
     //============================== 조회수/좋아요/댓글 증가 ==============================
 

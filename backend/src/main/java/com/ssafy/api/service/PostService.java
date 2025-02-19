@@ -4,6 +4,7 @@ import com.ssafy.api.request.PostRegisterReq;
 import com.ssafy.api.request.PostUpdateReq;
 import com.ssafy.api.response.PostRes;
 import com.ssafy.db.entity.Post;
+
 import java.util.List;
 
 /**
@@ -25,10 +26,4 @@ public interface PostService {
 
     // 검색 기능 - 게시글 제목 및 내용 검색
     List<PostRes> searchPosts(int page, int size, String sort, String title, String content);
-
-    /*
-    List<PostRes> getPostsByAuthor(String userId);
-    List<PostRes> getPostsByTitleAndAuthor(String title, String userId);
-    List<PostRes> getPopularPosts(int minCommentCount, int minLikeCount);
-    */
 }

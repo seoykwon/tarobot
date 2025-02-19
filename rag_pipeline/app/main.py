@@ -47,46 +47,61 @@ chatbot_queues: Dict[str, asyncio.Queue] = {}
 room_user_nicknames: Dict[str, Dict[str, str]] = {}
 sid_user_mapping: Dict[str, Dict[str, str]] = {}
 
-# 챗봇 백그라운드 태스크
+# 챗봇 백그라운드 태스크 (스트리밍 방식, 사용자 새 메시지 수신 시 중단)
 async def chatbot_worker(room_id: str):
     queue = chatbot_queues[room_id]
     while True:
-        data = await queue.get()  # ✅ 큐에서 데이터를 가져옴 (딕셔너리 형태)
+        data = await queue.get()  # 큐에서 데이터를 가져옴
         if data is None:
             break
         try:
             user_input = data["user_input"]
             user_id = data["user_id"]
-            bot_id = data["bot_id"]
+            bot_id = int(data["bot_id"])
             type = data["type"]
 
-            print(f"🟢 사용자 입력 감지: {user_input}")  # ✅ 로그 추가
-            print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type}")  # ✅ 로그 추가
+            print(f"🟢 사용자 입력 감지: {user_input}")
+            print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type}")
+
             other_nicknames = [nick for uid, nick in room_user_nicknames[room_id].items() if uid != user_id]
             print(f"""
                   🟢 닉네임 감지
                   UserNickname {room_user_nicknames[room_id][user_id]}
                   OtherNickname {other_nicknames}
-""")
+            """)
 
-            # ✅ 챗봇 처리 로직 실행 (rag_pipeline 호출)
-            answer, tag = await rag_pipeline(room_id, user_input, type, user_id, bot_id)
-            
-            nicknames = list(room_user_nicknames.get(room_id, {}).values())
-            print(f"룸 {room_id} 참여자: {', '.join(nicknames)}")
+            # 전처리 작업 실행하여 context, keywords, chat_tag 생성
+            context, keywords, chat_tag = await process_user_input(room_id, user_input, type, user_id, bot_id)
+
+            # response_generator를 통해 스트리밍 응답을 생성 (async generator)
+            generator = response_generator(
+                room_id, user_input, context,
+                bot_id=bot_id, keywords=keywords, user_id=user_id, type=type, chat_tag=chat_tag
+            )
+
+            # generator를 통해 스트리밍으로 전송
+            async for chunk in generator:
+                # 만약 큐에 새 메시지가 들어왔다면 스트리밍 응답을 중단합니다.
+                if not queue.empty():
+                    print("새로운 사용자 메시지 감지, 스트리밍 응답 중단")
+                    break
+                await sio.emit("chatbot_message", {
+                    "message": chunk,
+                    "role": "assistant",
+                    "chat_tag": chat_tag,
+                }, room=room_id)
+
+            print(f"🟣 스트리밍 응답 완료: 채팅 태그: {chat_tag}")
 
         except Exception as e:
-            answer = f"[Error] RAG 파이프라인 실패: {str(e)}"
-
-        # ✅ 챗봇 응답을 방에 브로드캐스트
-        await sio.emit("chatbot_message", {
-            "message": answer,
-            "role" : "assistant",
-            "chat_tag" : tag,
-        }, room=room_id)
-
-        print(f"🟣 현재 세션 ID: {room_id}")  # ✅ 로그 추가
-        print(f"🟣 chatbot_message 브로드캐스트 완료: {answer}, 채팅 태그: {tag}")  # ✅ 로그 추가
+            answer = f"[Error] Streaming 응답 생성 실패: {str(e)}"
+            # 에러 발생 시 전체 에러 메시지를 전송
+            await sio.emit("chatbot_message", {
+                "message": answer,
+                "role": "assistant",
+                "chat_tag": "",
+            }, room=room_id)
+            print(f"❌ 오류 발생: {e}")
     
 # Socket.IO 이벤트
 @sio.event
@@ -163,6 +178,8 @@ async def handle_chat_message(sid, data):
         "type" : data["type"],
         "bot_id": data["bot_id"],
         }, room=room_id)
+    
+    await sio.emit("saying", {}, room=room_id)
 
     # 챗봇 Queue에 메시지 투입
     if room_id in chatbot_queues:
