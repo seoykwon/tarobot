@@ -93,10 +93,11 @@ async def chatbot_worker(room_id: str):
             print(f"🟢 사용자 입력 감지: {user_input}")
             print(f"🟢 user_id: {user_id}, bot_id: {bot_id}, type: {type_}")
 
+            my_nickname = room_user_nicknames[room_id][user_id]
             other_nicknames = [nick for uid, nick in room_user_nicknames[room_id].items() if uid != user_id]
             print(f"""
                   🟢 닉네임 감지
-                  UserNickname {room_user_nicknames[room_id][user_id]}
+                  UserNickname {my_nickname}
                   OtherNickname {other_nicknames}
             """)
 
@@ -104,6 +105,17 @@ async def chatbot_worker(room_id: str):
             context, keywords, chat_tag = await process_user_input(
                 room_id, user_input, type_, user_id, bot_id, is_multi_mode
             )
+
+            # 멀티 모드에 따라 context를 조금 다르게 생성
+            if is_multi_mode:
+                context = f"""
+[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.
+내 이름 : {my_nickname}
+다른 사람들 이름 : {other_nicknames}
+{context}
+"""
+            else:
+                context = f"[싱글 모드]: 1:1 타로 상담 상황입니다.\n내 이름 : {my_nickname}\n{context}\n"
 
             # 스트리밍 응답 생성
             # none 타입, 의도 분석 결과 tarot 아니고, 20자 미만의 짧은 채팅이면 short

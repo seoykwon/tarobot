@@ -222,6 +222,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           updatedMessages[realIndex].message += data.message;
         } else {
           // 3) 해당 response_id 메시지가 아직 없다면 새로 추가
+          setChatType(data.chat_tag);
           updatedMessages.push({
             message: data.message,
             role: data.role,
