@@ -1,6 +1,6 @@
 "use client";
 
-import ChatWindowWs from "@/components/ChatWindowWs";
+import ChatWindowWs from "@/components/Chat/ChatWindowWs";
 
 export default function ChatSessionPage({ params }: { params: { sessionId: string } }) {
   const { sessionId } = params;

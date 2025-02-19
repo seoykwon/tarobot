@@ -1,80 +1,45 @@
-// components/RecordList.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { API_URLS } from "@/config/api";
 
-interface TarotSummary {
+interface TarotSummary {          // 타로 요약 데이터
   id: number;
-  createdAt: string;
   consultDate: string;
   tag: string;
   title: string;
   summary: string;
   cardImageUrl: string;
+  taroBotId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface RecordListProps {
+interface RecordListProps {     // 선택된 날짜 Props
   selectedDate: Date;
 }
-
-const TEST_DATA: TarotSummary[] = [
-  {
-    id: 1,
-    createdAt: "2025-02-18T14:00:00Z",
-    consultDate: "2025-02-18",
-    tag: "사랑",
-    title: "연인 관계 전망",
-    summary: "현재 관계의 발전 가능성을 확인할 수 있는 타로 결과입니다. 상대방의 진심을 이해하는 데 도움이 될 것입니다.",
-    cardImageUrl: "/basic/cups1.svg"
-  },
-  {
-    id: 2,
-    createdAt: "2025-02-18T15:30:00Z",
-    consultDate: "2025-02-18",
-    tag: "경력",
-    title: "진로 선택 조언",
-    summary: "새로운 직장 제안에 대한 판단을 돕는 타로 리딩. 위험 요소와 기회 요소를 종합적으로 분석했습니다.",
-    cardImageUrl: "/basic/swords5.svg"
-  },
-  {
-    id: 3,
-    createdAt: "2025-02-18T17:45:00Z",
-    consultDate: "2025-02-18",
-    tag: "재정",
-    title: "재무 상태 점검",
-    summary: "다가올 3개월 간의 재정 흐름을 예측하는 타로 리딩. 투자 결정에 참고할 만한 중요한 정보를 포함하고 있습니다.",
-    cardImageUrl: "/basic/pents3.svg"
-  }
-];
 
 export default function RecordList({ selectedDate }: RecordListProps) {
   const [tarotData, setTarotData] = useState<TarotSummary[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 해당 날짜의 요약 데이터 가져오는 함수
   const fetchRecords = async (date: Date) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // 실제 API 호출 부분 (테스트 시 주석처리)
-      /*
-      const formattedDate = date.toISOString().split('T')[0];
+      const formattedDate = date.toISOString().split("T")[0];
       const response = await fetch(
-        `/api/v1/diary/${formattedDate}`,
-        { credentials: "include" }
+        `${API_URLS.CALENDAR.SUMMARY(formattedDate)}`, 
+        { method: "GET",
+          credentials: "include" },
       );
       if (!response.ok) throw new Error("데이터 조회 실패");
-      const data = await response.json();
+      const data: TarotSummary[] = await response.json();
       setTarotData(data);
-      */
-      
-      // 테스트 데이터 사용
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 로딩 딜레이
-      setTarotData(TEST_DATA.filter(item => 
-        item.consultDate === date.toISOString().split('T')[0]
-      ));
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류 발생");
     } finally {
@@ -82,10 +47,12 @@ export default function RecordList({ selectedDate }: RecordListProps) {
     }
   };
 
+  // selectedDate 변경 시 해당 날짜의 상담 내역으로 갱신
   useEffect(() => {
     fetchRecords(selectedDate);
   }, [selectedDate]);
 
+  // 날짜 형식 변경
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleTimeString("ko-KR", {
@@ -144,8 +111,18 @@ export default function RecordList({ selectedDate }: RecordListProps) {
           ))
         ) : (
           <div className="text-center py-8 text-gray-500">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <p className="mt-2">상담 기록이 없습니다</p>
           </div>

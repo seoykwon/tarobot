@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { API_URLS } from "@/config/api";
-import ChatInput from "@/components/ChatInput";
+import ChatInput from "@/components/Chat/Input/ChatInput";
 import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";

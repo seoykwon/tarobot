@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import VoiceChat from "@/components/VoiceChat";
-import InviteFriend from "./Chat/InviteFriend";
+import VoiceChat from "@/components/Chat/Input/VoiceChat";
+import InviteFriend from "@/components/Chat/Input/InviteFriend";
 import NextImage from "next/image";
 
 interface ChatInputProps {

@@ -1,7 +1,8 @@
-// components/Calendar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import { API_URLS } from "@/config/api";
+import Image from "next/image";
 
 interface CalendarProps {
   selectedDate: Date;
@@ -11,7 +12,7 @@ interface CalendarProps {
 
 interface DayInfo {
   day: number;
-  botNumber: number | null;
+  botNumbers: number[]; // 각 날짜에 해당하는 봇들의 ID 배열 (없으면 빈 배열)
 }
 
 export default function Calendar({ selectedDate, setSelectedDate, onDateClick }: CalendarProps) {
@@ -24,34 +25,49 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
     "July", "August", "September", "October", "November", "December"
   ];
 
-  const generateDummyData = (year: number, month: number): DayInfo[] => {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, index) => ({
-      day: index + 1,
-      botNumber: (index + 1) % 5 === 0 ? Math.floor(Math.random() * 2) + 1 : null
-    }));
-  };
+  // // 더미 데이터 생성: 5의 배수 날짜에는 랜덤 봇 ID 하나를 배열에 담아 반환
+  // const generateDummyData = (year: number, month: number): DayInfo[] => {
+  //   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  //   return Array.from({ length: daysInMonth }, (_, index) => ({
+  //     day: index + 1,
+  //     botNumbers: (index + 1) % 5 === 0 ? [Math.floor(Math.random() * 2) + 1] : []
+  //   }));
+  // };
 
   useEffect(() => {
     const fetchCalendarData = async () => {
-      const year = selectedDate.getFullYear();
-      const month = selectedDate.getMonth() + 1;
+      const yearQuery = selectedDate.getFullYear();
+      const monthQuery = selectedDate.getMonth() + 1; // 백엔드 API는 1월을 1로 인식하도록 전달
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://localhost:8080/api/v1/diary/calendar?year=${year}&month=${month}`,
-          { method: "GET", credentials: "include" }
+          `${API_URLS.CALENDAR.MONTHLY(yearQuery, monthQuery)}`,
+          { method: "GET", 
+            credentials: "include" }
         );
 
         if (response.ok) {
           const data = await response.json();
-          setDaysInfo(data.days);
+          // API에서 전달되는 데이터는 key가 날짜(혹은 additionalProp1처럼 key에 숫자가 포함)이고,
+          // value가 봇 ID 배열로 구성된 형태라고 가정합니다.
+          const daysData: DayInfo[] = Object.entries(data).map(([key, value]) => {
+            let day = parseInt(key, 10);
+            if (isNaN(day)) {
+              // key가 "additionalProp1"과 같이 숫자가 포함된 문자열일 경우 숫자만 추출
+              const match = key.match(/\d+/);
+              day = match ? parseInt(match[0], 10) : 0;
+            }
+            return {
+              day,
+              botNumbers: Array.isArray(value) ? value : []
+            };
+          });
+          setDaysInfo(daysData);
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       } catch (error) {
         console.error("API 호출 실패, 더미 데이터 사용:", error);
-        setDaysInfo(generateDummyData(year, month));
       } finally {
         setIsLoading(false);
       }
@@ -60,45 +76,43 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
     fetchCalendarData();
   }, [selectedDate]);
 
+  // 날짜 가져오기
   const getDaysInMonth = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-
+  // 해당 월의 1일 가져오기
   const getFirstDayOfMonth = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-
+  // 저번 달로 이동하기
   const handlePrevMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(newDate.getMonth() - 1);
     setSelectedDate(newDate);
   };
-
+  // 다음 달로 이동하기
   const handleNextMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(newDate.getMonth() + 1);
     setSelectedDate(newDate);
   };
-
+  // 달력 렌더링
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(selectedDate);
     const firstDayOfMonth = getFirstDayOfMonth(selectedDate);
     const days = [];
 
-    // 빈 칸: aspect-square 적용
+    // 빈 칸 렌더링 (월 시작 전)
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(
         <div key={`empty-${i}`} className="aspect-square bg-gray-50"></div>
       );
     }
 
-    // 날짜 셀 렌더링: onDateClick 콜백 추가
+    // 날짜 셀 렌더링
     for (let i = 1; i <= daysInMonth; i++) {
-      const currentDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        i
-      );
+      const currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), i);
       const isSelected = currentDate.toDateString() === selectedDate.toDateString();
-      const botNumber = daysInfo.find(d => d.day === i)?.botNumber;
+      const dayInfo = daysInfo.find(d => d.day === i);
+      const botNumbers = dayInfo ? dayInfo.botNumbers : [];
 
       days.push(
         <div
@@ -112,23 +126,23 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
             if (onDateClick) onDateClick(currentDate);
           }}
         >
-          <span className={`text-xs font-semibold 
-            ${isSelected ? "text-blue-600" : "text-gray-600"}`}>
+          <span className={`text-xs font-semibold ${isSelected ? "text-blue-600" : "text-gray-600"}`}>
             {i}
           </span>
-  
-          {botNumber !== null && (
-            <div className="absolute inset-0 flex items-center justify-center top-2">
-              <span className="text-lg font-bold text-purple-600 
-                animate-[pulse_1.5s_ease-in-out_infinite]">
-                🤖{botNumber}
-              </span>
+
+          {botNumbers.length > 0 && (
+            <div className="absolute inset-0 flex items-center justify-center top-2 space-x-1">
+              <Image
+                src="/approved.svg"
+                alt="Bot Icon"
+                width={24}
+                height={24}
+              />
             </div>
           )}
-  
+
           {isLoading && (
-            <div className="absolute inset-0 bg-white bg-opacity-75 
-              flex items-center justify-center">
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
               <div className="loading loading-spinner loading-xs text-blue-500"></div>
             </div>
           )}
@@ -151,11 +165,11 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-  
+
         <h2 className="text-xl font-bold text-gray-800">
           {MONTHS[selectedDate.getMonth()]} {selectedDate.getFullYear()}
         </h2>
-  
+
         <button
           onClick={handleNextMonth}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -165,21 +179,18 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
           </svg>
         </button>
       </div>
-  
+
       {/* 요일 표시 */}
       <div className="grid grid-cols-7 gap-px mb-1 bg-gray-200">
         {DAYS.map(day => (
-          <div 
-            key={day}
-            className="h-10 bg-white flex items-center justify-center text-sm font-medium"
-          >
-            <span className={day === 'Sun' ? 'text-red-500' : day === 'Sat' ? 'text-blue-500' : 'text-gray-600'}>
+          <div key={day} className="h-10 bg-white flex items-center justify-center text-sm font-medium">
+            <span className={day === "Sun" ? "text-red-500" : day === "Sat" ? "text-blue-500" : "text-gray-600"}>
               {day}
             </span>
           </div>
         ))}
       </div>
-  
+
       {/* 날짜 그리드 */}
       <div className="grid grid-cols-7 gap-px bg-gray-200 auto-rows-[minmax(0,_1fr)]">
         {renderCalendarDays()}

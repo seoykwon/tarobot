@@ -1,7 +1,7 @@
 // chat/page.tsx
 "use client";
 
-import ChatStandby from "@/components/ChatStandby";
+import ChatStandby from "@/components/Chat/ChatStandby";
 
 export default function ChatPage() {
   // 데스크탑 등 모바일이 아닐 경우: 이미지 영역 없이 ChatStandby 컴포넌트만 전체 화면에 표시합니다.

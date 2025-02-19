@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
-import ChatInput from "@/components/ChatInput";
+import ChatInput from "@/components/Chat/Input/ChatInput";
 import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
 import Image from "next/image";
