@@ -43,6 +43,9 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [messages, setMessages] = useState<{ text: string; isUser: string; content?: React.ReactNode }[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const hasClosedSessionRef = useRef(false);
+
+  // ✅ 프로필 닉네임
   const [nickname, setNickname] = useState("");
   const [saying, setSaying] = useState(false);
 
@@ -172,7 +175,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     socket.on("chatbot_message", (data) => {
       console.log(`🤖 챗봇 메시지 수신: ${data}`);
       setSaying(false);
-      setChatType(data.chat_tag);
+
       setMessages((prev) => {
         const updatedMessages = [...prev];
         // 마지막 메시지가 assistant의 메시지라면, 그 메시지에 새로운 청크를 추가합니다.
@@ -188,6 +191,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         return updatedMessages;
       });
     });
+
+    // 챗봇 메시지 종료 신호 => 이 때 ChatType을 세팅
+    socket.on("chatbot_message_end", (data) => {
+      setChatType(data.chat_tag);
+    })
 
     // 응답 생성 중 표시
     // ✅ 메시지 수신 처리
@@ -274,7 +282,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   useEffect(() => {
     setShowTarotButton(chatType === "tarot");
 
-    if (chatType === "tarot result") {
+    if (chatType === "tarot result" && !hasClosedSessionRef.current) {
+      hasClosedSessionRef.current = true;
       const closeSession = async () => {
         try {
           const response = await fetch(API_URLS.CHAT.CLOSE, {
@@ -291,10 +300,13 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           console.error("세션 종료 에러:", error);
         }
       };
-  
-      closeSession();
+      closeSession().then(() => {
+        setChatType("none");
+        triggerSessionUpdate();
+        hasClosedSessionRef.current = false;
+      });
     }
-  }, [chatType, sessionId, userId]);
+  }, [chatType, sessionId, userId, botId, triggerSessionUpdate]);
 
   // 타로 버튼 클릭 시 카드 선택창 호출
   const handleShowCardSelector = () => {

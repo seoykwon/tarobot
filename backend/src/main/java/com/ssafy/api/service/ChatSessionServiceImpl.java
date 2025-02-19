@@ -106,6 +106,8 @@ public class ChatSessionServiceImpl implements ChatSessionService {
 
                 TarotBot tarotBot = tarotBotRepository.findById(botId).get();
 
+                ChatSession session = chatSessionRepository.findById(sessionId).get();
+
                 Diary diary = new Diary();
                 diary.setUser(user);
                 diary.setConsultDate(LocalDate.now());
@@ -114,6 +116,10 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 diary.setTag(String.join(", ", response.getTag()));
                 diary.setCardImageUrl(response.getCardImageUrl());
                 diary.setTarotBot(tarotBot);
+
+                // 세션 업데이트
+                session.setTitle(response.getTitle());
+                chatSessionRepository.save(session);
 
                 diaryRepository.save(diary);
                 System.out.println("✅ Diary saved successfully with title: " + response.getTitle());

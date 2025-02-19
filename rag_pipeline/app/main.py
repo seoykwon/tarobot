@@ -50,8 +50,8 @@ app.add_middleware(
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    logger=True,
-    engineio_logger=True,
+    logger=False,
+    engineio_logger=False,
     transports=["websocket", "polling"]
 )
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/socket.io")
@@ -139,6 +139,11 @@ async def chatbot_worker(room_id: str):
                 }, room=room_id)
 
             print(f"🟣 스트리밍 응답 완료: 채팅 태그: {chat_tag}")
+
+            # message의 끝을 알리는 신호. 태그만 발송
+            await sio.emit("chatbot_message_end", {
+                    "chat_tag": chat_tag,
+                }, room=room_id)
 
         except Exception as e:
             answer = f"[Error] Streaming 응답 생성 실패: {str(e)}"
