@@ -518,17 +518,23 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         {/* 하단 입력창 */}
         <ChatInput
           onSend={(msg) => {
+            // 메시지 전송 시 typing_stop 이벤트 호출
+            if (socketRef.current && isRoomJoined) {
+              socketRef.current.emit("typing_stop", { room_id: sessionId });
+            }
             handleSendMessage(msg);
-            // lastInputRef를 갱신
             lastInputRef.current = "";
           }}
           sessionId={sessionId}
           onInputChange={(val) => {
-            // ✅ 사용자가 입력 중이므로 typing_start
             if (socketRef.current && isRoomJoined) {
-              socketRef.current.emit("typing_start", { room_id: sessionId });
+              // 입력값이 비어있으면 typing_stop, 그렇지 않으면 typing_start
+              if (val.trim() === "") {
+                socketRef.current.emit("typing_stop", { room_id: sessionId });
+              } else {
+                socketRef.current.emit("typing_start", { room_id: sessionId });
+              }
             }
-            // ✅ 10초 뒤 macro 체크
             handleUserInputIdle(val);
           }}
         />

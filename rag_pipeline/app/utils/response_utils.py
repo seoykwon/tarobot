@@ -19,7 +19,8 @@ async def response_generator(
     keywords: list[str],
     user_id: str,
     type: str,
-    chat_tag: str
+    chat_tag: str,
+    max_tokens: int = 512,
 ) -> AsyncGenerator[str, None]:
     """
     OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터  
@@ -49,7 +50,7 @@ async def response_generator(
         # OpenAI 스트리밍 응답 처리 (청크 단위)
         async for chunk in call_4o_mini_str(
             chat_prompt,
-            max_tokens=512,
+            max_tokens=max_tokens,
             system_prompt=concepts[names[bot_id]],
             stream=True
         ):

@@ -18,7 +18,21 @@ from app.services.redis_utils import get_recent_history, save_message
 from app.utils.sys_prompt_dict import sys_prompt
 from app.utils.max_tokens import max_tokens_for_type
 
-app = FastAPI()
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 서버 시작 시 배치 워커 실행
+    task = asyncio.create_task(batch_worker())
+    yield
+    # 서버 종료 시 배치 워커 정리
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+app = FastAPI(lifespan=lifespan)
 
 # Redis 연결
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
@@ -36,8 +50,8 @@ app.add_middleware(
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    logger=False,
-    engineio_logger=False,
+    logger=True,
+    engineio_logger=True,
     transports=["websocket", "polling"]
 )
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path="/socket.io")
@@ -93,15 +107,15 @@ async def chatbot_worker(room_id: str):
 
             # 스트리밍 응답 생성
             # none 타입, 의도 분석 결과 tarot 아니고, 20자 미만의 짧은 채팅이면 short
-            if (type == "none" and chat_tag != "tarot" and len(user_input) < 20):
-                type = "short"
+            if (type_ == "none" and chat_tag != "tarot" and len(user_input) < 20):
+                type_ = "short"
                 context += "짧은 대화이니 반드시 30자 이내로 대답하세요"
 
             # response_generator를 통해 스트리밍 응답을 생성 (async generator)
             generator = response_generator(
                 room_id, user_input, context,
                 bot_id=bot_id, keywords=keywords, user_id=user_id,
-                type=type_, chat_tag=chat_tag, max_tokens=max_tokens_for_type[type],
+                type=type_, chat_tag=chat_tag, max_tokens=max_tokens_for_type[type_],
             )
 
             # 각 청크를 파싱 후 Socket.IO로 전송
@@ -150,6 +164,7 @@ async def batch_worker():
     '사용자 입력이 멈춘 시점'으로부터 1초 이상 경과하면 
     그동안 쌓인 메시지를 한 번에 챗봇 큐에 넣고 Redis에 저장.
     """
+    print("배치 워커 가동")
     while True:
         await asyncio.sleep(BATCH_CHECK_INTERVAL)
         now = time.time()
@@ -238,8 +253,7 @@ async def handle_join_room(sid, data):
         # sid에서 room_id와 user_id 정보도 저장
         sid_user_mapping[sid] = {"room_id": room_id, "user_id": user_id}
         print(f"🔍 룸 {room_id}에 user_id {user_id}: '{nickname}' 저장됨.")
-    # else: print("nono")
-    print(f"🔍 룸 {room_id}에 user_id {user_id}: '{nickname}' 저장됨.")
+    else: print("nono")
 
     print(f"🔍 현재 {sid}의 Room 리스트: {sio.rooms(sid)}")
 
@@ -281,6 +295,10 @@ async def handle_typing_stop(sid, data):
     }, room=room_id, skip_sid=sid)
     # 마지막 입력 중단 시점 기록
     room_last_input_signal[room_id] = time.time()
+    print("=================================")
+    print(room_batch_queues)
+    print(room_last_input_signal)
+    print("=================================")
 
 @sio.on("chat_message")
 async def handle_chat_message(sid, data):
