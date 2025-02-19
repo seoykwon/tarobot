@@ -74,7 +74,7 @@ export default function TarotDetailModal({
           className="absolute top-3 right-3 z-50 text-gray-600 hover:text-gray-800"
           onClick={onClose}
         >
-          X
+          ✖
         </button>
 
         {/* Capture Content */}

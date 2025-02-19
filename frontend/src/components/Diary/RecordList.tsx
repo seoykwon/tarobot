@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_URLS } from "@/config/api";
 import Image from "next/image";
 import TarotDetailModal, { TarotSummary } from "@/components/Diary/TarotDetailModal";
 
@@ -9,49 +10,46 @@ interface RecordListProps {
   selectedDate: Date;
 }
 
-// 테스트를 위해 임시 데이터 2개 작성
-const temporaryTarotData: TarotSummary[] = [
-  {
-    id: 1,
-    consultDate: "2025-02-19",
-    tag: "운세",
-    title: "첫 번째 상담",
-    summary: "첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다. 첫 번째 상담의 요약입니다.",
-    cardImageUrl: "/basic/maj0.svg",
-    tarotBotId: 1,
-    createdAt: "2025-02-19T12:00:00Z",
-    updatedAt: "2025-02-19T12:00:00Z",
-  },
-  {
-    id: 2,
-    consultDate: "2025-02-19",
-    tag: "연애",
-    title: "두 번째 상담",
-    summary: "두 번째 상담의 요약입니다.",
-    cardImageUrl: "/basic/cups1.svg",
-    tarotBotId: 1,
-    createdAt: "2025-02-19T12:00:00Z",
-    updatedAt: "2025-02-19T12:00:00Z",
-  }
-];
-
 export default function RecordList({ selectedDate }: RecordListProps) {
   const [tarotData, setTarotData] = useState<TarotSummary[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTarot, setSelectedTarot] = useState<TarotSummary | null>(null);
 
-  // 테스트 목적으로 임시 데이터를 로드하는 함수
-  const loadTemporaryData = () => {
-    setTarotData(temporaryTarotData);
-    setIsLoading(false);
+  // 데이터 가져오기
+  const fetchRecords = async (date: Date) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+  
+      // 한국 시간으로 변환
+      const offsetDate = new Date(date.getTime() + 9 * 60 * 60 * 1000); // UTC+9
+      const formattedDate = offsetDate.toISOString().split("T")[0]; // 'YYYY-MM-DD' 형식
+  
+      const response = await fetch(
+        `${API_URLS.CALENDAR.SUMMARY(formattedDate)}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+  
+      if (!response.ok) throw new Error("데이터 조회 실패");
+      const data: TarotSummary[] = await response.json();
+      setTarotData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "알 수 없는 오류 발생");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // 날짜 변경 시 데이터 갱신
   useEffect(() => {
-    // 실제 API 호출 대신 임시 데이터 적용
-    loadTemporaryData();
+    fetchRecords(selectedDate);
   }, [selectedDate]);
 
+  // 출력할때 날짜 보기 편하게 하기 위한 함수
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleTimeString("ko-KR", {
@@ -65,14 +63,20 @@ export default function RecordList({ selectedDate }: RecordListProps) {
     <div className="w-full h-full flex flex-col rounded-lg pt-4 relative">
       <h3 className="text-xl md:text-2xl font-semibold text-center mb-4">상담 내역</h3>
       <div className="flex-1 overflow-y-auto px-2 sm:px-4">
+
+        {/* 로딩 중일 경우 */}
         {isLoading ? (
           <div className="text-center py-8">
             <span className="loading loading-spinner loading-md md:loading-lg text-primary"></span>
           </div>
+          
+        // 오류가 있을 경우
         ) : error ? (
           <div className="alert alert-error shadow-lg mx-2 sm:mx-4">
             <span>{error}</span>
           </div>
+
+        // 상담 기록이 있을 경우
         ) : tarotData.length > 0 ? (
           tarotData.map(tarot => (
             <div
@@ -109,6 +113,8 @@ export default function RecordList({ selectedDate }: RecordListProps) {
               </div>
             </div>
           ))
+          
+        // 상담 기록이 없을 경우
         ) : (
           <div className="text-center py-8 text-gray-500">
             <svg
@@ -129,6 +135,7 @@ export default function RecordList({ selectedDate }: RecordListProps) {
         )}
       </div>
 
+      {/* 상담 상세 정보 오버레이 */}
       {selectedTarot && (
         <TarotDetailModal
           tarot={selectedTarot}

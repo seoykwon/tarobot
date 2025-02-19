@@ -74,8 +74,8 @@ export default function Diary({ onClose }: DiaryProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 z-60"
-              onClick={() => setShowOverlay(false)}
+              className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 z-[70]"
+              onClick={(e) => {e.stopPropagation(); setShowOverlay(false)}}
             >
               ✖
             </button>
