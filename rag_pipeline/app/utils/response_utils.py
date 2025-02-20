@@ -40,9 +40,11 @@ async def response_generator(
         ):
             print("📌 DEBUG: CHUNK in response_generator =", chunk)  # ✅ 디버깅 추가
 
-            if not isinstance(chunk, str):
-                print("❌ [ERROR] chunk가 문자열이 아님! 타입:", type(chunk), "내용:", chunk)
-                continue
+            # if not isinstance(chunk, str):
+            #     print("❌ [ERROR] chunk가 문자열이 아님! 타입:", type(chunk), "내용:", chunk)
+            #     continue
+            if not chunk:
+                break
 
             llm_answer += chunk
             payload = {

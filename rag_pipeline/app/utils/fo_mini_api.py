@@ -64,25 +64,25 @@ async def call_4o_mini_str(prompt: str, max_tokens=256, temperature=0.7, system_
         async for chunk in response:
             print("📌 DEBUG: CHUNK = ", chunk)  # ✅ 디버깅 추가
 
-            if not isinstance(chunk, dict):
-                print("❌ [ERROR] chunk가 dict가 아님! 타입:", type(chunk))
+            # if not isinstance(chunk, dict):
+            #     print("❌ [ERROR] chunk가 dict가 아님! 타입:", type(chunk))
                 
-            if "choices" not in chunk:
-                print("❌ [ERROR] chunk에 'choices' 키 없음! 내용:", chunk)
+            # if "choices" not in chunk:
+            #     print("❌ [ERROR] chunk에 'choices' 키 없음! 내용:", chunk)
                 
-            if not isinstance(chunk["choices"], list):
-                print("❌ [ERROR] chunk['choices']가 리스트가 아님! 내용:", chunk["choices"])
+            # if not isinstance(chunk["choices"], list):
+            #     print("❌ [ERROR] chunk['choices']가 리스트가 아님! 내용:", chunk["choices"])
                 
-            if len(chunk["choices"]) == 0:
-                print("❌ [ERROR] chunk['choices']가 비어 있음!")
+            # if len(chunk["choices"]) == 0:
+            #     print("❌ [ERROR] chunk['choices']가 비어 있음!")
                 
-            if "delta" not in chunk["choices"][0]:
-                print("❌ [ERROR] chunk['choices'][0]에 'delta' 키 없음! 내용:", chunk["choices"][0])
+            # if "delta" not in chunk["choices"][0]:
+            #     print("❌ [ERROR] chunk['choices'][0]에 'delta' 키 없음! 내용:", chunk["choices"][0])
                 
-            if "content" not in chunk["choices"][0]["delta"]:
-                print("❌ [ERROR] chunk['choices'][0]['delta']에 'content' 키 없음! 내용:", chunk["choices"][0]["delta"])
+            # if "content" not in chunk["choices"][0]["delta"]:
+            #     print("❌ [ERROR] chunk['choices'][0]['delta']에 'content' 키 없음! 내용:", chunk["choices"][0]["delta"])
                 
-            content = chunk["choices"][0]["delta"]["content"]  # <-- 기존 코드
+            content = chunk.choices[0].delta.content
             print("✅ DEBUG: 추출된 content =", content)
 
             if content:
