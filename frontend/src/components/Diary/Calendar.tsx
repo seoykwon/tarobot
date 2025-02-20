@@ -116,7 +116,7 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
           {botNumbers.length > 0 && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Image
-                src="/stamp.svg" // 스탬프 아이콘 경로
+                src="/approved.svg" // 스탬프 아이콘 경로
                 alt="Bot Stamp"
                 width={24}
                 height={24}

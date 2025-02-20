@@ -92,9 +92,9 @@ public class DiaryController {
         LocalDate date = LocalDate.parse(consultDate);
         List<DiaryRes> diaries = diaryService.getDiariesByConsultDate(date, userId);
 
-        if (diaries.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+//        if (diaries.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
         return ResponseEntity.ok(diaries);
     }
 

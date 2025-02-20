@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Socket } from "socket.io-client";
-import VoiceChat from "@/components/Chat/Input/VoiceChat";
+// import VoiceChat from "@/components/Chat/Input/VoiceChat";
 import InviteFriend from "@/components/Chat/Input/InviteFriend";
 import NextImage from "next/image";
 
