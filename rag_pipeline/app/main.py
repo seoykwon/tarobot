@@ -137,6 +137,8 @@ async def chatbot_worker(room_id: str):
 
             token_num = max_tokens_for_type.get(type_, max_tokens_for_type["none"])
 
+            print("response_generator 호출 준비 완료")
+
             # response_generator를 통해 스트리밍 응답을 생성 (async generator)
             # response_generator에 flush_msgs를 추가로 넘김
             generator = response_generator(
@@ -181,10 +183,10 @@ async def chatbot_worker(room_id: str):
 
             print(f"🟣 스트리밍 응답 완료: 채팅 태그: {chat_tag}")
 
-            # message의 끝을 알리는 신호. 태그만 발송
-            await sio.emit("chatbot_message_end", {
-                    "chat_tag": chat_tag,
-                }, room=room_id)
+            # # message의 끝을 알리는 신호. 태그만 발송
+            # await sio.emit("chatbot_message_end", {
+            #         "chat_tag": chat_tag,
+            #     }, room=room_id)
 
         except Exception as e:
             answer = f"[Error] Streaming 응답 생성 실패: {str(e)}"

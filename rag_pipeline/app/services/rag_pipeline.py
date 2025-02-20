@@ -44,7 +44,7 @@ async def process_user_input(
 
         ### 선행되어야 하는 Tag, Keyword 추출 작업 먼저 실행
         # tarot 의 경우 태그와 키워드 고정
-        if (type=="tarot"):
+        if (type_=="tarot"):
             chat_tag = "tarot result"
             keywords = ["타로 점 결과", combined_input]
         else:

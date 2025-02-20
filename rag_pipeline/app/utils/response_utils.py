@@ -27,13 +27,27 @@ async def response_generator(
     OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터  
     """
     try:
+        # 타로/일반 대화 프롬프트 구성
+        if type == "tarot":
+            chat_prompt = make_prompt_tarot(context, user_input)
+            lastconv = await get_recent_history(session_id, 3)  # 직전 대화 기록 불러오기
+            if lastconv:
+                chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
+        else:
+            chat_prompt = make_prompt_chat(context, user_input)
+            if chat_tag == "tarot":
+                chat_prompt += """
+사용자가 타로 점을 보고 싶어하는 것 같습니다.
+이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
+"""
+
         response_id = str(uuid.uuid4())
         sequence = 1
         llm_answer = ""
 
         # OpenAI 스트리밍 응답 처리 (청크 단위)
         async for chunk in call_4o_mini_str(
-            user_input,
+            chat_prompt,
             max_tokens=max_tokens,
             system_prompt=concepts[names[bot_id]],
             stream=True

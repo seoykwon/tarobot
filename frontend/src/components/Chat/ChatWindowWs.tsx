@@ -258,6 +258,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         } else {
           // 3) 해당 response_id 메시지가 아직 없다면 새로 추가
           setChatType(data.chat_tag);
+          if (data.chat_tag == "tarot result") hasClosedSessionRef.current = false;
           updatedMessages.push({
             message: data.message,
             role: data.role,
@@ -268,11 +269,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         return updatedMessages;
       });
     });
-
-    // 챗봇 메시지 종료 신호 => 이 때 ChatType을 세팅
-    socket.on("chatbot_message_end", (data) => {
-      setChatType(data.chat_tag);
-    })
 
     // 응답 생성 중 표시
     socket.on("saying", () => {
@@ -317,7 +313,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       }
     }, [typingUsers]);
   
-    // ✅ pendingMessage를 감지해 전달
+  // ✅ pendingMessage를 감지해 전달
   useEffect(() => {
     if (isRoomJoined && pendingMessageRef.current) {
       console.log("🔄 `isRoomJoined` 변경 감지, 대기 중이던 메시지 전송:", pendingMessageRef.current);
@@ -415,9 +411,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         }
       };
       closeSession().then(() => {
-        setChatType("none");
+        setTimeout(()=>setChatType("none"), 1000);
         triggerSessionUpdate();
-        hasClosedSessionRef.current = false;
       });
     }
   }, [chatType, sessionId, storedUserId, botId, triggerSessionUpdate]);
@@ -436,6 +431,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   // 카드 선택 후 처리 (선택한 카드 이름을 채팅에 반영)
   // =========================================
   const handleCardSelect = (cardId: string) => {
+    if (!socketRef.current) return;
+    const socket = socketRef.current; // 최초의 socket 저장
     setShowCardSelector(false);
     const selectedCard = tarotCards[cardId];
     // 봇 메시지로 카드 선택 결과를 보여주고, 선택한 카드 이름을 전송
@@ -457,7 +454,9 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       },
     ]);
     // 선택한 카드 이름을 서버에 전송
-    handleSendMessage(selectedCard);
+    handleSendMessage(selectedCard).then(() => {
+      socket.emit("typing_stop", { room_id: sessionId });
+    });
   };
 
 
@@ -465,17 +464,19 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
   // =========================================
   useEffect(() => {
+    if (!socketRef.current) return;
+    const socket = socketRef.current; // 최초의 socket 저장
     const storedMessage = localStorage.getItem("firstMessage");
-    localStorage.removeItem("firstMessage"); // ✅ 꺼낸 뒤 즉시 삭제
+    localStorage.removeItem("firstMessage"); // 꺼낸 뒤 즉시 삭제
+  
     if (storedMessage) {
-      // ✅ 200ms 뒤에 첫 메시지 전송 (WebSocket 연결 보장)
       setTimeout(() => {
-        handleSendMessage(storedMessage);
+        handleSendMessage(storedMessage).then(() => {
+          socket.emit("typing_stop", { room_id: sessionId });
+        });
       }, 200);
-    } else {
-      // console.log("기존 세션 입장");
     }
-  }, [handleSendMessage]);
+  }, [handleSendMessage, socketRef, sessionId]);
 
 
   // =========================================
@@ -521,7 +522,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       // ref에 저장 (상태 업데이트 없음)
       lastInputRef.current = currentInput;
     }, 10000);
-  }, [sessionId, botId, isRoomJoined]);
+  }, []);
 
 
 
