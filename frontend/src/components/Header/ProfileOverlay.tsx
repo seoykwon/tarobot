@@ -66,11 +66,11 @@ export default function ProfileOverlay({
       {/* 프로필 버튼 */}
       <button onClick={toggle} className="w-10 h-10 rounded-full overflow-hidden bg-gray-300">
         <Image
-          src={profileImage}
+          src={profileImage || "/favicon.ico"}
           alt="Profile"
           width={40}
           height={40}
-          className="object-cover"
+          className="object-cover rounded-full"
         />
       </button>
 
