@@ -3,8 +3,11 @@ import ClientLayout from '@/components/ClientLayout';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '미루 - 타로 상담',
+  title: 'VORA 보라 - 미래를 보다',
   description: '타로 마스터와의 상담을 통해 당신의 미래를 탐색해보세요.',
+  icons: {
+    icon: '/favicon.ico', // Favicon 경로
+  },
 };
 
 export default function RootLayout({

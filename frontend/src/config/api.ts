@@ -73,7 +73,7 @@ export const API_URLS = {
     REFRESH: `${BASE_URL}/api/v1/token/refresh`,
   },
   CALENDAR: {
-    MONTHLY: (year: number, month: number) => `${BASE_URL}/api/v1/diary/calendar?year=${year}&month=${month}`,
+    MONTHLY: (year: number, month: number) => `${BASE_URL}/api/v1/diary/monthly?year=${year}&month=${month}`,
     SUMMARY: (date: string) => `${BASE_URL}/api/v1/diary/${date}`,
   },
   GAME: {

@@ -17,7 +17,7 @@ export default function ProfileOverlay({
   const [isSettingModalOpen, setSettingModalOpen] = useState(false);
   const [isPlanUpgradeModalOpen, setPlanUpgradeModalOpen] = useState(false);
   const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState<string>("/example.jpg"); // 기본 이미지 설정
+  const [profileImage, setProfileImage] = useState<string>("/favicon.ico"); // 기본 이미지 설정
 
   // 백엔드에서 프로필 데이터 가져오기
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function ProfileOverlay({
 
         if (response.ok) {
           const data = await response.json();
-          setProfileImage(data.profileImage || "/example.jpg"); // 프로필 이미지가 없으면 기본 이미지 사용
+          setProfileImage(data.profileImage || "/favicon.ico"); // 프로필 이미지가 없으면 기본 이미지 사용
         } else {
           console.error("프로필 데이터를 불러오는 데 실패했습니다.");
         }

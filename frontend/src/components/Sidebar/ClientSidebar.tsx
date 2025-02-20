@@ -52,15 +52,6 @@ export default function ClientSidebar({
             {children}
           </div>
 
-          {/* 하단 고정 다이어리 버튼 */}
-          <div className="p-4 border-t border-gray-100 bg-[#f0f4f9]">
-            <button
-              className="bg-[#f0f4f9] hover:bg-gray-200 text-[#0D0D0D] p-3 rounded-lg flex items-center justify-start w-full gap-2 transition"
-              onClick={() => setIsDiaryOpen(true)}
-            >
-              📖 <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">다이어리</span>
-            </button>
-          </div>
         </div>
       </div>
 
