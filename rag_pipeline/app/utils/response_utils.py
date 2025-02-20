@@ -4,7 +4,7 @@ import datetime
 import uuid
 import json
 import pytz
-from typing import AsyncGenerator
+from typing import AsyncGenerator, List, Dict
 from app.utils.fo_mini_api import call_4o_mini_str
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_tarot
 from app.utils.chatbot_concept import names, concepts
@@ -16,46 +16,36 @@ async def response_generator(
     user_input: str,
     context: str,
     bot_id: int,
-    keywords: list[str],
+    keywords: List[str],
     user_id: str,
     type: str,
     chat_tag: str,
+    flush_msgs: List[Dict[str, str]] = None,  
     max_tokens: int = 512,
 ) -> AsyncGenerator[str, None]:
     """
     OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터  
-    각 청크에 고유 response_id와 sequence 번호를 추가하여 JSON 문자열로 반환합니다.
     """
     try:
-        # 타로/일반 대화 프롬프트 구성
-        if type == "tarot":
-            chat_prompt = make_prompt_tarot(context, user_input)
-            lastconv = await get_recent_history(session_id, 3)  # 직전 대화 기록 불러오기
-            if lastconv:
-                chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
-        else:
-            chat_prompt = make_prompt_chat(context, user_input)
-            if chat_tag == "tarot":
-                chat_prompt += """
-사용자가 타로 점을 보고 싶어하는 것 같습니다.
-이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
-"""
-        # 새로운 응답에 대한 고유 ID 생성 및 sequence 초기화
         response_id = str(uuid.uuid4())
         sequence = 1
         llm_answer = ""
-        
-        print(f"📌 생성된 Chat Prompt: {chat_prompt}")  # ✅ 로그 추가
-        
+
         # OpenAI 스트리밍 응답 처리 (청크 단위)
         async for chunk in call_4o_mini_str(
-            chat_prompt,
+            user_input,
             max_tokens=max_tokens,
             system_prompt=concepts[names[bot_id]],
             stream=True
         ):
+            print("📌 DEBUG: CHUNK in response_generator =", chunk)  # ✅ 디버깅 추가
+
+            # if not isinstance(chunk, str):
+            #     print("❌ [ERROR] chunk가 문자열이 아님! 타입:", type(chunk), "내용:", chunk)
+            #     continue
             if not chunk:
                 break
+
             llm_answer += chunk
             payload = {
                 "response_id": response_id,
@@ -63,19 +53,35 @@ async def response_generator(
                 "chunk": chunk
             }
             sequence += 1
-            # 각 청크를 JSON 문자열로 yield (줄바꿈으로 구분)
             yield json.dumps(payload) + "\n"
 
-        # Pinecone 업서트 및 Redis 저장(백그라운드 실행)
-        metadata = {
-            "created_at": int(datetime.datetime.now(pytz.timezone("Asia/Seoul")).timestamp()),
-            "keywords": keywords if keywords else ["(없음)"],
-            "user_input": user_input,
-            "response": llm_answer
-        }
-        asyncio.create_task(upsert_documents(bot_id, user_id, [user_input], [metadata]))
-        asyncio.create_task(save_message(session_id, "assistant", llm_answer))
+        # 3) 스트리밍 완료 -> Pinecone & Redis 저장
+        #    => flush_msgs에 있는 각 user의 메시지에 대해 동일한 llm_answer 저장
+        created_at = int(datetime.datetime.now(pytz.timezone("Asia/Seoul")).timestamp())
+
+        # (a) Redis에 최종 답변 1건 저장 (assistant)
+        #     - flush_msgs는 여러 user_id가 있으니, role="assistant", nickname="assistant"
+        asyncio.create_task(save_message(session_id, "assistant", llm_answer, nickname="assistant"))
+        
+        # (b) Pinecone upsert: flush_msgs 각각에 대해
+        for msg in flush_msgs:
+            uid = msg["user_id"]
+            user_input_each = msg["user_input"]
+            metadata = {
+                "created_at": created_at,
+                "user_input": user_input_each,
+                "response": llm_answer,
+                "keywords": keywords if keywords else ["(없음)"]
+            }
+            # 문서/메타데이터: 1:1
+            docs = [user_input_each]
+            metas = [metadata]
+            # user_id별 namespace에 upsert
+        
+            asyncio.create_task(upsert_documents(bot_id, uid, docs, metas))
+            
     except Exception as e:
+        print(f"❌ response_generator 오류: {str(e)}")
         error_payload = {
             "response_id": response_id if 'response_id' in locals() else None,
             "sequence": sequence if 'sequence' in locals() else None,

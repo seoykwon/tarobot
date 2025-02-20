@@ -3,6 +3,7 @@ import asyncio
 import datetime
 import pytz
 import json
+from typing import List
 from app.services.redis_utils import save_message, get_recent_history
 from app.services.pinecone_integration import upsert_documents, retrieve_documents
 from app.utils.fo_mini_api import call_4o_mini
@@ -12,20 +13,31 @@ from app.utils.chatbot_concept import names, concepts
 from app.utils.sys_prompt_dict import sys_prompt
 
 # 🔥 [개발용] 임시 사용자 데이터 (백엔드 연동 전)
-dummy_user_profile = {
-    "user_id": "test_user_123",  # ✅ 개발용 user_id
-    "name": "테스트 유저",  # 🏷️ 사용자 이름
-    "birth_date": "1995-06-21",  # 🎂 생년월일
-    "astro_sign": "Gemini",  # ♈ 별자리
-    "preferences": {  
-        "preferred_reading_style": "detailed",  # 상세한 리딩을 원하는지 여부
-        "fav_tarot_cards": ["The High Priestess", "The Moon"]  # 선호하는 타로 카드
-    }
-}
+# dummy_user_profile = {
+#     "user_id": "test_user_123",  # ✅ 개발용 user_id
+#     "name": "테스트 유저",  # 🏷️ 사용자 이름
+#     "birth_date": "1995-06-21",  # 🎂 생년월일
+#     "astro_sign": "Gemini",  # ♈ 별자리
+#     "preferences": {  
+#         "preferred_reading_style": "detailed",  # 상세한 리딩을 원하는지 여부
+#         "fav_tarot_cards": ["The High Priestess", "The Moon"]  # 선호하는 타로 카드
+#     }
+# }
 
-async def process_user_input(session_id: str, user_input: str, type: str, user_id: str, bot_id: int, multi_mode: bool = False):
+async def process_user_input(
+    session_id: str,
+    combined_input: str,
+    type_: str,
+    user_ids: List[str],
+    bot_id: int,
+    multi_mode: bool = False
+):
     """
-    사용자 입력을 처리하는 비동기 함수 (Redis 저장, 분석, Pinecone 업서트 & 검색)
+    멀티 유저를 지원하는 단일 process_user_input.
+    1) gettag, NER
+    2) Redis 최근 로그
+    3) user_ids 각각에 대해 Pinecone 검색 (top_k=3), 결과를 합쳐서 context 생성
+    4) return context, keywords, chat_tag
     """
     try:
         print("🟢 process_user_input 시작")  # ✅ 로그 추가
@@ -34,14 +46,14 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
         # tarot 의 경우 태그와 키워드 고정
         if (type=="tarot"):
             chat_tag = "tarot result"
-            keywords = ["타로 점 결과", user_input]
+            keywords = ["타로 점 결과", combined_input]
         else:
             # 유저 인풋으로 부터 타로 점을 보고 싶은 지 분석하는 함수로, 결과에 따라 다른 로직 실행
             # chat_tag_task = asyncio.create_task(call_4o_mini(make_prompt_tag(user_input), max_tokens=10))
-            chat_tag_task = asyncio.create_task(call_4o_mini(user_input, max_tokens=10, system_prompt=sys_prompt["gettag"]))
+            chat_tag_task = asyncio.create_task(call_4o_mini(combined_input, max_tokens=10, system_prompt=sys_prompt["gettag"]))
 
             # NER 키워드 추출 => 선행되어야 pinecone 검색 가능
-            ner_prompt = make_prompt_ner(user_input)
+            ner_prompt = make_prompt_ner(combined_input)
             keywords_str_task = asyncio.create_task(call_4o_mini(ner_prompt, max_tokens=300))
             
             # NER은 대체 해보니 성능이 안나옴..! 꼭 대체한다고 다 좋은 건 아닌듯.
@@ -62,21 +74,46 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
         ### context 생성 관련 작업 수행
         # 세션 전체 기억 불러오기
-        recent_history_task = asyncio.create_task(get_recent_history(session_id, 50))
+        # recent_history_task = asyncio.create_task(get_recent_history(session_id, 50))
 
+        # (2) Redis 최근 대화 기록
+        recent_logs = await get_recent_history(session_id, 50)
+        # nickname:message 형태로 정리
+        recent_log_texts = []
+        for msg in recent_logs:
+            nick = msg.get("nickname", msg["role"])
+            recent_log_texts.append(f"{nick}: {msg['message']}")
+        recent_history_block = "\n".join(recent_log_texts)
+        
         # # 요약 불러오기
         # recent_summary_task = asyncio.create_task(get_summary_history(session_id))
         
         # Pinecone RAG 검색
-        retrieve_task = asyncio.create_task(retrieve_documents(bot_id, user_id, user_input, keywords, top_k=3))
+        # retrieve_task = asyncio.create_task(retrieve_documents(bot_id, user_id, user_input, keywords, top_k=3))
         
-        # 2가지 비동기 task 완료 대기 후 값 할당
-        recent_history, pine_results = await asyncio.gather(recent_history_task ,retrieve_task)
-
-        print(f"📌 Pinecone 검색 결과: {pine_results}")  # ✅ 로그 추가
+        # (3) Pinecone 검색: user_ids 각각에 대해
+        pine_content_lines = []
+        for uid in user_ids:
+            retrieved = await retrieve_documents(
+                bot_id=bot_id,
+                user_id=uid,
+                query=combined_input,
+                keywords=keywords,
+                top_k=3
+            )
+            for doc in retrieved:
+                meta = doc.get("metadata", {})
+                user_input = meta.get("user_input", "")
+                response = meta.get("response", "")
+                pine_content_lines.append(f"[{uid}] user_input: {user_input}\n -> response: {response}")
+        
+        pine_text = "\n".join(pine_content_lines) if pine_content_lines else "관련 검색 결과가 없습니다."
+        
+        # print(f"📌 Pinecone 검색 결과: {pine_text}")  # ✅ 로그 추가
 
         # context 합치기
-        context = prepare_context(recent_history, pine_results, keywords)
+        # context = prepare_context(recent_history, pine_results, keywords)
+        
 
         ### 저장 관련 작업 백그라운드 수행
         # 요약 갱신
@@ -97,12 +134,30 @@ async def process_user_input(session_id: str, user_input: str, type: str, user_i
 
         # asyncio.gather(save_task, save_summary_task) # 저장 작업 완료 대기. 업로드 작업은 이미 asyncio.create_task로 인해 백그라운드에서 실행 보장됨.
 
-        print("🟣 process_user_input 완료")  # ✅ 로그 추가
+        # (4) 최종 컨텍스트 구성
+        # multi_mode 표시
+        context = f"""
+            [직전 대화 로그(일부)]:
+            {recent_history_block}
+
+            [과거 연관 대화 로그 (모든 유저 검색)]:
+            {pine_text}
+        """
+        # 멀티 모드에 따라 context를 조금 다르게 생성
+        if multi_mode:
+            context = f"\n[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.\n{context}"
+        else:
+            context = f"\n[싱글 모드]: 1:1 타로 상담 상황입니다.\n{context}"
+
+        # (5) chat_tag trim
+        chat_tag = chat_tag.strip()
+
+        print(f"🟣 process_user_input(멀티) 완료 -> chat_tag={chat_tag}")
         return context, keywords, chat_tag
 
     except Exception as e:
-        print(f"❌ process_user_input 실패: {e}")  # ✅ 예외 출력
-        return None, None, None  # 예외 발생 시 None 반환
+        print(f"❌ process_user_input(멀티) 실패: {e}")
+        return "", [], "none"
 
 def prepare_context(recent_history, pine_results, keywords):
     """
@@ -122,12 +177,15 @@ def prepare_context(recent_history, pine_results, keywords):
 
     # ✅ 최적화된 컨텍스트 구성
     context = f"""
-[최근 대화 기록]:
-{recent_history}
+            [직전 대화 기록]:
+            {recent_history}
 
-[관련 대화 검색 결과]: 
-{pine_content_text}
-"""
+            [과거 연관 대화 기록]: 
+            {pine_content_text}
+
+            [NER 정보]:
+            {keywords}
+        """
 
     return context.strip()  # ✅ 불필요한 공백 제거
 

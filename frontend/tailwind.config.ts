@@ -16,9 +16,18 @@ const config: Config = {
         card: "var(--card)", 
         "card-foreground": "var(--card-foreground)",
       },
+      keyframes: {
+        dotWave: {
+          "0%, 100%": { transform: "translateY(0)", opacity: "1" },
+          "50%": { transform: "translateY(-5px)", opacity: "0.5" },
+        },
+      },
+      animation: {
+        dotWave: "dotWave 1s ease-in-out infinite",
+      },
     },
   },
-  plugins: [tailwindScrollbar,
-  ],
+  plugins: [tailwindScrollbar],
 };
+
 export default config;
