@@ -7,10 +7,14 @@ import ChatInput from "@/components/Chat/Input/ChatInput";
 import Image from "next/image";
 import CardSelector from "@/components/CardSelector";
 import { tarotCards } from "@/utils/tarotCards";
-import { io, Socket } from "socket.io-client";
+// 기존 io, Socket import는 주석 처리 (socketManager로 대체)
+// import { io, Socket } from "socket.io-client";
 import { useSession } from "@/context/SessionContext";
 import { getTarotMaster } from "@/libs/api";
 import { createPortal } from "react-dom";
+
+// socketManager를 사용하여 이벤트 라우터 적용 (채팅 관련 이벤트 전용)
+import socketManager from "@/utils/socketManager";
 
 // TypingIndicator
 function TypingIndicator({ nickname }: { nickname: string }) {
@@ -37,7 +41,6 @@ interface MessageForm {
   content?: React.ReactNode;
   response_id?: string;
   sequence?: number;
-
 }
 
 interface TarotMaster {
@@ -55,7 +58,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const storedUserId = localStorage.getItem("userId") || "";
   
   // sessionIdParam이 없으면 "nosession"
-  const sessionId = sessionIdParam|| "nosession";
+  const sessionId = sessionIdParam || "nosession";
 
   const [tarotMaster, setTarotMaster] = useState<TarotMaster>();
   const [chatType, setChatType] = useState("none");
@@ -65,8 +68,8 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   const [messages, setMessages] = useState<MessageForm[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Socket.IO 객체를 저장
-  const socketRef = useRef<Socket | null>(null);
+  // ✅ Socket.IO 객체를 저장 (socketManager를 통해 가져옴)
+  const socketRef = useRef<any>(null);
   const hasClosedSessionRef = useRef(false);
 
   // ✅ 프로필 닉네임
@@ -142,7 +145,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     fetchTarotMasters();
   }, [botId]);
 
-  
   // =========================================
   // 사용자가 메시지를 전송하면 실행되는 로직 (스트리밍 응답을 실시간 반영)
   // =========================================
@@ -177,21 +179,20 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       triggerSessionUpdate();
     }); // 세션 업데이트
 
-    // ✅ Socket.IO를 통해 메시지 전송
-    socketRef.current.emit("chat_message", {
+    // ✅ Socket.IO를 통해 메시지 전송 (채팅 관련 이벤트는 socketManager.emit() 사용)
+    socketManager.emit("chat_message", {
       room_id: sessionId,
       user_id: storedUserId,  // ✅ localStorage에서 가져온 userId
       bot_id: botId,
       user_input: message,
       type: showTarotButton ? "none" : chatType,
     });
-
+    
     setChatType("none"); // 보내고 난 뒤 초기화
   }, [sessionId, chatType, showTarotButton, botId, storedUserId, isRoomJoined, triggerSessionUpdate]);
 
-
   // =========================================
-  // WebSocket 연결
+  // WebSocket 연결 (socketManager 사용)
   // =========================================
   useEffect(() => {
     // 모든 값이 준비되지 않으면 연결하지 않음
@@ -206,57 +207,52 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       return;
     }
 
-    // ✅ Socket.IO 연결
-    const socket = io(`${API_URLS.SOCKET.BASE}`, {
-      path: "/socket.io",
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 2000,
-    });
+    // ✅ socketManager를 통해 단일 소켓 인스턴스를 가져옴
+    const socket = socketManager.getSocket();
     socketRef.current = socket;
 
-    // ✅ 세션(Room) 참가
-    socket.emit("join_room", {
+    // ✅ 세션(Room) 참가 (채팅 이벤트)
+    socketManager.emit("join_room", {
       room_id: sessionId,
       user_id: storedUserId,
       nickname
     });
-
-    socket.on("room_joined", (data) => {
+    
+    // ✅ room_joined 이벤트
+    socketManager.onChat("room_joined", (data) => {
       console.log(`Room joined: ${data.room_id}`);
       setIsRoomJoined(true); // 방 입장 완료 상태 변경
     });
 
-      // 기존 사용자 메시지 수신
-  socket.on("chat_message", (data) => {
-    console.log(`📩 사용자 메시지 수신:`, data);
+    // 기존 사용자 메시지 수신
+    socketManager.onChat("chat_message", (data) => {
+      console.log(`📩 사용자 메시지 수신:`, data);
 
-    // system/notification 구분
-    if (data.role === "system" && data.type === "notification") {
-      // system 알림 메시지
-      setMessages((prev) => [
-        ...prev,
-        {
-          message: data.message,
-          role: "system",
-          // 필요 시 더 많은 필드...
-        },
-      ]);
-    } else {
-      // 기존 로직 (user/assistant 메시지)
-      setMessages((prev) => [
-        ...prev,
-        {
-          message: data.message,
-          role: data.role,   // user_id or "assistant"
-        },
-      ]);
-    }
-  });
+      // system/notification 구분
+      if (data.role === "system" && data.type === "notification") {
+        // system 알림 메시지
+        setMessages((prev) => [
+          ...prev,
+          {
+            message: data.message,
+            role: "system",
+            // 필요 시 더 많은 필드...
+          },
+        ]);
+      } else {
+        // 기존 로직 (user/assistant 메시지)
+        setMessages((prev) => [
+          ...prev,
+          {
+            message: data.message,
+            role: data.role,   // user_id or "assistant"
+          },
+        ]);
+      }
+    });
 
     // ✅ 챗봇 메시지 (스트리밍 청크) 수신 처리
-    socket.on("chatbot_message", (data) => {
+    socketManager.onChat("chatbot_message", (data) => {
       console.log("🤖 챗봇 메시지 수신:", data);
       setSaying(false);
 
@@ -292,19 +288,19 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     });
 
     // 응답 생성 중 표시
-    socket.on("saying", () => {
+    socketManager.onChat("saying", () => {
       setSaying(true);
       console.log("입력중...");
     });
     
     // 상대방 타이핑 표시 (원하면 UI 반영)
-    socket.on("typing_indicator", (data) => {
+    socketManager.onChat("typing_indicator", (data) => {
       console.log("[typing_indicator]:", data);
       // 예) "OOO님이 입력중" 표시
     });
 
     // **typing_indicator 이벤트 핸들러 (닉네임 사용)**
-    socket.on("typing_indicator", (data) => {
+    socketManager.onChat("typing_indicator", (data) => {
       setTypingUsers((prev) => {
         if (data.typing) {
           // 현재 상태(prev)를 참조하여 nickname이 포함되어 있는지 확인
@@ -325,32 +321,32 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     };
   }, [sessionId, storedUserId, nickname]);
 
-    // **타이핑 인디케이터 등장 시 자동 스크롤**
-    useEffect(() => {
-      if (typingUsers.length > 0 && chatContainerRef.current) {
-        chatContainerRef.current.scrollTo({
-          top: chatContainerRef.current.scrollHeight,
-          behavior: "smooth",
-        });
-      }
-    }, [typingUsers]);
+  // **타이핑 인디케이터 등장 시 자동 스크롤**
+  useEffect(() => {
+    if (typingUsers.length > 0 && chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [typingUsers]);
   
-    // ✅ pendingMessage를 감지해 전달
-    useEffect(() => {
-      if (isRoomJoined && pendingMessageRef.current) {
-        const pendingMessage = pendingMessageRef.current; // pendingMessage는 string 타입으로 추론됨
-        console.log("🔄 `isRoomJoined` 변경 감지, 대기 중이던 메시지 전송:", pendingMessage);
-        (async () => {
-          await handleSendMessage(pendingMessage);
-          setTimeout(() => {
-            if (socketRef.current) {
-              socketRef.current.emit("typing_stop", { room_id: sessionId });
-            }
-          }, 300); // 0.3초 지연
-        })();
-        pendingMessageRef.current = null;
-      }
-    }, [isRoomJoined, handleSendMessage]);
+  // ✅ pendingMessage를 감지해 전달
+  useEffect(() => {
+    if (isRoomJoined && pendingMessageRef.current) {
+      const pendingMessage = pendingMessageRef.current; // pendingMessage는 string 타입으로 추론됨
+      console.log("🔄 `isRoomJoined` 변경 감지, 대기 중이던 메시지 전송:", pendingMessage);
+      (async () => {
+        await handleSendMessage(pendingMessage);
+        setTimeout(() => {
+          if (socketRef.current) {
+            socketManager.emit("typing_stop", { room_id: sessionId });
+          }
+        }, 300); // 0.3초 지연
+      })();
+      pendingMessageRef.current = null;
+    }
+  }, [isRoomJoined, handleSendMessage, sessionId]);
 
   // =========================================
   // 특정 크기 이하로 내려갈 경우에 대한 상태를 반영
@@ -363,7 +359,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
 
   // =========================================
   // 세션 진입 시 이전 대화 기록을 불러오는 함수
@@ -414,7 +409,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     }
   }, [botId, sessionId]);
 
-
   // =========================================
   // chatType(=chatTag) 변경에 따라 기능 처리결정
   // =========================================
@@ -441,12 +435,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         }
       };
       closeSession().then(() => {
-        setTimeout(()=>setChatType("none"), 1000);
+        setTimeout(() => setChatType("none"), 1000);
         triggerSessionUpdate();
       });
     }
   }, [chatType, sessionId, storedUserId, botId, triggerSessionUpdate]);
-
 
   // =========================================
   // 타로 버튼 클릭 시 카드 선택창 호출
@@ -455,7 +448,6 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     setShowTarotButton(false);
     setShowCardSelector(true);
   };
-
 
   // =========================================
   // 카드 선택 후 처리 (선택한 카드 이름을 채팅에 반영)
@@ -485,10 +477,9 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     ]);
     // 선택한 카드 이름을 서버에 전송
     handleSendMessage(selectedCard).then(() => {
-      socket.emit("typing_stop", { room_id: sessionId });
+      socketManager.emit("typing_stop", { room_id: sessionId });
     });
   };
-
 
   // =========================================
   // 페이지 진입 시 firstMessage가 있으면 바로 세팅하고 응답 생성
@@ -502,12 +493,11 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     if (storedMessage) {
       setTimeout(() => {
         handleSendMessage(storedMessage).then(() => {
-          socket.emit("typing_stop", { room_id: sessionId });
+          socketManager.emit("typing_stop", { room_id: sessionId });
         });
       }, 200);
     }
-  }, [handleSendMessage, socketRef, sessionId]);
-
+  }, [handleSendMessage, sessionId]);
 
   // =========================================
   // 새로운 메시지가 추가될 때마다 스크롤을 자동으로 맨 아래로 이동
@@ -540,7 +530,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
         const latestIsRoomJoined = isRoomJoinedRef.current;
         if (socketRef.current && latestIsRoomJoined) {
           console.log("📩 [handleUserInputIdle] macro 메시지 전송 중...");
-          socketRef.current.emit("chat_message", {
+          socketManager.emit("chat_message", {
             room_id: latestSessionId,
             user_id: "assistant",
             bot_id: latestBotId,
@@ -554,265 +544,130 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
     }, 10000);
   }, []);
 
-
-
-//   return (
-//         // 모바일일때와 아닐때 배경 분기
-//     <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
-//       {/* 모바일일 때 이미지 부분 삭제 */}
-//       <div
-//         className={
-//           isMobile
-//             ? "relative z-10 flex flex-col h-screen bg-purple-50"
-//             : "flex flex-col h-screen"
-//         }
-//         style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
-//       >
-//         {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
-//         <div
-//           ref={chatContainerRef}
-//           className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
-//         >
-//           {messages.map((msg, index) => {
-//             // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
-//             if (msg.role === "system") {
-//               return (
-//                 <div
-//                   key={index}
-//                   className="flex justify-center my-2"
-//                 >
-//                   <div className="text-gray-500 text-sm italic">
-//                     {msg.message}
-//                   </div>
-//                 </div>
-//               );
-//             }
-
-//             // 2) 어시스턴트(봇) 메시지
-//             if (msg.role === "assistant") {
-//               return (
-//                 <div key={index} className="flex justify-start w-full my-2">
-//                   {/* 봇 프로필 이미지 */}
-//                   <Image
-//                     src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
-//                     alt="Bot Profile"
-//                     width={128}
-//                     height={128}
-//                     className="w-10 h-10 md:w-16 md:h-16 rounded-full mr-2 md:mr-3"
-//                   />
-//                   {/* 봇 메시지 말풍선 */}
-//                   <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
-//                     {msg.message}
-//                     {msg.content && <div className="mt-2">{msg.content}</div>}
-//                     {index === messages.length - 1 && chatType === "tarot" && (
-//                       <div className="mt-2">
-//                         <button
-//                           onClick={handleShowCardSelector}
-//                           className="px-4 py-2 bg-yellow-500 text-white rounded"
-//                         >
-//                           타로 점 보기 🔮
-//                         </button>
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               );
-//             }
-
-//             // 3) 사용자 메시지
-//             //    - 본인(storedUserId) vs 다른 사용자 구분
-//             const isCurrentUser = msg.role === storedUserId;
-//             return (
-//               <div
-//                 key={index}
-//                 className={`flex w-full my-2 ${
-//                   isCurrentUser ? "justify-end" : "justify-end"
-//                 }`}
-//               >
-//                 <div
-//                   className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
-//                     ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
-//                   `}
-//                 >
-//                   {msg.message}
-//                 </div>
-//               </div>
-//             );
-//           })}
-          
-//           {/* 기존 단순 텍스트 대신 TypingIndicator 컴포넌트 사용 */}
-//           {typingUsers.length > 0 && (
-//             <div className="mb-4">
-//               {typingUsers.map((name, index) => (
-//                 <TypingIndicator key={index} nickname={name} />
-//               ))}
-//             </div>
-//           )}
-
-//         {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
-//         {saying && tarotMaster?.profileImage && (
-//           <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
-//             <Image
-//               src={tarotMaster.profileImage}
-//               alt="Chatbot Thinking"
-//               width={64}
-//               height={64}
-//               className="w-16 h-16 rounded-full animate-pulse"
-//             />
-//           </div>
-//         )}
-//       </div>
-
-//       {/* 카드 선택 UI (CardSelector 컴포넌트) */}
-//       {showCardSelector && 
-//       createPortal(
-//         <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
-//           <CardSelector
-//             onCardSelect={handleCardSelect}
-//             onClose={() => setShowCardSelector(false)}
-//           />
-//         </div>, document.body
-//       )}
-
-//         {/* 하단 입력창 */}
-//         <ChatInput
-//           sessionId={sessionId}
-//           socketRef={socketRef} // ✅ socketRef를 추가!
-//           onSend={(val) => {
-//             // Enter로 메시지 전송해도 typing_stop은 안 보냄 (요구사항)
-//             handleSendMessage(val);
-//             lastInputRef.current = "";
-//           }}
-//           onInputChange={(val) => {
-//             handleUserInputIdle(val); // 5초 자동 메시지
-//           }}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
-
-// 하단 코드는 챗봇이 응답을 생성할때의 애니메이션을 수정한 버전
-// 챗봇과 사람이 같이 타이핑 중일때는 챗봇이 우선권을 가지도록 적용하였음
-return (
-  // 모바일일때와 아닐때 배경 분기
-  <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
-    {/* 모바일일 때 이미지 부분 삭제 */}
-    <div
-      className={
-        isMobile
-          ? "relative z-10 flex flex-col h-screen bg-purple-50"
-          : "flex flex-col h-screen"
-      }
-      style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
-    >
-      {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
+  // ----------------------------------------
+  // 렌더링
+  // ----------------------------------------
+  return (
+    // 모바일일때와 아닐때 배경 분기
+    <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
+      {/* 모바일일 때 이미지 부분 삭제 */}
       <div
-        ref={chatContainerRef}
-        className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
+        className={
+          isMobile
+            ? "relative z-10 flex flex-col h-screen bg-purple-50"
+            : "flex flex-col h-screen"
+        }
+        style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
       >
-        {messages.map((msg, index) => {
-          // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
-          if (msg.role === "system") {
-            return (
-              <div key={index} className="flex justify-center my-2">
-                <div className="text-gray-500 text-sm italic">
-                  {msg.message}
+        {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
+        <div
+          ref={chatContainerRef}
+          className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
+        >
+          {messages.map((msg, index) => {
+            // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
+            if (msg.role === "system") {
+              return (
+                <div key={index} className="flex justify-center my-2">
+                  <div className="text-gray-500 text-sm italic">
+                    {msg.message}
+                  </div>
                 </div>
-              </div>
-            );
-          }
+              );
+            }
 
-          // 2) 어시스턴트(봇) 메시지
-          if (msg.role === "assistant") {
-            return (
-              <div key={index} className="flex justify-start w-full my-2">
-                {/* 봇 메시지 말풍선 */}
-                <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
-                  {msg.message}
-                  {msg.content && <div className="mt-2">{msg.content}</div>}
-                  {index === messages.length - 1 && chatType === "tarot" && (
-                    <div className="mt-2">
-                      <button
-                        onClick={handleShowCardSelector}
-                        className="px-4 py-2 bg-yellow-500 text-white rounded"
-                      >
-                        타로 점 보기 🔮
-                      </button>
-                    </div>
-                  )}
+            // 2) 어시스턴트(봇) 메시지
+            if (msg.role === "assistant") {
+              return (
+                <div key={index} className="flex justify-start w-full my-2">
+                  {/* 봇 메시지 말풍선 */}
+                  <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
+                    {msg.message}
+                    {msg.content && <div className="mt-2">{msg.content}</div>}
+                    {index === messages.length - 1 && chatType === "tarot" && (
+                      <div className="mt-2">
+                        <button
+                          onClick={handleShowCardSelector}
+                          className="px-4 py-2 bg-yellow-500 text-white rounded"
+                        >
+                          타로 점 보기 🔮
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          }
+              );
+            }
 
-          // 3) 사용자 메시지
-          const isCurrentUser = msg.role === storedUserId;
-          return (
-            <div
-              key={index}
-              className={`flex w-full my-2 ${
-                isCurrentUser ? "justify-end" : "justify-end"
-              }`}
-            >
+            // 3) 사용자 메시지
+            const isCurrentUser = msg.role === storedUserId;
+            return (
               <div
-                className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
-                  ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
-                `}
+                key={index}
+                className={`flex w-full my-2 ${
+                  isCurrentUser ? "justify-end" : "justify-end"
+                }`}
               >
-                {msg.message}
-              </div>
-            </div>
-          );
-        })}
-
-        {/* 챗봇 및 사용자 입력 상태 표시 */}
-        {(saying || typingUsers.length > 0) && (
-          <div className="absolute bottom-4 left-4 flex items-center bg-white px-4 py-2 rounded-lg shadow-lg border border-gray-300 z-[10]">
-            {saying ? (
-              <>
-                <span className="mr-2 font-semibold text-gray-700">{tarotMaster?.name || "챗봇"}</span>
-                <div className="flex space-x-1">
-                  <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave"></span>
-                  <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0.2s" }}></span>
-                  <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0.4s" }}></span>
+                <div
+                  className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
+                    ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
+                  `}
+                >
+                  {msg.message}
                 </div>
-                <span className="ml-2 text-gray-600">고민 중입니다...</span>
-              </>
-            ) : (
-              typingUsers.map((name, index) => (
+              </div>
+            );
+          })}
+
+          {/* 기존 단순 텍스트 대신 TypingIndicator 컴포넌트 사용 */}
+          {typingUsers.length > 0 && (
+            <div className="mb-4">
+              {typingUsers.map((name, index) => (
                 <TypingIndicator key={index} nickname={name} />
-              ))
-            )}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+
+          {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
+          {saying && tarotMaster?.profileImage && (
+            <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
+              <Image
+                src={tarotMaster.profileImage}
+                alt="Chatbot Thinking"
+                width={64}
+                height={64}
+                className="w-16 h-16 rounded-full animate-pulse"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* 카드 선택 UI (CardSelector 컴포넌트) */}
+        {showCardSelector &&
+          createPortal(
+            <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
+              <CardSelector
+                onCardSelect={handleCardSelect}
+                onClose={() => setShowCardSelector(false)}
+              />
+            </div>,
+            document.body
+          )}
+
+        {/* 하단 입력창 */}
+        <ChatInput
+          sessionId={sessionId}
+          socketRef={socketRef} // ✅ socketRef를 추가!
+          onSend={(val) => {
+            // Enter로 메시지 전송해도 typing_stop은 안 보냄 (요구사항)
+            handleSendMessage(val);
+            lastInputRef.current = "";
+          }}
+          onInputChange={(val) => {
+            handleUserInputIdle(val); // 5초 자동 메시지
+          }}
+        />
       </div>
-
-      {/* 카드 선택 UI (CardSelector 컴포넌트) */}
-      {showCardSelector &&
-        createPortal(
-          <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
-            <CardSelector
-              onCardSelect={handleCardSelect}
-              onClose={() => setShowCardSelector(false)}
-            />
-          </div>,
-          document.body
-        )}
-
-      {/* 하단 입력창 */}
-      <ChatInput
-        sessionId={sessionId}
-        socketRef={socketRef} // ✅ socketRef를 추가!
-        onSend={(val) => {
-          handleSendMessage(val);
-          lastInputRef.current = "";
-        }}
-        onInputChange={(val) => {
-          handleUserInputIdle(val); // 5초 자동 메시지
-        }}
-      />
     </div>
-  </div>
-);
+  );
 }

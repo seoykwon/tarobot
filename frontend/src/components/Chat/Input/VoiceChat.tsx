@@ -1,7 +1,8 @@
+// components/VoiceChat.tsx
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import socketManager from "@/utils/socketManager";
 import { API_URLS } from "@/config/api";
 
 interface VoiceChatProps {
@@ -25,7 +26,6 @@ interface IceCandidateData {
 }
 
 export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
-  const socketRef = useRef<Socket | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -35,6 +35,11 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
   // 충돌 방지 플래그
   const makingOfferRef = useRef<boolean>(false);
   const ignoreOfferRef = useRef<boolean>(false);
+
+  // 방에 가입
+  useEffect(() => {
+    socketManager.emit("join_room", { room_id: roomId }, { isVoice: true });
+  }, [roomId]);
 
   // PeerConnection 생성 및 로컬 오디오 스트림 가져오기
   const createPeerConnection = useCallback(async () => {
@@ -51,17 +56,17 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
     const pc = new RTCPeerConnection(configuration);
     peerConnectionRef.current = pc;
 
-    // ICE 후보 처리
+    // ICE 후보 발생 시 음성 이벤트로 전송
     pc.onicecandidate = (event) => {
-      if (event.candidate && socketRef.current) {
-        socketRef.current.emit("ice-candidate", {
+      if (event.candidate) {
+        socketManager.emit("ice-candidate", {
           room_id: roomId,
           candidate: event.candidate,
-        });
+        }, { isVoice: true });
       }
     };
 
-    // 상대방 오디오 스트림 처리
+    // 상대방 오디오 스트림 설정
     pc.ontrack = (event) => {
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = event.streams[0];
@@ -69,38 +74,25 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
     };
 
     try {
-      // 로컬 오디오 스트림 가져오기
       const localStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: false,
       });
       localStreamRef.current = localStream;
       localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
-      setIsMuted(false); // 기본적으로 마이크 활성화
+      setIsMuted(false);
     } catch (error) {
       console.error("Error accessing local audio stream:", error);
       alert("마이크 권한을 허용해주세요.");
     }
   }, [roomId]);
 
-  // Socket.IO 연결 및 signaling 이벤트 설정
-  // 1. 소켓 연결 생성: 컴포넌트 마운트 시 한 번만 실행 (roomId가 있을 때)
+  // 소켓 이벤트 구독 (음성 관련)
   useEffect(() => {
-    if (!roomId) return;
-    if (socketRef.current) return; // 이미 소켓이 생성되어 있다면 재생성 방지
-
-    const socket = io(API_URLS.SOCKET.BASE, {
-      path: "/socket.io",
-      transports: ["websocket", "polling"],
-    });
-    socketRef.current = socket;
-
-    socket.on("offer", async (data: OfferData) => {
+    const handleOffer = async (data: OfferData) => {
       const pc = peerConnectionRef.current;
-      const offerCollision =
-        !!(makingOfferRef.current || (pc && pc.signalingState !== "stable"));
+      const offerCollision = !!(makingOfferRef.current || (pc && pc.signalingState !== "stable"));
       ignoreOfferRef.current = !polite && offerCollision;
-
       if (ignoreOfferRef.current) return;
 
       try {
@@ -109,42 +101,39 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
         const answer = await peerConnectionRef.current!.createAnswer();
         await peerConnectionRef.current!.setLocalDescription(answer);
 
-        socket.emit("answer", { room_id: roomId, sdp: answer });
+        socketManager.emit("answer", { room_id: roomId, sdp: answer }, { isVoice: true });
         setCallStarted(true);
       } catch (error) {
         console.error("Error handling offer:", error);
       }
-    });
+    };
 
-    socket.on("answer", async (data: AnswerData) => {
+    const handleAnswer = async (data: AnswerData) => {
       try {
         await peerConnectionRef.current!.setRemoteDescription(data.sdp);
       } catch (error) {
         console.error("Error setting remote description from answer:", error);
       }
-    });
+    };
 
-    socket.on("ice-candidate", async (data: IceCandidateData) => {
+    const handleIceCandidate = async (data: IceCandidateData) => {
       try {
         await peerConnectionRef.current!.addIceCandidate(data.candidate);
       } catch (error) {
         console.error("Error adding ICE candidate:", error);
       }
-    });
+    };
+
+    socketManager.onVoice("offer", handleOffer);
+    socketManager.onVoice("answer", handleAnswer);
+    socketManager.onVoice("ice-candidate", handleIceCandidate);
 
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
+      // cleanup: 이벤트 핸들러 제거 (단, socketManager 내부에서 관리)
     };
-  }, [roomId, polite, createPeerConnection]); // roomId가 있을 때만 생성. 이미 연결되었으면 재생성하지 않음
+  }, [createPeerConnection, polite, roomId]);
 
-  // 2. roomId 변경 시 join_room 이벤트 발생: 소켓 재생성 없이 join_room만 재전송
-  useEffect(() => {
-    if (!socketRef.current) return;
-    socketRef.current.emit("join_room", { room_id: roomId });
-  }, [roomId]);
-
-  // 통화 시작 또는 마이크 토글
+  // 통화 시작 및 마이크 토글
   const startCallOrToggleMute = async () => {
     if (!peerConnectionRef.current) {
       await createPeerConnection();
@@ -153,7 +142,7 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
         const offer = await peerConnectionRef.current!.createOffer();
         await peerConnectionRef.current!.setLocalDescription(offer);
 
-        socketRef.current?.emit("offer", { room_id: roomId, sdp: offer });
+        socketManager.emit("offer", { room_id: roomId, sdp: offer }, { isVoice: true });
         setCallStarted(true);
       } catch (error) {
         console.error("Error starting call:", error);
@@ -170,11 +159,13 @@ export default function VoiceChat({ roomId, polite = true }: VoiceChatProps) {
 
   return (
     <>
+      {/* 버튼 영역: 화면 우측 하단에 작게 배치 */}
       <div
         onClick={startCallOrToggleMute}
-        className="transition-opacity duration-200 absolute inset-0"
+        className="fixed bottom-4 right-4 z-50 p-3 bg-white rounded-full shadow-lg cursor-pointer"
+        style={{ width: "60px", height: "60px", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        {callStarted ? (isMuted ? "🎙️ Off" : "🎤 On") : "Start Call"}
+        {callStarted ? (isMuted ? "🎙️ Off" : "🎤 On") : "Start"}
       </div>
       <audio ref={remoteAudioRef} autoPlay />
     </>

@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ChatWindowWs from "@/components/Chat/ChatWindowWs";
+import VoiceChat from "@/components/Chat/Input/VoiceChat"; // VoiceChat 컴포넌트 추가
 import { API_URLS } from "@/config/api";
 
 export default function ChatSessionPage({ params }: { params: { sessionId: string } }) {
@@ -46,6 +47,7 @@ export default function ChatSessionPage({ params }: { params: { sessionId: strin
       <div className="relative z-10 flex h-full items-center justify-center">
         <div className="w-full max-w-3xl p-2 bg-purple-50">
           <ChatWindowWs sessionIdParam={sessionId} />
+          <VoiceChat roomId={sessionId} polite={true} />
         </div>
       </div>
     </div>
