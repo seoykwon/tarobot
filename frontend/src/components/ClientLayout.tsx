@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation" // 현재 경로 확인
-import Sidebar from "@/components/Sidebar"
-import Header from "@/components/Header"
+import Sidebar from "@/components/Sidebar/Sidebar"
+import Header from "@/components/Header/Header"
 import { SessionProvider } from "@/context/SessionContext";
 
 export default function ClientLayout({

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import ProfileOverlay from "./ProfileOverlay";
-import NotificationOverlay from "./NotificationOverlay";
+import ProfileOverlay from "@/components/Header/ProfileOverlay";
+import NotificationOverlay from "@/components/Header/NotificationOverlay";
 import DiaryModal from "@/components/Diary/Diary";
 import { useSession } from "@/context/SessionContext";
 import { getBotName } from "@/utils/botNameMap";

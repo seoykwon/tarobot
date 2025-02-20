@@ -92,7 +92,7 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
           <li
             key={master.id}
             onClick={() => handleSelectMaster(master)}
-            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-[#0D0D0D] cursor-pointer ${
+            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-200 text-[#0D0D0D] cursor-pointer ${
               selectedMaster?.id === master.id ? "bg-gray-100" : ""
             }`}
           >
@@ -111,7 +111,7 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
       </ul>
       <button
         onClick={onOpenCharacterSelect}
-        className="mt-4 w-full py-2 bg-gray-100 text-black rounded-lg hover:bg-gray-200 p-3 rounded-lg flex items-center justify-start transition-colors"
+        className="mt-4 w-full py-2 bg-[#f0f4f9] text-black rounded-lg hover:bg-gray-200 p-3 rounded-lg flex items-center justify-start transition-colors"
       >
         더 많은 마스터 보기
       </button>
@@ -119,27 +119,27 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
       {selectedMaster && (
         <div
           ref={sidePanelRef}
-          className={`fixed left-64 top-1/2 -translate-y-1/2 h-[250px] w-[420px] bg-[#1a1a1a] text-white p-2 z-10 overflow-y-auto rounded-lg transition-transform duration-300 ${
+          className={`fixed top-14 left-0 min-[420px]:w-[420px] max-[419px]:w-[320px] min-[675px]:left-64 h-[250px] bg-[#1a1a1a] text-white p-2 z-10 overflow-y-auto rounded-lg flex flex-col justify-between transition-transform duration-300 ${
             isClosing ? "opacity-0 translate-x-10" : "opacity-100 translate-x-0"
           }`}
           style={{ maxHeight: "90vh" }}
         >
-          <div className="space-y-4">
+          <div className="space-y-4 flex-greow overflow-y-auto">
             <div>
               <h3 className="text-sm text-gray-400 mb-1">{selectedMaster.concept}</h3>
               <h2 className="text-2xl font-bold text-yellow-400">{selectedMaster.name}</h2>
             </div>
 
             <p className="text-sm text-gray-300 leading-relaxed">{selectedMaster.description}</p>
-
-            <button
-              onClick={() => handleStartChat(selectedMaster.id)}
-              className="w-full py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors mt-8"
-            >
-              채팅 시작
-            </button>
           </div>
+          <button
+            onClick={() => handleStartChat(selectedMaster.id)}
+            className="w-full py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors mt-8"
+          >
+            채팅 시작
+          </button>
         </div>
+        
       )}
     </div>
   )

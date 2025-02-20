@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { FaCog, FaSignOutAlt } from "react-icons/fa";
-import SettingModal from "./ProfileModal/SettingModal";
-import LogoutModal from "./ProfileModal/LogoutModal";
+import SettingModal from "../ProfileModal/SettingModal";
+import LogoutModal from "../ProfileModal/LogoutModal";
 import Image from "next/image";
 import { API_URLS } from "@/config/api";
 
