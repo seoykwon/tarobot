@@ -468,6 +468,11 @@ async def handle_chat_message(sid, data):
         await save_message(room_id, "assistant", user_input)
         return
 
+    # 만약 이 유저가 이미 stop 상태였다면, stop 세트에서 제거
+    if user_id in room_typing_stop_signals[room_id]:
+        room_typing_stop_signals[room_id].remove(user_id)
+        print(f"🔄 user {user_id} was in stop set, removing from stop set because new message arrived.")
+    
     # 그 외 (user) -> 배치 큐에 쌓음
     if room_id not in room_batch_queues:
         room_batch_queues[room_id] = []

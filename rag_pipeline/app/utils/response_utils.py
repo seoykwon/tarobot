@@ -52,7 +52,7 @@ async def response_generator(
             system_prompt=concepts[names[bot_id]],
             stream=True
         ):
-            print("📌 DEBUG: CHUNK in response_generator =", chunk)  # ✅ 디버깅 추가
+            # print("📌 DEBUG: CHUNK in response_generator =", chunk)  # ✅ 디버깅 추가
 
             # if not isinstance(chunk, str):
             #     print("❌ [ERROR] chunk가 문자열이 아님! 타입:", type(chunk), "내용:", chunk)
