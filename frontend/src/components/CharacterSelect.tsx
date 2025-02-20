@@ -219,7 +219,7 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
         }
       }}
     >
-      <div className="bg-gray-900 w-full max-w-lg rounded-lg overflow-hidden">
+      <div className="bg-purple-100 w-full max-w-lg rounded-lg overflow-hidden">
         <div className="flex min-h-[600px]">
           {/* Left side - Character Selection */}
           <div className="w-auto border-r border-gray-800 overflow-y-auto">
@@ -229,7 +229,7 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
                   key={bot.id}
                   onClick={() => setSelectedBot(bot)}
                   className={`flex items-center gap-4 p-2 rounded-lg transition-colors ${
-                    selectedBot?.id === bot.id ? "bg-gray-800" : "hover:bg-gray-800"
+                    selectedBot?.id === bot.id ? "bg-purple-200" : "hover:bg-purple-200"
                   }`}
                 >
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
@@ -261,19 +261,19 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
             </button>
             {selectedBot && (
               <div className="flex flex-col flex-grow">
-                <h1 className="mb-1 text-sm font-medium text-gray-400">{selectedBot.concept}</h1>
-                <h2 className="mb-6 text-4xl font-bold text-yellow-300">{selectedBot.name}</h2>
+                <h1 className="mb-1 text-sm font-medium text-purple-400">{selectedBot.concept}</h1>
+                <h2 className="mb-6 text-4xl font-bold text-purple-700">{selectedBot.name}</h2>
 
 
 
                 {/* Character descriptions */}
                 <div className="flex flex-col flex-grow">
                   <div className="flex-grow-[2] overflow-y-auto p-2 rounded-md">
-                    <p className="text-sm text-gray-300">{selectedBot.description}</p>
+                    <p className="text-sm text-gray-600">{selectedBot.description}</p>
                   </div>
                   <div className="flex-grow overflow-y-auto p-2 rounded-md mt-4">
-                    <h3 className="mb-2 text-sm font-medium text-gray-400">{selectedBot.concept}</h3>
-                    <p className="text-sm text-gray-300">{selectedBot.concept}</p>
+                    <h3 className="mb-2 text-sm font-medium text-purple-400">{selectedBot.concept}</h3>
+                    <p className="text-sm text-gray-600">{selectedBot.concept}</p>
                   </div>
                 </div>
 
@@ -290,7 +290,7 @@ export default function CharacterSelect({ isOpen, onClose }: CharacterSelectProp
 
             {/* Chat button */}
             <button
-              className="mt-4 w-full py-2 bg-yellow-300 text-black font-bold rounded hover:bg-yellow-400 transition-colors"
+              className="mt-4 w-full py-2 bg-purple-400 text-white font-bold rounded hover:bg-purple-500 transition-colors"
               onClick={handleStartChat}
             >
               채팅 시작
