@@ -62,7 +62,7 @@ async def call_4o_mini_str(prompt: str, max_tokens=256, temperature=0.7, system_
 
         # ✅ `async generator`를 직접 반환
         async for chunk in response:
-            print("📌 DEBUG: CHUNK = ", chunk)  # ✅ 디버깅 추가
+            # print("📌 DEBUG: CHUNK = ", chunk)  # ✅ 디버깅 추가
 
             # if not isinstance(chunk, dict):
             #     print("❌ [ERROR] chunk가 dict가 아님! 타입:", type(chunk))
@@ -83,7 +83,7 @@ async def call_4o_mini_str(prompt: str, max_tokens=256, temperature=0.7, system_
             #     print("❌ [ERROR] chunk['choices'][0]['delta']에 'content' 키 없음! 내용:", chunk["choices"][0]["delta"])
                 
             content = chunk.choices[0].delta.content
-            print("✅ DEBUG: 추출된 content =", content)
+            # print("✅ DEBUG: 추출된 content =", content)
 
             if content:
                 yield content  # ✅ 한 줄씩 응답 반환
