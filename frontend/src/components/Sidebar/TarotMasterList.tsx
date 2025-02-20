@@ -119,22 +119,22 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
       {selectedMaster && (
         <div
           ref={sidePanelRef}
-          className={`fixed top-14 left-0 min-[420px]:w-[420px] max-[419px]:w-[320px] min-[675px]:left-64 h-[250px] bg-[#1a1a1a] text-white p-2 z-10 overflow-y-auto rounded-lg flex flex-col justify-between transition-transform duration-300 ${
+          className={`fixed top-14 left-0 min-[420px]:w-[420px] max-[419px]:w-[320px] min-[675px]:left-64 h-[250px] bg-purple-200 text-white p-2 z-10 overflow-y-auto rounded-lg flex flex-col justify-between transition-transform duration-300 ${
             isClosing ? "opacity-0 translate-x-10" : "opacity-100 translate-x-0"
           }`}
           style={{ maxHeight: "90vh" }}
         >
           <div className="space-y-4 flex-greow overflow-y-auto">
             <div>
-              <h3 className="text-sm text-gray-400 mb-1">{selectedMaster.concept}</h3>
-              <h2 className="text-2xl font-bold text-yellow-400">{selectedMaster.name}</h2>
+              <h3 className="text-sm text-purple-400 mb-1">{selectedMaster.concept}</h3>
+              <h2 className="text-2xl font-bold text-purple-700">{selectedMaster.name}</h2>
             </div>
 
-            <p className="text-sm text-gray-300 leading-relaxed">{selectedMaster.description}</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{selectedMaster.description}</p>
           </div>
           <button
             onClick={() => handleStartChat(selectedMaster.id)}
-            className="w-full py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors mt-8"
+            className="w-full py-3 bg-purple-400 text-white font-bold rounded-lg hover:bg-purple-500 transition-colors mt-8"
           >
             채팅 시작
           </button>
