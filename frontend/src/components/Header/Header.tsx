@@ -81,7 +81,7 @@ export default function Header({
             className="text-2xl hover:bg-[#ece6f0] rounded-lg p-2 transition"
             onClick={() => setIsDiaryOpen(true)}
           >
-            📖
+            <img src="/book.png" alt="Book Icon" className="w-8 h-8 flex items-center justify-center" />
           </button>
 
           {/* 알림 버튼 */}
