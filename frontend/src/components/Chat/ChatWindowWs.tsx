@@ -228,11 +228,32 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       setIsRoomJoined(true); // 방 입장 완료 상태 변경
     });
 
-    // ✅ 사용자 메시지 수신 처리
-    socket.on("chat_message", (data) => {
-      console.log(`📩 사용자 메시지 수신: ${data}`);
-      setMessages((prev) => [...prev, { message: data.message, role: data.role }]);
-    });
+      // 기존 사용자 메시지 수신
+  socket.on("chat_message", (data) => {
+    console.log(`📩 사용자 메시지 수신:`, data);
+
+    // system/notification 구분
+    if (data.role === "system" && data.type === "notification") {
+      // system 알림 메시지
+      setMessages((prev) => [
+        ...prev,
+        {
+          message: data.message,
+          role: "system",
+          // 필요 시 더 많은 필드...
+        },
+      ]);
+    } else {
+      // 기존 로직 (user/assistant 메시지)
+      setMessages((prev) => [
+        ...prev,
+        {
+          message: data.message,
+          role: data.role,   // user_id or "assistant"
+        },
+      ]);
+    }
+  });
 
     // ✅ 챗봇 메시지 (스트리밍 청크) 수신 처리
     socket.on("chatbot_message", (data) => {
@@ -551,24 +572,35 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
           ref={chatContainerRef}
           className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
         >
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${msg.role === "assistant" ? "justify-start" : "justify-end"} w-full`}
-            >
-              {msg.role === "assistant" ? (
-                <div className="flex items-start space-x-3">
+          {messages.map((msg, index) => {
+            // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
+            if (msg.role === "system") {
+              return (
+                <div
+                  key={index}
+                  className="flex justify-center my-2"
+                >
+                  <div className="text-gray-500 text-sm italic">
+                    {msg.message}
+                  </div>
+                </div>
+              );
+            }
+
+            // 2) 어시스턴트(봇) 메시지
+            if (msg.role === "assistant") {
+              return (
+                <div key={index} className="flex justify-start w-full my-2">
                   {/* 봇 프로필 이미지 */}
-                  {/* 현재 botid에 대해 fetch 해서 엔티티 가져온 뒤 profileImage 속성값을 src로 하는게 좋음 */}
                   <Image
                     src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
                     alt="Bot Profile"
                     width={128}
                     height={128}
-                    className="w-16 h-16 rounded-full"
+                    className="w-10 h-10 md:w-16 md:h-16 rounded-full mr-2 md:mr-3"
                   />
                   {/* 봇 메시지 말풍선 */}
-                  <div className="px-4 py-2 rounded-lg max-w-[90%] text-gray-800 leading-relaxed">
+                  <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
                     {msg.message}
                     {msg.content && <div className="mt-2">{msg.content}</div>}
                     {index === messages.length - 1 && chatType === "tarot" && (
@@ -583,18 +615,29 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
                     )}
                   </div>
                 </div>
-              ) : (
-                /* 사용자 메시지 */
+              );
+            }
+
+            // 3) 사용자 메시지
+            //    - 본인(storedUserId) vs 다른 사용자 구분
+            const isCurrentUser = msg.role === storedUserId;
+            return (
+              <div
+                key={index}
+                className={`flex w-full my-2 ${
+                  isCurrentUser ? "justify-end" : "justify-end"
+                }`}
+              >
                 <div
-                  className={`px-4 py-2 rounded-lg max-w-[60%] ${
-                    msg.role === storedUserId ? "bg-blue-500 text-white" : "bg-gray-300 text-black"
-                  }`}
+                  className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
+                    ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
+                  `}
                 >
                   {msg.message}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
           
           {/* 기존 단순 텍스트 대신 TypingIndicator 컴포넌트 사용 */}
           {typingUsers.length > 0 && (

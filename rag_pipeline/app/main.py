@@ -362,6 +362,33 @@ async def handle_join_room(sid, data):
         room_typing_stop_signals[room_id] = set()
     room_typing_stop_signals[room_id].add(user_id)
 
+    # -------------------------------
+    # 1) 입장 알림 메시지
+    # -------------------------------
+    system_message = f"{nickname}님이 입장하셨습니다."
+
+    # 1-1) 클라이언트로 브로드캐스트
+    await sio.emit(
+        "chat_message",
+        {
+            "message": system_message,
+            "role": "system",            # 구분 용도
+            "type": "notification",      # 알림 메시지임을 표시
+            "bot_id": None,             # 필요 시 None/0 등 사용
+        },
+        room=room_id
+    )
+
+    # 1-2) Redis에 즉시 저장 (batch 큐를 거치지 않음)
+    #     user_id="system", nickname="System" 등으로 저장하여 
+    #     일반 메시지와 구분
+    await save_message(
+        session_id=room_id,
+        role="system",  
+        message=system_message,
+        nickname="System"  
+    )
+    
     # 클라이언트에게 알림
     await sio.emit("room_joined", {"room_id": room_id}, room=sid)
 
