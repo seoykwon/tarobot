@@ -44,8 +44,11 @@ def make_prompt_timestamp(user_query: str) -> str:
     """
 
 def make_prompt_chat(context: str, user_input: str) -> str:
-    return f"[Context]\n{context}\n\nUser input: {user_input}\n\n위 정보를 바탕으로 친절하고 정확한 답변을 해주세요."
-
+    return (
+        f"[Context]\n{context}\n\nUser input: {user_input}\n\n"
+        "위 정보를 바탕으로 친절하고 정확한 답변을 해주세요. "
+        "단, 답변 시작 시 본인의 닉네임이나 별칭은 포함하지 말고, 오로지 응답 내용만 작성해 주세요."
+    )
 
 def make_prompt_tarot(context: str, user_input: str) -> str:
     return f"""
