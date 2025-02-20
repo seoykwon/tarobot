@@ -555,138 +555,263 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
 
 
-  return (
-        // 모바일일때와 아닐때 배경 분기
-    <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
-      {/* 모바일일 때 이미지 부분 삭제 */}
+//   return (
+//         // 모바일일때와 아닐때 배경 분기
+//     <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
+//       {/* 모바일일 때 이미지 부분 삭제 */}
+//       <div
+//         className={
+//           isMobile
+//             ? "relative z-10 flex flex-col h-screen bg-purple-50"
+//             : "flex flex-col h-screen"
+//         }
+//         style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
+//       >
+//         {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
+//         <div
+//           ref={chatContainerRef}
+//           className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
+//         >
+//           {messages.map((msg, index) => {
+//             // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
+//             if (msg.role === "system") {
+//               return (
+//                 <div
+//                   key={index}
+//                   className="flex justify-center my-2"
+//                 >
+//                   <div className="text-gray-500 text-sm italic">
+//                     {msg.message}
+//                   </div>
+//                 </div>
+//               );
+//             }
+
+//             // 2) 어시스턴트(봇) 메시지
+//             if (msg.role === "assistant") {
+//               return (
+//                 <div key={index} className="flex justify-start w-full my-2">
+//                   {/* 봇 프로필 이미지 */}
+//                   <Image
+//                     src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
+//                     alt="Bot Profile"
+//                     width={128}
+//                     height={128}
+//                     className="w-10 h-10 md:w-16 md:h-16 rounded-full mr-2 md:mr-3"
+//                   />
+//                   {/* 봇 메시지 말풍선 */}
+//                   <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
+//                     {msg.message}
+//                     {msg.content && <div className="mt-2">{msg.content}</div>}
+//                     {index === messages.length - 1 && chatType === "tarot" && (
+//                       <div className="mt-2">
+//                         <button
+//                           onClick={handleShowCardSelector}
+//                           className="px-4 py-2 bg-yellow-500 text-white rounded"
+//                         >
+//                           타로 점 보기 🔮
+//                         </button>
+//                       </div>
+//                     )}
+//                   </div>
+//                 </div>
+//               );
+//             }
+
+//             // 3) 사용자 메시지
+//             //    - 본인(storedUserId) vs 다른 사용자 구분
+//             const isCurrentUser = msg.role === storedUserId;
+//             return (
+//               <div
+//                 key={index}
+//                 className={`flex w-full my-2 ${
+//                   isCurrentUser ? "justify-end" : "justify-end"
+//                 }`}
+//               >
+//                 <div
+//                   className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
+//                     ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
+//                   `}
+//                 >
+//                   {msg.message}
+//                 </div>
+//               </div>
+//             );
+//           })}
+          
+//           {/* 기존 단순 텍스트 대신 TypingIndicator 컴포넌트 사용 */}
+//           {typingUsers.length > 0 && (
+//             <div className="mb-4">
+//               {typingUsers.map((name, index) => (
+//                 <TypingIndicator key={index} nickname={name} />
+//               ))}
+//             </div>
+//           )}
+
+//         {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
+//         {saying && tarotMaster?.profileImage && (
+//           <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
+//             <Image
+//               src={tarotMaster.profileImage}
+//               alt="Chatbot Thinking"
+//               width={64}
+//               height={64}
+//               className="w-16 h-16 rounded-full animate-pulse"
+//             />
+//           </div>
+//         )}
+//       </div>
+
+//       {/* 카드 선택 UI (CardSelector 컴포넌트) */}
+//       {showCardSelector && 
+//       createPortal(
+//         <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
+//           <CardSelector
+//             onCardSelect={handleCardSelect}
+//             onClose={() => setShowCardSelector(false)}
+//           />
+//         </div>, document.body
+//       )}
+
+//         {/* 하단 입력창 */}
+//         <ChatInput
+//           sessionId={sessionId}
+//           socketRef={socketRef} // ✅ socketRef를 추가!
+//           onSend={(val) => {
+//             // Enter로 메시지 전송해도 typing_stop은 안 보냄 (요구사항)
+//             handleSendMessage(val);
+//             lastInputRef.current = "";
+//           }}
+//           onInputChange={(val) => {
+//             handleUserInputIdle(val); // 5초 자동 메시지
+//           }}
+//         />
+//       </div>
+//     </div>
+//   );
+// }
+
+// 하단 코드는 챗봇이 응답을 생성할때의 애니메이션을 수정한 버전
+// 챗봇과 사람이 같이 타이핑 중일때는 챗봇이 우선권을 가지도록 적용하였음
+return (
+  // 모바일일때와 아닐때 배경 분기
+  <div className={isMobile ? "relative h-screen bg-purple-50" : "flex flex-col h-screen bg-purple-50 rounded-lg"}>
+    {/* 모바일일 때 이미지 부분 삭제 */}
+    <div
+      className={
+        isMobile
+          ? "relative z-10 flex flex-col h-screen bg-purple-50"
+          : "flex flex-col h-screen"
+      }
+      style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
+    >
+      {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
       <div
-        className={
-          isMobile
-            ? "relative z-10 flex flex-col h-screen bg-purple-50"
-            : "flex flex-col h-screen"
-        }
-        style={isMobile ? { height: "calc(100vh - 3.5rem)" } : {}}
+        ref={chatContainerRef}
+        className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
       >
-        {/* 채팅 로그 영역 (독립 스크롤 컨테이너) */}
-        <div
-          ref={chatContainerRef}
-          className="flex-1 px-6 py-4 space-y-4 overflow-auto mb-4 sm:mb-14"
-        >
-          {messages.map((msg, index) => {
-            // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
-            if (msg.role === "system") {
-              return (
-                <div
-                  key={index}
-                  className="flex justify-center my-2"
-                >
-                  <div className="text-gray-500 text-sm italic">
-                    {msg.message}
-                  </div>
-                </div>
-              );
-            }
-
-            // 2) 어시스턴트(봇) 메시지
-            if (msg.role === "assistant") {
-              return (
-                <div key={index} className="flex justify-start w-full my-2">
-                  {/* 봇 프로필 이미지 */}
-                  <Image
-                    src={tarotMaster?.profileImage || `/bots/${botId}_profile.png`}
-                    alt="Bot Profile"
-                    width={128}
-                    height={128}
-                    className="w-10 h-10 md:w-16 md:h-16 rounded-full mr-2 md:mr-3"
-                  />
-                  {/* 봇 메시지 말풍선 */}
-                  <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
-                    {msg.message}
-                    {msg.content && <div className="mt-2">{msg.content}</div>}
-                    {index === messages.length - 1 && chatType === "tarot" && (
-                      <div className="mt-2">
-                        <button
-                          onClick={handleShowCardSelector}
-                          className="px-4 py-2 bg-yellow-500 text-white rounded"
-                        >
-                          타로 점 보기 🔮
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            }
-
-            // 3) 사용자 메시지
-            //    - 본인(storedUserId) vs 다른 사용자 구분
-            const isCurrentUser = msg.role === storedUserId;
+        {messages.map((msg, index) => {
+          // 1) 시스템 메시지 (예: "OOO님이 입장하셨습니다." 등)
+          if (msg.role === "system") {
             return (
-              <div
-                key={index}
-                className={`flex w-full my-2 ${
-                  isCurrentUser ? "justify-end" : "justify-end"
-                }`}
-              >
-                <div
-                  className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
-                    ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
-                  `}
-                >
+              <div key={index} className="flex justify-center my-2">
+                <div className="text-gray-500 text-sm italic">
                   {msg.message}
                 </div>
               </div>
             );
-          })}
-          
-          {/* 기존 단순 텍스트 대신 TypingIndicator 컴포넌트 사용 */}
-          {typingUsers.length > 0 && (
-            <div className="mb-4">
-              {typingUsers.map((name, index) => (
-                <TypingIndicator key={index} nickname={name} />
-              ))}
-            </div>
-          )}
+          }
 
-        {/* 🤖 챗봇 응답 생성 중일 때 채팅 영역 좌상단에 프로필 이미지 표시 */}
-        {saying && tarotMaster?.profileImage && (
-          <div className="absolute bottom-[20%] left-1/4 -translate-x-1/2 flex justify-center items-center bg-white p-1 rounded-full shadow-lg border border-gray-300 z-10">
-            <Image
-              src={tarotMaster.profileImage}
-              alt="Chatbot Thinking"
-              width={64}
-              height={64}
-              className="w-16 h-16 rounded-full animate-pulse"
-            />
+          // 2) 어시스턴트(봇) 메시지
+          if (msg.role === "assistant") {
+            return (
+              <div key={index} className="flex justify-start w-full my-2">
+                {/* 봇 메시지 말풍선 */}
+                <div className="px-4 py-2 bg-gray-100 rounded-lg max-w-[80%] md:max-w-[60%] text-gray-800 leading-relaxed shadow">
+                  {msg.message}
+                  {msg.content && <div className="mt-2">{msg.content}</div>}
+                  {index === messages.length - 1 && chatType === "tarot" && (
+                    <div className="mt-2">
+                      <button
+                        onClick={handleShowCardSelector}
+                        className="px-4 py-2 bg-yellow-500 text-white rounded"
+                      >
+                        타로 점 보기 🔮
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          // 3) 사용자 메시지
+          const isCurrentUser = msg.role === storedUserId;
+          return (
+            <div
+              key={index}
+              className={`flex w-full my-2 ${
+                isCurrentUser ? "justify-end" : "justify-end"
+              }`}
+            >
+              <div
+                className={`px-4 py-2 rounded-lg max-w-[80%] md:max-w-[60%] leading-relaxed shadow
+                  ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}
+                `}
+              >
+                {msg.message}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* 챗봇 및 사용자 입력 상태 표시 */}
+        {(saying || typingUsers.length > 0) && (
+          <div className="absolute bottom-4 left-4 flex items-center bg-white px-4 py-2 rounded-lg shadow-lg border border-gray-300 z-[10]">
+            {saying ? (
+              <>
+                <span className="mr-2 font-semibold text-gray-700">{tarotMaster?.name || "챗봇"}</span>
+                <div className="flex space-x-1">
+                  <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave"></span>
+                  <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0.2s" }}></span>
+                  <span className="w-2 h-2 bg-gray-600 rounded-full animate-dotWave" style={{ animationDelay: "0.4s" }}></span>
+                </div>
+                <span className="ml-2 text-gray-600">고민 중입니다...</span>
+              </>
+            ) : (
+              typingUsers.map((name, index) => (
+                <TypingIndicator key={index} nickname={name} />
+              ))
+            )}
           </div>
         )}
       </div>
 
       {/* 카드 선택 UI (CardSelector 컴포넌트) */}
-      {showCardSelector && 
-      createPortal(
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
-          <CardSelector
-            onCardSelect={handleCardSelect}
-            onClose={() => setShowCardSelector(false)}
-          />
-        </div>, document.body
-      )}
+      {showCardSelector &&
+        createPortal(
+          <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
+            <CardSelector
+              onCardSelect={handleCardSelect}
+              onClose={() => setShowCardSelector(false)}
+            />
+          </div>,
+          document.body
+        )}
 
-        {/* 하단 입력창 */}
-        <ChatInput
-          sessionId={sessionId}
-          socketRef={socketRef} // ✅ socketRef를 추가!
-          onSend={(val) => {
-            // Enter로 메시지 전송해도 typing_stop은 안 보냄 (요구사항)
-            handleSendMessage(val);
-            lastInputRef.current = "";
-          }}
-          onInputChange={(val) => {
-            handleUserInputIdle(val); // 5초 자동 메시지
-          }}
-        />
-      </div>
+      {/* 하단 입력창 */}
+      <ChatInput
+        sessionId={sessionId}
+        socketRef={socketRef} // ✅ socketRef를 추가!
+        onSend={(val) => {
+          handleSendMessage(val);
+          lastInputRef.current = "";
+        }}
+        onInputChange={(val) => {
+          handleUserInputIdle(val); // 5초 자동 메시지
+        }}
+      />
     </div>
-  );
+  </div>
+);
 }
