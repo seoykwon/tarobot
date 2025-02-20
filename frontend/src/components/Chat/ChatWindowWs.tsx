@@ -284,16 +284,17 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
 
     // **typing_indicator 이벤트 핸들러 (닉네임 사용)**
     socket.on("typing_indicator", (data) => {
-      console.log("[typing_indicator]:", data);
-      // data 예시: { user_id: "user123", nickname: "닉네임", typing: true }
-      if (data.typing) {
-        // 내 자신은 표시하지 않음
-        if (data.nickname !== nickname && !typingUsers.includes(data.nickname)) {
-          setTypingUsers((prev) => [...prev, data.nickname]);
+      setTypingUsers((prev) => {
+        if (data.typing) {
+          // 현재 상태(prev)를 참조하여 nickname이 포함되어 있는지 확인
+          if (data.nickname !== nickname && !prev.includes(data.nickname)) {
+            return [...prev, data.nickname];
+          }
+          return prev;
+        } else {
+          return prev.filter((n) => n !== data.nickname);
         }
-      } else {
-        setTypingUsers((prev) => prev.filter((n) => n !== data.nickname));
-      }
+      });
     });
 
     return () => {
@@ -301,7 +302,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [sessionId, storedUserId, nickname, typingUsers]);
+  }, [sessionId, storedUserId, nickname]);
 
     // **타이핑 인디케이터 등장 시 자동 스크롤**
     useEffect(() => {
