@@ -101,7 +101,7 @@ export default function TarotMasterList({ onOpenCharacterSelect }: TarotMasterLi
               alt={`타로 마스터 ${master.name}`}
               width={40}
               height={40}
-              className="rounded-full"
+              className="rounded-lg"
             />
             <span className="truncate whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
               {master.name || `타로마스터 ${master.id}`}
