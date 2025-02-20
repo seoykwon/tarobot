@@ -22,7 +22,7 @@ export default function WelcomePage({ searchParams }: { searchParams: { redirect
         {/* 오른쪽: 텍스트와 버튼 */}
         <div className="flex flex-col items-center lg:items-start lg:w-1/2 gap-6">
           <h1 className="text-4xl font-extrabold leading-relaxed text-purple-600">
-            미루에 오신 것을 환영합니다!
+            보라에 오신 것을 환영합니다!
           </h1>
           <p className="text-gray-700 leading-relaxed text-lg">
             🎉 다양한 사람들과 실시간 채팅을 즐기세요!<br />

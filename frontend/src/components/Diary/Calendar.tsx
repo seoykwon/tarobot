@@ -25,15 +25,6 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
     "July", "August", "September", "October", "November", "December"
   ];
 
-  // // 더미 데이터 생성: 5의 배수 날짜에는 랜덤 봇 ID 하나를 배열에 담아 반환
-  // const generateDummyData = (year: number, month: number): DayInfo[] => {
-  //   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  //   return Array.from({ length: daysInMonth }, (_, index) => ({
-  //     day: index + 1,
-  //     botNumbers: (index + 1) % 5 === 0 ? [Math.floor(Math.random() * 2) + 1] : []
-  //   }));
-  // };
-
   useEffect(() => {
     const fetchCalendarData = async () => {
       const yearQuery = selectedDate.getFullYear();
@@ -48,26 +39,16 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
 
         if (response.ok) {
           const data = await response.json();
-          // API에서 전달되는 데이터는 key가 날짜(혹은 additionalProp1처럼 key에 숫자가 포함)이고,
+          // API에서 전달되는 데이터는 key가 날짜이고,
           // value가 봇 ID 배열로 구성된 형태라고 가정합니다.
-          const daysData: DayInfo[] = Object.entries(data).map(([key, value]) => {
-            let day = parseInt(key, 10);
-            if (isNaN(day)) {
-              // key가 "additionalProp1"과 같이 숫자가 포함된 문자열일 경우 숫자만 추출
-              const match = key.match(/\d+/);
-              day = match ? parseInt(match[0], 10) : 0;
-            }
-            return {
-              day,
-              botNumbers: Array.isArray(value) ? value : []
-            };
-          });
+          const daysData: DayInfo[] = Object.entries(data).map(([key, value]) => ({
+            day: parseInt(key.split("-")[2], 10), // 날짜만 추출
+            botNumbers: Array.isArray(value) ? value : [],
+          }));
           setDaysInfo(daysData);
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      } catch (error) {
-        console.error("API 호출 실패, 더미 데이터 사용:", error);
+      } catch {
+        
       } finally {
         setIsLoading(false);
       }
@@ -94,6 +75,7 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
     newDate.setMonth(newDate.getMonth() + 1);
     setSelectedDate(newDate);
   };
+  
   // 달력 렌더링
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(selectedDate);
@@ -130,11 +112,12 @@ export default function Calendar({ selectedDate, setSelectedDate, onDateClick }:
             {i}
           </span>
 
+          {/* 봇 상담 기록이 있는 경우 스탬프 표시 */}
           {botNumbers.length > 0 && (
-            <div className="absolute inset-0 flex items-center justify-center top-2 space-x-1">
+            <div className="absolute inset-0 flex items-center justify-center">
               <Image
-                src="/approved.svg"
-                alt="Bot Icon"
+                src="/stamp.svg" // 스탬프 아이콘 경로
+                alt="Bot Stamp"
                 width={24}
                 height={24}
               />

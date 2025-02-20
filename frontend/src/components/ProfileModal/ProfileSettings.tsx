@@ -114,7 +114,7 @@ export default function ProfileSettings() {
             {profileImage ? (
               <Image src={profileImage} alt="Profile" fill className="rounded-full object-cover" />
             ) : (
-              <span className="text-gray-400">No Image</span>
+              <Image src="/favicon.ico" alt="Profile" fill className="rounded-full object-cover" />
             )}
           </div>
           <label
