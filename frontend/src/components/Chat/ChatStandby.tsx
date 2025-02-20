@@ -27,7 +27,7 @@ export default function ChatStandby() {
   const [isMobile, setIsMobile] = useState(false);
   const { triggerSessionUpdate } = useSession(); // ✅ 세션 업데이트 트리거 가져오기
   
-  const botId = localStorage.getItem("botId");
+  const botId = localStorage.getItem("botId") || "1";
 
   // 추가된 요소 =======================
   const userId = localStorage.getItem("userId");

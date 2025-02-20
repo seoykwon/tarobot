@@ -1,10 +1,10 @@
 // utils/botNameMap.ts
 export const botNameMap: Record<string, string> = {
-    "1": "온달",
-    "2": "나비",
-    "3": "루미",
-    "4": "라쿠",
-    "5": "벨로",
+    "1": "진이",
+    "2": "범달",
+    "3": "3번",
+    "4": "4번",
+    "5": "5번",
   };
   
   export const getBotName = (botId: string | null): string => {
