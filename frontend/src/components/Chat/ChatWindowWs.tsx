@@ -335,21 +335,22 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
       }
     }, [typingUsers]);
   
-  // ✅ pendingMessage를 감지해 전달
-  useEffect(() => {
-    if (isRoomJoined && pendingMessageRef.current) {
-      const pendingMessage = pendingMessageRef.current; // pendingMessage는 string 타입으로 추론됨
-      console.log("🔄 `isRoomJoined` 변경 감지, 대기 중이던 메시지 전송:", pendingMessage);
-      (async () => {
-        await handleSendMessage(pendingMessage);
-        if (socketRef.current) {
-          socketRef.current.emit("typing_stop", { room_id: sessionId });
-        }
-      })();
-      pendingMessageRef.current = null;
-    }
-  }, [isRoomJoined, handleSendMessage]);
-
+    // ✅ pendingMessage를 감지해 전달
+    useEffect(() => {
+      if (isRoomJoined && pendingMessageRef.current) {
+        const pendingMessage = pendingMessageRef.current; // pendingMessage는 string 타입으로 추론됨
+        console.log("🔄 `isRoomJoined` 변경 감지, 대기 중이던 메시지 전송:", pendingMessage);
+        (async () => {
+          await handleSendMessage(pendingMessage);
+          setTimeout(() => {
+            if (socketRef.current) {
+              socketRef.current.emit("typing_stop", { room_id: sessionId });
+            }
+          }, 300); // 0.3초 지연
+        })();
+        pendingMessageRef.current = null;
+      }
+    }, [isRoomJoined, handleSendMessage]);
 
   // =========================================
   // 특정 크기 이하로 내려갈 경우에 대한 상태를 반영

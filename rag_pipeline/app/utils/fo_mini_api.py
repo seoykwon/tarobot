@@ -101,7 +101,7 @@ async def stream_openai_response(prompt: str, max_tokens=256, temperature=0.7) -
     try:
         client = openai.AsyncOpenAI(api_key=settings.openai_api_key)  # ✅ 비동기 클라이언트 사용
         response = await client.chat.completions.create(
-            model=FO_MINI_MODEL,
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
             temperature=temperature,

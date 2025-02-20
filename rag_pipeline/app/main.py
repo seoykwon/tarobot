@@ -451,7 +451,7 @@ async def handle_typing_stop(sid, data):
         print(f"🔴 [typing_stop] 모든 참가자 stop -> flush_messages")
         flush_messages(room_id)
         # flush 후 기존 clear() 대신, 현재 방의 모든 사용자로 재설정
-        room_typing_stop_signals[room_id] = set(room_user_nicknames[room_id].keys())
+        # room_typing_stop_signals[room_id] = set(room_user_nicknames[room_id].keys())
 
 @sio.on("chat_message")
 async def handle_chat_message(sid, data):
@@ -476,6 +476,11 @@ async def handle_chat_message(sid, data):
 
     print(f"🟢 [chat_message] 수신됨: room={room_id}, user={user_id}, input={user_input}")
 
+    # 만약 이 유저가 이미 stop 상태였다면, stop 세트에서 제거
+    if user_id in room_typing_stop_signals[room_id]:
+        room_typing_stop_signals[room_id].remove(user_id)
+        print(f"🔄 user {user_id} was in stop set, removing from stop set because new message arrived.")
+        
     # typing_indicator 종료
     await sio.emit("typing_indicator", {
         "user_id": user_id,
@@ -494,11 +499,6 @@ async def handle_chat_message(sid, data):
     if user_id == "assistant" and msg_type == "macro":
         await save_message(room_id, "assistant", user_input)
         return
-
-    # 만약 이 유저가 이미 stop 상태였다면, stop 세트에서 제거
-    if user_id in room_typing_stop_signals[room_id]:
-        room_typing_stop_signals[room_id].remove(user_id)
-        print(f"🔄 user {user_id} was in stop set, removing from stop set because new message arrived.")
     
     # 그 외 (user) -> 배치 큐에 쌓음
     if room_id not in room_batch_queues:

@@ -99,7 +99,7 @@ async def process_user_input(
                 user_id=uid,
                 query=combined_input,
                 keywords=keywords,
-                top_k=3
+                top_k=2
             )
             for doc in retrieved:
                 meta = doc.get("metadata", {})
@@ -148,6 +148,9 @@ async def process_user_input(
             context = f"\n[멀티 모드]: 이 방에는 여러 사람이 있습니다. 짧고 자연스러운 대화를 유지하세요.\n{context}"
         else:
             context = f"\n[싱글 모드]: 1:1 타로 상담 상황입니다.\n{context}"
+            
+        if chat_tag == "tarot result":
+            context = f"[스프레드]: 원 카드 스프레드 입니다. 과거 연관 대화는 대화의 맥락을 위한 것이지 타로 리딩에 사용하지 마세요.\n{context}" 
 
         # (5) chat_tag trim
         chat_tag = chat_tag.strip()
@@ -182,9 +185,6 @@ def prepare_context(recent_history, pine_results, keywords):
 
             [과거 연관 대화 기록]: 
             {pine_content_text}
-
-            [NER 정보]:
-            {keywords}
         """
 
     return context.strip()  # ✅ 불필요한 공백 제거
