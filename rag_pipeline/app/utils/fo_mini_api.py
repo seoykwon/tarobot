@@ -61,8 +61,30 @@ async def call_4o_mini_str(prompt: str, max_tokens=256, temperature=0.7, system_
             yield response.choices[0].message.content  # ✅ 일반 응답 반환 (stream=False)
 
         # ✅ `async generator`를 직접 반환
-        async for chunk in response:  
+        async for chunk in response:
+            # print("📌 DEBUG: CHUNK = ", chunk)  # ✅ 디버깅 추가
+
+            # if not isinstance(chunk, dict):
+            #     print("❌ [ERROR] chunk가 dict가 아님! 타입:", type(chunk))
+                
+            # if "choices" not in chunk:
+            #     print("❌ [ERROR] chunk에 'choices' 키 없음! 내용:", chunk)
+                
+            # if not isinstance(chunk["choices"], list):
+            #     print("❌ [ERROR] chunk['choices']가 리스트가 아님! 내용:", chunk["choices"])
+                
+            # if len(chunk["choices"]) == 0:
+            #     print("❌ [ERROR] chunk['choices']가 비어 있음!")
+                
+            # if "delta" not in chunk["choices"][0]:
+            #     print("❌ [ERROR] chunk['choices'][0]에 'delta' 키 없음! 내용:", chunk["choices"][0])
+                
+            # if "content" not in chunk["choices"][0]["delta"]:
+            #     print("❌ [ERROR] chunk['choices'][0]['delta']에 'content' 키 없음! 내용:", chunk["choices"][0]["delta"])
+                
             content = chunk.choices[0].delta.content
+            # print("✅ DEBUG: 추출된 content =", content)
+
             if content:
                 yield content  # ✅ 한 줄씩 응답 반환
             await asyncio.sleep(0.05)  # ✅ 부드러운 스트리밍 효과
@@ -71,6 +93,7 @@ async def call_4o_mini_str(prompt: str, max_tokens=256, temperature=0.7, system_
         print(f"[Error] OpenAI API 호출 실패: {str(e)}")
         yield "죄송합니다, API 호출 중 오류가 발생했습니다."
 
+
 async def stream_openai_response(prompt: str, max_tokens=256, temperature=0.7) -> AsyncGenerator[str, None]:
     """
     OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터
@@ -78,7 +101,7 @@ async def stream_openai_response(prompt: str, max_tokens=256, temperature=0.7) -
     try:
         client = openai.AsyncOpenAI(api_key=settings.openai_api_key)  # ✅ 비동기 클라이언트 사용
         response = await client.chat.completions.create(
-            model=FO_MINI_MODEL,
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
             temperature=temperature,

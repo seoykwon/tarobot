@@ -1,19 +1,22 @@
+// config/api.ts
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 const FASTAPI_BASE_URL = process.env.NEXT_PUBLIC_FASTAPI_BASE_URL || "http://localhost:8000";
 
 export const API_URLS = {
   AUTH: {
-    LOGIN: `${BASE_URL}/v1/auth/login`,
-    SIGNUP: `${BASE_URL}/v1/users`,
+    LOGIN: `${BASE_URL}/api/v1/auth/login`,
+    SIGNUP: `${BASE_URL}/api/v1/users`,
     GOOGLE: `${BASE_URL}/oauth2/authorization/google`,
     KAKAO: `${BASE_URL}/auth/kakao`,
-    LOGOUT: `${BASE_URL}/auth/logout`,
+    LOGOUT: `${BASE_URL}/api/v1/auth/logout`,
   },
   CHAT: {
+    LOAD_SESSION: `${FASTAPI_BASE_URL}/chat/session/load`,       // GET - 채팅 세션 대화 기록 불러오기
     SEND_MESSAGE: `${FASTAPI_BASE_URL}/chat`,
-    STREAM: (sessionId: string, userInput: string, type?: string) =>
-      `${FASTAPI_BASE_URL}/chat?session_id=${sessionId}&user_input=${encodeURIComponent(userInput)}&type=${type}`,
-    CLOSE: `${FASTAPI_BASE_URL}/chat/close`,
+    STREAM: `${FASTAPI_BASE_URL}/chat/stream`,
+    ENTER: `${BASE_URL}/api/v1/chat/session/enter`,
+    CLOSE: `${BASE_URL}/api/v1/chat/session/close`,
+    UPDATE: (sessionId: string) => `${BASE_URL}/api/v1/chat/session/update/${sessionId}`,
   },
   TAROT: {
     RECORDS: `${BASE_URL}/tarot-records`,
@@ -22,7 +25,7 @@ export const API_URLS = {
   },
   TAROTBOTS: {
     LIST: `${BASE_URL}/api/v1/tarot-bots`,
-    DETAILS: (id: number) => `${BASE_URL}/api/v1/tarot-bots/${id}`,
+    DETAILS: (id: string) => `${BASE_URL}/api/v1/tarot-bots/${id}`,
   },
   POSTS: {
     LIST: (filter: string, page: number) =>
@@ -50,6 +53,7 @@ export const API_URLS = {
     ME: `${BASE_URL}/api/v1/user-profiles/me`,    // GET - 회원 본인 프로필 조회
     BY_ID: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,    // GET - 이름 기반 프로필 검색
     UPDATE: (userId: string) => `${BASE_URL}/api/v1/user-profiles/${userId}`,   // PATCH - 유저 프로필 수정
+    SESSIONLIST: `${BASE_URL}/api/v1/chat/session/me`
   },
   REVIEW: {
     BY_ID: (reviewId: string) => `${BASE_URL}/api/review/${reviewId}`,         // GET - 특정 리뷰 조회
@@ -69,7 +73,7 @@ export const API_URLS = {
     REFRESH: `${BASE_URL}/api/v1/token/refresh`,
   },
   CALENDAR: {
-    MONTHLY: (year: number, month: number) => `${BASE_URL}/api/v1/diary/calendar?year=${year}&month=${month}`,
+    MONTHLY: (year: number, month: number) => `${BASE_URL}/api/v1/diary/monthly?year=${year}&month=${month}`,
     SUMMARY: (date: string) => `${BASE_URL}/api/v1/diary/${date}`,
   },
   GAME: {
@@ -79,11 +83,7 @@ export const API_URLS = {
   FORTUNE: `${BASE_URL}/api/main/fortune`,
    // WebRTC 관련 URL
   WEBRTC: {
-    ROOM: (sessionId: string) => `/webRTC_test/${sessionId}`,
-  },
-  OPENVIDU: {
-    SESSIONS: `${FASTAPI_BASE_URL}/openvidu/sessions`, // OpenVidu 세션 생성
-    CONNECTIONS: `${FASTAPI_BASE_URL}/openvidu/connections`, // OpenVidu 연결 요청
+    ROOM: (tarobotId: string, sessionId: string) => `/tarot/bots/${tarobotId}/chat_w/${sessionId}`,
   },
   USERNOW: {
     PROFILE: `${BASE_URL}/api/v1/user/me`, // 현재 로그인된 유저 정보 가져오기

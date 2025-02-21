@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +14,7 @@ import java.util.List;
 @Setter
 public class TarotBot extends BaseEntity {
 
-    @Column(name = "bot_name", length = 100, nullable = false)
+    @Column(length = 100, nullable = false)
     private String name;
 
     @Column(length = 255)

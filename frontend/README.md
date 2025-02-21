@@ -1,119 +1,189 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 🚀 프로젝트 개요
 
-## Getting Started
+Tarot App의 프론트엔드는 Next.js 기반으로 제작되었으며, 다양한 타로 마스터를 선택해서 대화를 나누고 타로 점을 확인할 수 있습니다.
+세션 정보를 통해 과거 대화 정보를 확인 가능하고, 다이어리를 통해 과거 타로 결과 요약을 확인 할 수 있습니다.
 
-First, run the development server:
+## 주요 기능
+- 다양한 타로 마스터(진이, 범달) 중 한명을 선택해 대화를 나눌 수 있습니다.
+- 대화를 나누고 카드를 선택하면 둘을 취합해 타로 점의 결과를 알려줍니다.
+- 과거 대화 정보와 타로 점 결과를 확인할 수 있습니다.
+- 채팅방 공유를 통해 친구와 함께 타로 점을 볼 수 있고, 결과를 공유할 수 있습니다.
+
+## 🛠 기술 스택
+
+- Next.js: 서버 사이드 렌더링(SSR) 및 정적 사이트 생성(SSG)을 지원하는 React 기반 프레임워크
+- TypeScript: 코드 안정성을 높이고 유지보수를 용이하게 하는 정적 타입 검사 도구
+- Tailwind CSS: 유틸리티 기반의 CSS 프레임워크로 빠르고 일관된 스타일링 가능
+- WebRTC: 브라우저 간 실시간 P2P 데이터 및 미디어 스트림 전송
+
+## ✅ 사전 요구사항
+
+- **Node.js:** 18.x 버전  
+  [Node.js 설치하기](https://nodejs.org/ko/download/)  
+
+- **npm:** Node.js 설치 시 함께 설치됩니다.  
+  설치 확인:
+  ```bash
+  node -v  # Node.js 버전 확인
+  npm -v   # npm 버전 확인
+  ```
+
+- **Next.js:** 14.x 버전 (의존성으로 설치됩니다)  
+  Next.js 공식 문서: [https://nextjs.org/docs](https://nextjs.org/docs)
+
+---
+
+## 📦 설치 및 실행 방법
+
+### 1️⃣ 프로젝트 클론
+
+저장소를 클론합니다.
+
+```bash
+git clone https://lab.ssafy.com/s12-webmobile1-sub1/S12P11A107.git
+cd S12P11A107/frontend
+```
+
+---
+
+### 2️⃣ 의존성 설치
+
+다음 명령어로 프로젝트의 모든 의존성을 설치합니다.
+
+```bash
+npm install
+```
+
+- `package.json`의 `dependencies`에 **Next.js 14**가 명시되어 있습니다.
+- 설치 확인:
+  ```bash
+  npm list next
+  ```
+
+---
+
+### 3️⃣ 개발 서버 실행
+
+로컬 개발 서버를 실행합니다.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 기본 실행 포트: [http://localhost:3000](http://localhost:3000)  
+- 코드 변경 시 자동으로 핫 리로딩됩니다.  
+- **`.env` 파일 없이도 프로젝트가 정상 작동합니다.**  
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
 
 
+## 📂 프로젝트 구조
+```text
+├── public/                # 정적 파일 (이미지, HTML 등)
+│   ├── basic/             # 타로 카드 리소스
+│   ├── bots/              # 봇 관련 리소스
+│   └── images/            # 봇 프로필 리소스
+├── src/
+│   ├── app/               # 페이지 및 라우팅 관련 파일
+│   │   ├── card/          # 카드 선택 페이지
+│   │   ├── chat/          # 채팅 페이지 (동적 라우팅 포함)
+│   │   │   └── [sessionId]/ # 특정 세션별 채팅 페이지
+│   │   └── home/          # 홈 화면 페이지
+│   ├── components/        # 재사용 가능한 UI 컴포넌트 모음
+│   │   ├── Chat/          # 채팅 관련 컴포넌트
+│   │   │   └── Input/     # 채팅 입력창 컴포넌트
+│   │   ├── Diary/         # 다이어리 컴포넌트 (캘린더, 운세 요약, 이미지 공유 등)
+│   │   ├── Header/        # 헤더 컴포넌트 (프로필, 알림 설정)
+│   │   ├── Login/         # 로그인 컴포넌트 (구글 로그인)
+│   │   ├── ProfileModal/  # 프로필 모달 컴포넌트 (로그아웃, 프로필 설정)
+│   │   └── Sidebar/       # 사이드바 컴포넌트 (타로 마스터 리스트, 세션 리스트)
+│   ├── config/            # API 관리
+│   ├── context/           # 세션 관리
+│   ├── libs/              # API 관리 및 유틸 함수 모음
+│   ├── styles/            # 글로벌 스타일 파일 (CSS, SCSS 등)
+│   ├── types/             # TypeScript 타입 정의 파일
+│   └── utils/             # 유틸리티 함수 모음
+```
 
+## 📡 API 설계
 
+### 1. 인증 (AUTH)
+| 기능                | HTTP 메서드 | 엔드포인트                           | 설명              |
+|---------------------|-------------|--------------------------------------|-------------------|
+| 구글 로그인         | GET         | `${NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/google`      | 구글 OAuth 로그인 |
+| 로그아웃            | POST        | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/logout`               | 사용자 로그아웃   |
 
+---
 
+### 2. 채팅 (CHAT)
+| 기능                  | HTTP 메서드 | 엔드포인트                               | 설명                    |
+|-----------------------|-------------|------------------------------------------|-------------------------|
+| 채팅 세션 불러오기    | GET         | `${NEXT_PUBLIC_FASTAPI_BASE_URL}/chat/session/load`                     | 채팅 세션 기록 조회     |
+| 세션 입장             | POST        | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/session/enter`             | 채팅 세션 입장          |
+| 세션 종료             | POST        | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/session/close`             | 채팅 세션 종료          |
+| 세션 업데이트         | PATCH       | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/session/update/:sessionId` | 세션 정보 업데이트      |
 
-🚀 프로젝트 개요
+---
 
-Tarot App의 프론트엔드는 Next.js 기반으로 제작되었으며, 타로 관련 기능과 커뮤니티, 미니게임, 실시간 채팅 등을 포함하고 있습니다. 전반적으로 다크모드를 기본 디자인으로 하여 직관적인 UI/UX를 제공합니다.
+### 3. 타로 (TAROT)
+| 기능              | HTTP 메서드 | 엔드포인트             | 설명            |
+|-------------------|-------------|------------------------|-----------------|
+| 타로 기록 조회    | GET         | `${NEXT_PUBLIC_API_BASE_URL}/tarot-records`       | 타로 기록 조회  |
+| 타로 결과 저장    | POST        | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/session/close`    | 타로 결과 저장  |
 
-📂 프로젝트 구조
+---
 
-🔹 home/page.tsx
+### 4. 타로 봇 (TAROTBOTS)
+| 기능                  | HTTP 메서드 | 엔드포인트                     | 설명                    |
+|-----------------------|-------------|---------------------------------|-------------------------|
+| 타로 봇 목록 조회      | GET         | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/tarot-bots`           | 타로 봇 리스트 조회     |
+| 타로 봇 상세 조회      | GET         | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/tarot-bots/:id`       | 특정 타로 봇 상세 정보  |
 
-- 계절별 배경 화면이 동적으로 변경됩니다.
+---
 
-- "오늘의 운세", "타로봇 마스터", "미니게임" 등 주요 기능을 제공하는 홈 화면입니다.
+### 5. 사용자 (USER)
+| 기능                    | HTTP 메서드 | 엔드포인트                               | 설명                      |
+|-------------------------|-------------|------------------------------------------|---------------------------|
+| 본인 프로필 조회        | GET         | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/user-profiles/me`               | 로그인 사용자 프로필 조회 |
+| 이름 기반 프로필 검색   | GET         | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/user-profiles/:userId`          | 특정 사용자 프로필 검색   |
+| 유저 프로필 수정        | PATCH       | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/user-profiles/:userId`          | 사용자 프로필 수정        |
+| 세션 목록 조회          | GET         | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/chat/session/me`                | 본인 채팅 세션 목록 조회  |
 
-🔹 components/BottomNav.tsx
+---
 
-- 하단 내비게이션 바 구현.
+### 6. 공지사항 (NOTICES)
+| 기능                  | HTTP 메서드 | 엔드포인트                           | 설명                  |
+|-----------------------|-------------|--------------------------------------|-----------------------|
+| 공지사항 목록 조회    | GET         | `${NEXT_PUBLIC_API_BASE_URL}/community/announcements`          | 공지사항 리스트 조회  |
+| 공지사항 상세 조회    | GET         | `${NEXT_PUBLIC_API_BASE_URL}/community/notices/:id`            | 공지사항 상세 정보    |
 
-- 어플 이름 및 주요 페이지로의 이동을 지원.
+---
 
-🔹 community
+### 7. 토큰 (TOKEN)
+| 기능              | HTTP 메서드   | 엔드포인트                     | 설명                |
+|-------------------|---------------|---------------------------------|---------------------|
+| 토큰 유효성 검증  | POST          | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/token/validate`       | 액세스 토큰 검증    |
+| 토큰 갱신         | POST          | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/token/refresh`        | 액세스 토큰 재발급  |
 
-- 검색 필터 기능 구현.
+---
 
-- 무한 로딩 방식(인스타그램 스타일) 적용.
+### 8. 캘린더 (CALENDAR)
+| 기능                  | HTTP 메서드   | 엔드포인트                                         | 설명                    |
+|-----------------------|---------------|---------------------------------------------------|-------------------------|
+| 월별 다이어리 조회    | GET           | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/diary/monthly?year=:year&month=:month`   | 월별 다이어리 요약      |
+| 일별 다이어리 요약    | GET           | `${NEXT_PUBLIC_API_BASE_URL}/api/v1/diary/:date`                             | 특정 날짜 다이어리 조회 |
 
-- 게시글 작성 가능.
+## 📋 TODO 리스트
 
-🔹 tarot
+- [ ] WebRTC 연결 안정성 개선
+- [ ] 새로운 타로 마스터 추가
+- [ ] middleware 작동 방식 오류 개선
 
-- 타로봇 리스트 화면 구성.
+## 🎨 코딩 컨벤션
 
-- 리뷰 기능은 아직 미구현.
+프로젝트는 다음과 같은 코딩 스타일을 따릅니다:
 
-🔹 mini-game
+1. **ESLint**: 코드 품질 및 규칙 검사 도구.
+2. **Prettier**: 코드 포맷팅 도구.
 
-- 타로 카드 짝 맞추기 게임 구현.
-
-🔹 globals.css
-
-- 전역 CSS 설정.
-
-- 폰트 및 기본 스타일 지정.
-
-🔹 layout.tsx
-
-- CSS 활용하여 다크모드 구현.
-
-- 상단 바 설정 및 기본 레이아웃 지정.
-
-🔹 daily
-
-- 홈 화면에서 "오늘의 운세" 기능을 제공합니다.
-
-- 카드 한 장을 골라 하루 운세를 확인 가능.
-
-- 운세 결과를 저장하는 기능 포함.
-
-🔹 chat
-
-- 타로봇과 실시간 채팅 기능 구현.
-
-🔹 WebRTC
-
-- 파트너와 화상 연결을 통해 타로 상담 가능.
-
-🛠 기술 스택
-
-- Next.js - 프레임워크
-
-- TypeScript - 정적 타입 검사를 통한 안정성 보장
-
-- Tailwind CSS - 빠른 UI 개발
-
-- WebRTC - 실시간 화상 연결
-
-
-
+https://oil-ruby-367.notion.site/17e4efe830c4800fad5bce5ce842c916?pvs=4

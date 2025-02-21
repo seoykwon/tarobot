@@ -1,59 +1,107 @@
-# response_utils.py
+# app/utils/response_utils.py
 import asyncio
 import datetime
-from typing import AsyncGenerator
-
+import uuid
+import json
 import pytz
+from typing import AsyncGenerator, List, Dict
 from app.utils.fo_mini_api import call_4o_mini_str
 from app.utils.prompt_generation import make_prompt_chat, make_prompt_tarot
 from app.utils.chatbot_concept import names, concepts
 from app.services.pinecone_integration import upsert_documents
 from app.services.redis_utils import get_recent_history, save_message
 
-async def response_generator(session_id: str, user_input: str, context: str, bot_id: int, keywords: list[str], user_id: str, type: str, chat_tag: str) -> AsyncGenerator[str, None]:
+async def response_generator(
+    session_id: str,
+    user_input: str,
+    context: str,
+    bot_id: int,
+    keywords: List[str],
+    user_id: str,
+    type: str,
+    chat_tag: str,
+    flush_msgs: List[Dict[str, str]] = None,  
+    max_tokens: int = 512,
+) -> AsyncGenerator[str, None]:
     """
-    OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터
+    OpenAI API의 스트리밍 응답을 처리하는 비동기 제너레이터  
     """
     try:
-        # type에 따라 input과 chat_prompt 템플릿 분리
+        # 타로/일반 대화 프롬프트 구성
         if type == "tarot":
             chat_prompt = make_prompt_tarot(context, user_input)
-            lastconv = await get_recent_history(session_id, 3) # 직전 대화 기록 불러오기
-            print(lastconv)
+            lastconv = await get_recent_history(session_id, 3)  # 직전 대화 기록 불러오기
             if lastconv:
                 chat_prompt += "\n[직전의 대화]\n" + lastconv[0]["message"]
         else:
             chat_prompt = make_prompt_chat(context, user_input)
-            # 챗 태그가 tarot이면 바로 결과를 내지 말고, 사용자가 타로를 보고 싶다고 하길 유도하라
             if chat_tag == "tarot":
                 chat_prompt += """
 사용자가 타로 점을 보고 싶어하는 것 같습니다.
 이번 대답에 즉시 타로 점을 봐주지 말고 사용자에게 타로 점을 보고 싶어하는 지 물어보세요.
 """
 
-        llm_answer = ""  # ✅ 모든 chunk를 저장할 변수
+        response_id = str(uuid.uuid4())
+        sequence = 1
+        llm_answer = ""
 
-        async for chunk in call_4o_mini_str(chat_prompt, max_tokens=256, system_prompt=concepts[names[bot_id]], stream=True):  
-            if not chunk:  
+        # OpenAI 스트리밍 응답 처리 (청크 단위)
+        async for chunk in call_4o_mini_str(
+            chat_prompt,
+            max_tokens=max_tokens,
+            system_prompt=concepts[names[bot_id]],
+            stream=True
+        ):
+            # print("📌 DEBUG: CHUNK in response_generator =", chunk)  # ✅ 디버깅 추가
+
+            # if not isinstance(chunk, str):
+            #     print("❌ [ERROR] chunk가 문자열이 아님! 타입:", type(chunk), "내용:", chunk)
+            #     continue
+            if not chunk:
                 break
-            llm_answer += chunk  
-            yield chunk
 
-        # ✅ Pinecone 업서트할 metadata 구성
-        metadata = {
-            "created_at": int(datetime.datetime.now(pytz.timezone("Asia/Seoul")).timestamp()),
-            "keywords": keywords if keywords else ["(없음)"],
-            "user_input": user_input,
-            "response": llm_answer
-        }
+            llm_answer += chunk
+            payload = {
+                "response_id": response_id,
+                "sequence": sequence,
+                "chunk": chunk
+            }
+            sequence += 1
+            yield json.dumps(payload) + "\n"
 
-        # Pinecone 업서트 & Redis 저장 (비동기 실행)
-        asyncio.create_task(upsert_documents(user_id, [user_input], [metadata]))
-        asyncio.create_task(save_message(session_id, "assistant", llm_answer))
+        # 3) 스트리밍 완료 -> Pinecone & Redis 저장
+        #    => flush_msgs에 있는 각 user의 메시지에 대해 동일한 llm_answer 저장
+        created_at = int(datetime.datetime.now(pytz.timezone("Asia/Seoul")).timestamp())
 
+        # (a) Redis에 최종 답변 1건 저장 (assistant)
+        #     - flush_msgs는 여러 user_id가 있으니, role="assistant", nickname="assistant"
+        asyncio.create_task(save_message(session_id, "assistant", llm_answer, nickname="assistant"))
+        
+        # (b) Pinecone upsert: flush_msgs 각각에 대해
+        for msg in flush_msgs:
+            uid = msg["user_id"]
+            user_input_each = msg["user_input"]
+            metadata = {
+                "created_at": created_at,
+                "user_input": user_input_each,
+                "response": llm_answer,
+                "keywords": keywords if keywords else ["(없음)"]
+            }
+            # 문서/메타데이터: 1:1
+            docs = [user_input_each]
+            metas = [metadata]
+            # user_id별 namespace에 upsert
+        
+            asyncio.create_task(upsert_documents(bot_id, uid, docs, metas))
+            
     except Exception as e:
-        yield f"[ERROR] OpenAI Streaming 오류: {str(e)}"
-
+        print(f"❌ response_generator 오류: {str(e)}")
+        error_payload = {
+            "response_id": response_id if 'response_id' in locals() else None,
+            "sequence": sequence if 'sequence' in locals() else None,
+            "chunk": f"[ERROR] OpenAI Streaming 오류: {str(e)}"
+        }
+        yield json.dumps(error_payload) + "\n"
 
 # async def response_generator(session_id: str, user_input: str, context: str, keywords: list[str], user_id: str) -> AsyncGenerator[str, None]:
 #     """
@@ -97,8 +145,6 @@ async def response_generator(session_id: str, user_input: str, context: str, bot
 #         print(f"✅ Pinecone 업서트 결과: {upsert_task}")
 #         # redis 저장
 #         save_response_task = asyncio.create_task(save_message(session_id, "assistant", llm_answer))
-
-
 
 #     except Exception as e:
 #         yield f"[ERROR] OpenAI Streaming 오류: {str(e)}"  # ✅ 에러 발생 시 메시지 반환

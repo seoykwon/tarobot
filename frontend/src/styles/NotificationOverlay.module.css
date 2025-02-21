@@ -1,0 +1,84 @@
+.container {
+    position: relative;
+  }
+  
+  .button {
+    background-color: #e5e7eb; /* Tailwind의 bg-gray-200 */
+    padding: 0.25rem 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  .overlay {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    width: 24rem; /* Tailwind의 w-96 */
+    background-color: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Tailwind의 shadow-lg */
+    border-radius: 0.5rem; /* Tailwind의 rounded-lg */
+    border: 1px solid #e5e7eb; /* Tailwind의 border-gray-200 */
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #e5e7eb; /* Tailwind의 border-b */
+  }
+  
+  .header span {
+    font-weight: bold;
+  }
+  
+  .header button {
+    color: #ef4444; /* Tailwind의 text-red-500 */
+    font-size: small;
+  }
+  
+  .list {
+    max-height: 16rem; /* Tailwind의 max-h-64 */
+    overflow-y: auto;
+  }
+  
+  .listItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+  }
+  
+  .listItem:hover {
+    background-color: #f3f4f6; /* Tailwind의 hover:bg-gray-100 */
+  }
+  
+  .avatar {
+    width: 2.5rem; /* Tailwind의 w-10 */
+    height: 2.5rem; /* Tailwind의 h-10 */
+    background-color: #d1d5db; /* Tailwind의 bg-gray-300 */
+    border-radius: full; /* Tailwind의 rounded-full */
+  }
+  
+  .textContainer {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .textContainer .name {
+    font-weight: bold;
+  }
+  
+  .textContainer .message {
+    font-size: small;
+  }
+  
+  /* 스크롤바 숨기기 */
+.custom-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }

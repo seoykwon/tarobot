@@ -15,4 +15,6 @@ public interface TarotCardService {
     TarotCard updateTarotCardImage(Integer setNumber, Integer cardNumber, String newImage);
     void deleteCard(Integer setNumber, Integer cardNumber);
     void deleteCardsBySet(Integer setNumber);
+    Optional<TarotCard> findCardById(Long id);
+
 }

@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ChatMessageResponse {
-    @Schema(description = "º¿ ÀÀ´ä", example = "¾È³çÇÏ¼¼¿ä!")
+    @Schema(description = "ì±„íŒ… ë©”ì‹œì§€", example = "ì•ˆë…•í•˜ì„¸ìš”!")
     private String botResponse;
 }

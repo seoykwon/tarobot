@@ -1,12 +1,11 @@
 package com.ssafy.common.util;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.stereotype.Component;
-
 import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SecurityUtil {

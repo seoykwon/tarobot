@@ -1,7 +1,5 @@
 package com.ssafy.db.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -21,7 +19,7 @@ public class Review extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false) // User 테이블의 ID를 FK로 참조
-    private User author; // 작성자
+    private User user; // 작성자
 
     @Min(value = 1, message = "별점은 1 이상이어야 합니다.")
     @Max(value = 5, message = "별점은 5 이하여야 합니다.")

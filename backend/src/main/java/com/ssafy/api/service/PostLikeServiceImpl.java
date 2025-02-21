@@ -1,16 +1,12 @@
 package com.ssafy.api.service;
 
-import com.ssafy.common.auth.SsafyUserDetails;
 import com.ssafy.common.util.SecurityUtil;
 import com.ssafy.db.entity.Post;
 import com.ssafy.db.entity.PostLike;
 import com.ssafy.db.entity.User;
 import com.ssafy.db.repository.PostLikeRepository;
 import com.ssafy.db.repository.PostRepository;
-import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

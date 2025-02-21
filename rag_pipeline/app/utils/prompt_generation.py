@@ -44,8 +44,11 @@ def make_prompt_timestamp(user_query: str) -> str:
     """
 
 def make_prompt_chat(context: str, user_input: str) -> str:
-    return f"[Context]\n{context}\n\nUser input: {user_input}\n\n위 정보를 바탕으로 친절하고 정확한 답변을 해주세요."
-
+    return (
+        f"[Context]\n{context}\n\nUser input: {user_input}\n\n"
+        "위 정보를 바탕으로 친절하고 정확한 답변을 해주세요. "
+        "단, 답변 시작 시 본인의 닉네임이나 별칭은 포함하지 말고, 오로지 응답 내용만 작성해 주세요."
+    )
 
 def make_prompt_tarot(context: str, user_input: str) -> str:
     return f"""
@@ -57,18 +60,19 @@ def make_prompt_tarot(context: str, user_input: str) -> str:
 위 정보를 바탕으로 친절하고 정확한 타로 점을 봐주세요.
 최근 대화기록과 특히 직전의 대화로 부터 내가 어떤 고민을 가지고 있는 지 파악하여,
 타로 카드를 활용해 그 고민에 대한 해설을 해주세요.
-결과를 200자 이내로 요약해서 대답해주세요.
+결과를 500자 이내로 요약해서 대답해주세요.
 """
 
 def make_prompt_ner(text: str) -> str:
     
     return f"""
     다음 문장에서 주요 개체명을 추출하고 `JSON` 형식으로 반환하세요.
+    발화자는 분석에서 제외합니다.
     용언을 keyword로 추출할 때는 원형으로 입력할 것.
     각 항목이 없으면 빈 배열 `[]`을 반환하세요.
 
     [출력 예시]
-    문장: "홍길동은 서울에서 열린 연말 회식에 참석했다."
+    문장: "아나운서: 홍길동은 서울에서 열린 연말 회식에 참석했다."
     출력: {{ "keywords": ["홍길동", "서울", "연말 회식", "회식", "참석"] }}
     
     문장: "{text}"

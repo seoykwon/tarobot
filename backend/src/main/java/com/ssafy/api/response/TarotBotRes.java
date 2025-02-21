@@ -1,9 +1,8 @@
 package com.ssafy.api.response;
 
 import com.ssafy.db.entity.TarotBot;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema;import lombok.Getter;
+import lombok.Getter;
 import lombok.Setter;
 
 /**

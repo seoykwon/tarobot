@@ -89,4 +89,11 @@ public class TarotCardServiceImpl implements TarotCardService {
             throw new IllegalArgumentException("세트 " + setNumber + "에 해당하는 카드를 찾을 수 없습니다.");
         }
     }
+
+    // **7. 조회 - id로 검색**
+    @Override
+    public Optional<TarotCard> findCardById(Long id) {
+        return tarotCardRepository.findById(id);
+    }
+
 }

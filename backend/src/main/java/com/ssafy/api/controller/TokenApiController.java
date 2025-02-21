@@ -5,6 +5,8 @@ import com.ssafy.api.response.CreateAccessTokenRes;
 import com.ssafy.api.service.TokenService;
 import com.ssafy.common.util.CookieUtil;
 import com.ssafy.common.util.JwtTokenUtil;
+import com.ssafy.common.util.SecurityUtil;
+import com.ssafy.db.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Tag(name = "Refresh Token", description = "리프레시 토큰 API")
 @RequestMapping("/api/v1/token")
@@ -26,6 +30,7 @@ import java.time.Duration;
 public class TokenApiController {
 
     private final TokenService tokenService;
+    private final SecurityUtil securityUtil;
 
     public static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
     public static final Duration ACCESS_TOKEN_DURATION = Duration.ofDays(1);
@@ -62,8 +67,19 @@ public class TokenApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Token");
         }
 
-        return ResponseEntity.ok("Valid Token");
+        // SecurityUtil을 통해 현재 사용자 정보 가져오기
+        User currentUser = securityUtil.getCurrentUser();
 
+        // currentUser가 null인 경우에 대한 추가 검증도 고려할 수 있음
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Valid Token");
+        response.put("userId", currentUser.getUserId());
+
+        return ResponseEntity.ok(response);
     }
 
     private void addAccessTokenToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken) {

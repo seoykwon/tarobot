@@ -1,6 +1,8 @@
 package com.ssafy.config.oauth;
 
 import com.ssafy.db.entity.User;
+import com.ssafy.db.entity.UserProfile;
+import com.ssafy.db.repository.UserProfileRepository;
 import com.ssafy.db.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -9,6 +11,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,6 +20,7 @@ import java.util.Optional;
 public class OAuth2UserCustomService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -47,7 +51,20 @@ public class OAuth2UserCustomService extends DefaultOAuth2UserService {
             user.setUserId(email);
             user.setName(name);
             user.setSocial(true); // 소셜 로그인이면 true로 구분해 일반 로그인 방지
-            return userRepository.save(user);
+            user = userRepository.save(user);
+
+            // 2. 더미 프로필 생성 (필요에 따라 더미 데이터 값 조정)
+            UserProfile dummyProfile = new UserProfile();
+            dummyProfile.setUser(user);
+            dummyProfile.setNickname(user.getName()); // 더미 닉네임 설정
+            dummyProfile.setGender("Other"); // 또는 "M", "F" 등 적절한 기본 값
+            dummyProfile.setEmail(user.getUserId());
+            dummyProfile.setProfileImage("/images/default_profile.png"); // 기본 프로필 이미지 파일명
+            dummyProfile.setBirthDate(LocalDate.of(2000, 1, 1)); // 기본 생년월일 (예시)
+
+            userProfileRepository.save(dummyProfile);
+
+            return user;
         }
     }
 }
