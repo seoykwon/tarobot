@@ -1,4 +1,6 @@
 // socketManager.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { io, Socket } from "socket.io-client";
 import { API_URLS } from "@/config/api";
 
