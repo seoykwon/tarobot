@@ -1,4 +1,6 @@
 // components/ChatWindowWs.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -454,7 +456,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   // =========================================
   const handleCardSelect = (cardId: string) => {
     if (!socketRef.current) return;
-    const socket = socketRef.current; // 최초의 socket 저장
+    // const socket = socketRef.current; // 최초의 socket 저장
     setShowCardSelector(false);
     const selectedCard = tarotCards[cardId];
     // 봇 메시지로 카드 선택 결과를 보여주고, 선택한 카드 이름을 전송
@@ -486,7 +488,7 @@ export default function ChatWindowWs({ sessionIdParam }: ChatWindowProps) {
   // =========================================
   useEffect(() => {
     if (!socketRef.current) return;
-    const socket = socketRef.current; // 최초의 socket 저장
+    // const socket = socketRef.current; // 최초의 socket 저장
     const storedMessage = localStorage.getItem("firstMessage");
     localStorage.removeItem("firstMessage"); // 꺼낸 뒤 즉시 삭제
   
