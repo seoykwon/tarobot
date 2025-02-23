@@ -110,7 +110,8 @@ Windows 기준 개발 환경 구성 설명
     ┃   ┗━ 📜 GroupCallApplication.java   # Spring Boot 메인 애플리케이션
     ┃
     ┗━ 📦 resources
-        ┣━ 📄 README.md
+        ┣━ 📂 dist            # Index.html
+        ┣━ 📂 static            # GoogleLogin.html, 구글 로그인 성공 시 리다이렉트 페이지
         ┗━ ⚙️ application.properties
 ```
 
