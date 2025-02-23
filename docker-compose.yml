@@ -1,24 +1,73 @@
-version: '3.8'
-
 services:
+  nginx:
+    image: nginx:1.25.3
+    container_name: nginx
+    restart: always
+    # HTTP 80, HTTPS 443
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+      - rag_pipeline
+    volumes:
+      # nginx.conf는 기존과 동일
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # 호스트의 /etc/nginx/ssl 디렉터리를 컨테이너 /etc/nginx/ssl에 마운트
+      - /etc/nginx/ssl:/etc/nginx/ssl:ro
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    # (생략) Jenkinsfile에서 만든 frontend/.env를 Dockerfile COPY or 빌드시 로드
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+
+  rag_pipeline:
+    build: ./rag_pipeline
+    container_name: rag_pipeline
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
   mysql:
-    image: mysql:8.0
-    container_name: mysql_local
+    image: mysql:8.0.36
+    container_name: mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ssafy_web_db
-      MYSQL_USER: ssafy
-      MYSQL_PASSWORD: 1234
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=ssafy_web_db
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - backend_network
+
+  redis:
+    image: redis:7.2.3
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 volumes:
   mysql_data:
-
-networks:
-  backend_network:
+  redis_data:
