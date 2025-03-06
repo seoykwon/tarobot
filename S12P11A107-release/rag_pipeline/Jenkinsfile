@@ -1,0 +1,117 @@
+pipeline {
+    agent any
+
+    environment {
+        // Get the short commit hash
+        GIT_COMMIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()  
+        DOCKER_IMAGE = "fastapi:${GIT_COMMIT_HASH}"
+        DOCKER_CONTAINER = "fastapi-server"
+
+        // EC2 details
+        EC2_USER = "ubuntu"
+        EC2_HOST = "i12a107.p.ssafy.io"//"43.203.192.90"
+        SSH_KEY = credentials('ec2-ssh-key') // Add your EC2 SSH key to Jenkins Credentials
+
+        // GitLab details (if needed)
+        GITLAB_CREDENTIALS = credentials('gitlab-credentials') // GitLab credentials in Jenkins
+    }
+
+    triggers {
+        // Trigger on push or merge events
+        gitlab(
+            // triggerOnPush: true,
+            // triggerOnMergeRequest: true,
+            // branchFilterType: "All"
+        )
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    // Clone the GitLab repository
+                    git branch: 'release', url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11A107.git', credentialsId: 'gitlab-credentials'
+                }
+            }
+        }
+
+        stage('Build fastAPI') {
+            steps {
+                script {
+                    echo 'Building the rag_pipeline directory...'
+                    // Build the backend Spring Boot application
+                    sh 'cd /var/lib/jenkins/workspace/rag-pipeline'
+                    
+                    // /var/lib/jenkins/workspace/rag-pipeline/rag_pipeline/venv/bin/
+                    dir('rag_pipeline'){
+                        withEnv([
+                            "PINECONE_API_KEY=pcsk_6ssWBx_Kw5k4ugzwEMy8K7VSFA4kCWeYrerc6tysUvZzwQag2z7QGnKtABN2hzrUQh38M6",
+                            "PINECONE_ENV=us-east1-gcp",
+                            "UPSTAGE_API_KEY=up_5wE4YYiz6azmkChhV2nMkhoIVVe90",
+                            "REDIS_HOST=43.203.192.90",      // optional
+                            "REDIS_PORT=8025",
+                            "OPENAI_API_KEY=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",
+                            "OPENVIDU_URL=http://localhost:4443",
+                            "OPENVIDU_SECRET=a83ae865-15c1-4323-9e72-185636593a2e"
+                        ]) {
+                            sh """
+                            #!/bin/bash
+                            rm -rf venv
+                            python3 -m venv venv
+                            . venv/bin/activate
+                            pip install -r requirements.txt
+                            nohup uvicorn app.main:socket_app --host 0.0.0.0 --port 8030 --reload > uvicorn.log 2>&1 &
+                            """
+                            // sh """
+                            // #!/bin/bash
+                            // python3 -m venv --without-pip venv
+                            // . venv/bin/activate
+                            // curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+                            // python get-pip.py
+                            // pip install -r requirements.txt
+                            // nohup uvicorn app.main:socket_app --host 0.0.0.0 --port 8030 --reload > uvicorn.log 2>&1 &
+                            // """
+                        }
+                    }
+                    
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo 'Building the Docker image...'
+                    sh 'pwd'
+                    dir('rag_pipeline'){
+                        sh "docker build -t ${DOCKER_IMAGE} ."
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                        sh """
+                        sudo docker save -o /home/ubuntu/fast-server.tar ${DOCKER_IMAGE}
+                        sudo docker load -i /home/ubuntu/fast-server.tar 
+                        sudo docker stop fastapi-server
+                        sudo docker rm fastapi-server
+                        sudo docker run --name ${DOCKER_CONTAINER} -d -p 8040:8030 ${DOCKER_IMAGE}
+                        """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+
+        failure {
+            echo 'Deployment failed.'
+        }
+    }
+}

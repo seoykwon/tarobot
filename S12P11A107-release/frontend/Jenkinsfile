@@ -1,0 +1,96 @@
+pipeline {
+    agent any
+
+    environment {
+        // Get the short commit hash
+        GIT_COMMIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()  
+        DOCKER_IMAGE = "next-frontend:${GIT_COMMIT_HASH}"
+        DOCKER_CONTAINER = "next-fe"
+
+        // EC2 details
+        EC2_USER = "ubuntu"
+        EC2_HOST = "i12a107.p.ssafy.io"//"43.203.192.90"
+        SSH_KEY = credentials('ec2-ssh-key') // Add your EC2 SSH key to Jenkins Credentials
+
+        // GitLab details (if needed)
+        GITLAB_CREDENTIALS = credentials('gitlab-credentials') // GitLab credentials in Jenkins
+
+        // Fast API URL
+        FASTAPI_URL = "http://localhost:8000"
+    }
+
+    triggers {
+        // Trigger on push or merge events
+        gitlab(
+            // triggerOnPush: true,
+            // triggerOnMergeRequest: true,
+            // branchFilterType: "All"
+        )
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    // Clone the GitLab repository
+                    git branch: 'release', url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11A107.git', credentialsId: 'gitlab-credentials'
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                script {
+                    echo 'Building the project...'
+                    sh 'pwd'
+                    
+                    dir('frontend'){
+                        sh """
+                        npm install
+                        npm run build &
+                        """
+                    }
+                    
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo 'Building the Docker image...'
+                    // Build the Docker image for the Spring Boot backend
+                    sh "docker build -t ${DOCKER_IMAGE} /var/lib/jenkins/workspace/next-frontend/frontend/"
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                        sh """
+                        sudo docker save -o /home/ubuntu/front-server.tar ${DOCKER_IMAGE}
+                        sudo docker load -i /home/ubuntu/front-server.tar 
+                        
+                        sudo docker stop next-fe
+                        sudo docker rm next-fe
+
+                        sudo docker run --name ${DOCKER_CONTAINER} --env-file /home/ubuntu/.env -d -p 8060:3000 ${DOCKER_IMAGE}
+                        """
+                        // sudo docker stop next-fe
+                        // sudo docker rm next-fe
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+
+        failure {
+            echo 'Deployment failed.'
+        }
+    }
+}

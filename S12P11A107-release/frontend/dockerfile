@@ -1,0 +1,23 @@
+# Node.js 16 버전 (Alpine 기반)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# package.json과 package-lock.json 복사 후 의존성 설치
+COPY package*.json ./
+# Remove any previous dependencies (if cached)
+RUN rm -rf node_modules package-lock.json && npm install
+
+# 전체 소스 복사
+COPY . .
+
+# Ensure Next.js CLI has execution permissions
+RUN chmod +x node_modules/.bin/next
+
+# 프로덕션 빌드
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+# CMD ["npm", "start", "-p", "8060"]
